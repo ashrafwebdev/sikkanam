@@ -1,0 +1,30 @@
+# F-Droid build metadata for Sikkanam (draft).
+#
+# This file belongs in the fdroiddata repository at:
+#   metadata/com.ashrafwebdev.sikkanam.yml
+# Copy it there when you open the merge request on GitLab.
+# Check the field names against the current F-Droid docs before submitting.
+
+Categories:
+  - Money
+License: GPL-3.0-only
+AuthorName: ashrafwebdev
+SourceCode: https://github.com/ashrafwebdev/sikkanam
+IssueTracker: https://github.com/ashrafwebdev/sikkanam/issues
+AutoName: Sikkanam
+
+RepoType: git
+Repo: https://github.com/ashrafwebdev/sikkanam.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1
