@@ -21,4 +21,7 @@ data class Transaction(
     @ColumnInfo(defaultValue = "'NONE'") val halalStatus: HalalStatus = HalalStatus.NONE,
     // Marks an expense that is interest (riba), so the app can total it.
     @ColumnInfo(defaultValue = "0") val isRiba: Boolean = false,
+    // A template that repeats every month. Its copies point back to it through sourceId.
+    @ColumnInfo(defaultValue = "0") val recurringMonthly: Boolean = false,
+    val sourceId: Long? = null,
 )

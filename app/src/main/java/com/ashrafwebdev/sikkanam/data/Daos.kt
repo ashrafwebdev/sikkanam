@@ -12,6 +12,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY dateMillis DESC")
     fun observeAll(): Flow<List<Transaction>>
 
+    @Query("SELECT * FROM transactions")
+    suspend fun getAll(): List<Transaction>
+
     @Insert
     suspend fun insert(transaction: Transaction)
 

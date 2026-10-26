@@ -1,5 +1,7 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +19,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.TransactionType
@@ -98,6 +103,81 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         section("Expense categories", categories.filter { it.type == TransactionType.EXPENSE }, vm)
         section("Income categories", categories.filter { it.type == TransactionType.INCOME }, vm)
+
+        item { SecuritySection() }
+        item { BackupSection(vm) }
+    }
+}
+
+@Composable
+private fun SecuritySection() {
+    val context = LocalContext.current
+    var locked by remember { mutableStateOf(isLockEnabled(context)) }
+    val available = canUseLock(context)
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Lock app", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    if (available) "Ask for your fingerprint or screen lock when opening the app."
+                    else "Set up a fingerprint or screen lock on this phone to use this.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Switch(
+                checked = locked,
+                enabled = available,
+                onCheckedChange = {
+                    locked = it
+                    setLockEnabled(context, it)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BackupSection(vm: FinanceViewModel) {
+    val context = LocalContext.current
+    var status by remember { mutableStateOf<String?>(null) }
+
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(vm.backupText()) }
+            status = "Backup saved."
+        }
+    }
+    val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            status = if (text != null && vm.restoreBackup(text)) {
+                "Restore started. Your data is replaced with the backup."
+            } else {
+                "That file is not a Sikkanam backup."
+            }
+        }
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Backup and restore", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "A backup holds all transactions, budgets, payments, and categories. " +
+                    "Restoring replaces the data on this phone.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            FilledTonalButton(onClick = { saveLauncher.launch("sikkanam-backup.json") }) {
+                Text("Save backup")
+            }
+            OutlinedButton(onClick = { restoreLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) }) {
+                Text("Restore from backup")
+            }
+            status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        }
     }
 }
 

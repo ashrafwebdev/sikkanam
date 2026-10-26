@@ -47,6 +47,7 @@ import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TransactionType
+import java.util.Calendar
 
 @Composable
 fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -123,6 +124,10 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
 
         item {
+            YearSummary(allTx, monthStart)
+        }
+
+        item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 FilledTonalButton(onClick = { editing = null; showDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = null)
@@ -174,8 +179,10 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             categories = categories,
             allTransactions = allTx,
             onDismiss = { showDialog = false },
-            onSave = { type, amount, category, note, halal, riba ->
-                if (vm.saveTransaction(editing, type, amount, category, note, halal, riba)) showDialog = false
+            onSave = { type, amount, category, note, halal, riba, recurring ->
+                vm.saveTransaction(editing, type, amount, category, note, halal, riba, recurring).also { saved ->
+                    if (saved) showDialog = false
+                }
             },
         )
     }
@@ -199,6 +206,35 @@ private fun CategoryBreakdown(monthTx: List<Transaction>) {
                 val fraction = cents / total
                 Text("$category: ${formatMoney(cents)}")
                 LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
+
+/** Income and expense for each month of the year being viewed. Months with no entries are left out. */
+@Composable
+private fun YearSummary(all: List<Transaction>, monthStart: Long) {
+    val year = Calendar.getInstance().apply { timeInMillis = monthStart }.get(Calendar.YEAR)
+    val months = (0..11).map { month ->
+        val start = Calendar.getInstance().apply {
+            set(year, month, 1, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val end = addMonths(start, 1)
+        val inMonth = all.filter { it.dateMillis >= start && it.dateMillis < end }
+        val income = inMonth.filter { it.type == TransactionType.INCOME }.sumOf { it.amountCents }
+        val expense = inMonth.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amountCents }
+        Triple(start, income, expense)
+    }.filter { (_, income, expense) -> income > 0 || expense > 0 }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Year $year", style = MaterialTheme.typography.titleSmall)
+            if (months.isEmpty()) {
+                Text("No entries this year.")
+            }
+            months.forEach { (start, income, expense) ->
+                Text("${monthLabel(start)}: +${formatMoney(income)}  -${formatMoney(expense)}")
             }
         }
     }
@@ -245,7 +281,7 @@ private fun TransactionDialog(
     categories: List<Category>,
     allTransactions: List<Transaction>,
     onDismiss: () -> Unit,
-    onSave: (TransactionType, String, String, String, HalalStatus, Boolean) -> Unit,
+    onSave: (TransactionType, String, String, String, HalalStatus, Boolean, Boolean) -> Boolean,
 ) {
     var type by remember { mutableStateOf(existing?.type ?: TransactionType.EXPENSE) }
     var amount by remember { mutableStateOf(existing?.let { formatPlain(it.amountCents) } ?: "") }
@@ -253,6 +289,8 @@ private fun TransactionDialog(
     var note by remember { mutableStateOf(existing?.note ?: "") }
     var halal by remember { mutableStateOf(existing?.halalStatus ?: HalalStatus.NONE) }
     var riba by remember { mutableStateOf(existing?.isRiba ?: false) }
+    var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -307,10 +345,22 @@ private fun TransactionDialog(
                         Text("This is interest (riba)")
                     }
                 }
+                // Only the original entry can repeat. Copies made from it are already linked.
+                if (existing == null || existing.sourceId == null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = recurring, onCheckedChange = { recurring = it })
+                        Text("Repeat every month")
+                    }
+                }
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(type, amount, category, note, halal, riba) }) { Text("Save") }
+            TextButton(onClick = {
+                if (!onSave(type, amount, category, note, halal, riba, recurring)) {
+                    error = "Enter an amount above zero and choose a category."
+                }
+            }) { Text("Save") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }

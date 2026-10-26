@@ -17,7 +17,24 @@ android {
         versionName = "1.0"
     }
 
+    // CI sets SIKKANAM_KEYSTORE to a keystore kept in GitHub secrets. Signing with the same key
+    // every time lets each new build install over the previous one. Without it, the default
+    // debug key is used, as on a local machine.
+    val sharedKeystore: String? = System.getenv("SIKKANAM_KEYSTORE")?.takeIf { it.isNotBlank() }
+    val sharedPassword: String? = System.getenv("SIKKANAM_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+
     buildTypes {
+        getByName("debug") {
+            if (sharedKeystore != null && sharedPassword != null) {
+                signingConfig = signingConfigs.create("shared") {
+                    storeFile = file(sharedKeystore)
+                    storePassword = sharedPassword
+                    keyAlias = "sikkanam"
+                    keyPassword = sharedPassword
+                    storeType = "pkcs12"
+                }
+            }
+        }
         release {
             isMinifyEnabled = false
         }
@@ -43,6 +60,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+
+    implementation("androidx.biometric:biometric:1.1.0")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
