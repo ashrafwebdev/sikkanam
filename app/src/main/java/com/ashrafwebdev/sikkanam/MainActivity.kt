@@ -3,7 +3,7 @@ package com.ashrafwebdev.sikkanam
 import android.Manifest
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
@@ -24,10 +24,10 @@ import com.ashrafwebdev.sikkanam.ui.canUseLock
 import com.ashrafwebdev.sikkanam.ui.SikkanamTheme
 import com.ashrafwebdev.sikkanam.ui.isLockEnabled
 
+private const val NOTIFICATION_PERMISSION_REQUEST = 1001
+
 // FragmentActivity (instead of ComponentActivity) is needed for the biometric prompt.
 class MainActivity : FragmentActivity() {
-    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
-
     override fun onPause() {
         super.onPause()
         // Refresh the home-screen widget so it shows the latest balance when the user leaves the app.
@@ -37,8 +37,9 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         scheduleReminders(this)
+        // FragmentActivity only accepts small request codes, so this uses the older API with a small code.
         if (!canNotify(this)) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST)
         }
         setContent {
             SikkanamTheme {
