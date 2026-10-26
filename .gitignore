@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+*.iml
+
+# Local config (SDK path, secrets)
+local.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.swp
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
