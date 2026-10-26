@@ -19,7 +19,7 @@ Repo: https://github.com/ashrafwebdev/sikkanam.git
 Builds:
   - versionName: 1.0.0
     versionCode: 1
-    commit: v1.0.0
+    commit: 1ee41fd19a579fc6a7ac6559dd413e93cad1663f
     subdir: app
     gradle:
       - yes
