@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
+import androidx.glance.appwidget.updateAll
 import com.ashrafwebdev.sikkanam.widget.BalanceWidget
 import com.ashrafwebdev.sikkanam.reminders.scheduleReminders
 import androidx.compose.runtime.Composable

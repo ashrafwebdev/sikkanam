@@ -1,6 +1,7 @@
 package com.ashrafwebdev.sikkanam.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +35,7 @@ class BalanceWidget : GlanceAppWidget() {
                     .fillMaxSize()
                     .padding(12.dp)
                     .background(Color(0xFFCDEFE1))
-                    .clickable(actionStartActivity<MainActivity>()),
+                    .clickable(actionStartActivity(Intent(context, MainActivity::class.java))),
             ) {
                 Text(
                     "Sikkanam balance",
