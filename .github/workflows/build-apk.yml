@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -17,10 +20,8 @@ jobs:
           java-version: '17'
 
       - name: Restore shared signing key
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.HAS_KEYSTORE == 'true'
         run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sikkanam.jks"
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --no-daemon
@@ -28,7 +29,7 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --no-daemon
         env:
-          SIKKANAM_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' && format('{0}/sikkanam.jks', runner.temp) || '' }}
+          SIKKANAM_KEYSTORE: ${{ env.HAS_KEYSTORE == 'true' && format('{0}/sikkanam.jks', runner.temp) || '' }}
           SIKKANAM_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
