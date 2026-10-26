@@ -1,24 +1,43 @@
 # Sikkanam
 
-A free, offline income and expense tracker for Android. Sikkanam (சிக்கனம்) is Tamil for thrift.
+A free, offline income and expense tracker for Android. The logo is the Tamil word சிக்கனம் (sikkanam), which means thrift.
 
 ## License
 
 Sikkanam is free software, released under the [GNU General Public License v3.0](LICENSE).
 
-## Features (v1)
+## Features
 
-- Add income and expense entries with amount, category, and optional note
-- Balance, income, and expense totals
-- Data stays on the device: no account, no server, no ads
+**Tracking**
+- Add, edit, and delete income and expense entries, with a category and an optional note
+- Month-by-month view, with previous and next month navigation
+- Balance, income, and expense totals for the month
+- Search by category or note, and filter by income or expense
+- Spending by category, shown as bars
+- Export all transactions to CSV
 
-## Planned
+**Budgets**
+- Monthly limit per category, with progress and an over-budget warning
 
-- Zakat calculator (nisab and haul)
-- Halal and haram income tagging, with purification tracking
-- Sadaqah and donation log
-- Interest (riba) flags on expenses
-- Hijri date display
+**Islamic finance**
+- Mark income as halal, doubtful, or haram, and track purification due from haram income
+- Record sadaqah and purification payments
+- Mark expenses that are interest (riba), and total the interest paid each month
+- Zakat calculator with silver or gold nisab, using the 2.5% rate
+- Today's date in the Hijri calendar
+
+Data stays on the device. There's no account, no ads, and no internet permission.
+
+## Not yet built
+
+- Accounts and transfers between them
+- Recurring transactions
+- Multiple currencies
+- Attachments, such as receipt photos
+- Cloud sync and backup
+- Biometric lock and home screen widget
+- Tamil and Arabic translations
+- Reports over a year
 
 ## Tech stack
 
@@ -29,15 +48,15 @@ Sikkanam is free software, released under the [GNU General Public License v3.0](
 ## Getting started
 
 1. Install Android Studio (it bundles the JDK and the Android SDK).
-2. Open this folder in Android Studio. It will create the Gradle wrapper and sync the project.
+2. Open this folder in Android Studio. It will sync the project.
 3. Run the `app` configuration on an emulator or a device.
 
-Command line, once the wrapper exists:
+Command line:
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest :app:assembleDebug
 ```
 
 ## Status
 
-The first version has not been compiled or run yet. The Android SDK was not available when the project was created.
+The debug APK is built by GitHub Actions on every push to `main`.
