@@ -129,11 +129,11 @@ private fun BudgetDialog(
         title = { Text(if (existing == null) "Add budget" else "Change budget") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    label = { Text("Category") },
-                    singleLine = true,
+                CategorySelector(
+                    label = "Category",
+                    options = Categories.expense,
+                    selected = category,
+                    onSelect = { category = it },
                     enabled = existing == null,
                 )
                 OutlinedTextField(

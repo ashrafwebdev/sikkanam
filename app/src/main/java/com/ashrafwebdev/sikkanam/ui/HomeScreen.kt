@@ -60,6 +60,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
     val monthStart by vm.monthStart.collectAsState()
     val monthTx by vm.monthTransactions.collectAsState()
+    val allTx by vm.transactions.collectAsState()
     val visible by vm.visibleTransactions.collectAsState()
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
@@ -162,6 +163,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     if (showDialog) {
         TransactionDialog(
             existing = editing,
+            allTransactions = allTx,
             onDismiss = { showDialog = false },
             onSave = { type, amount, category, note, halal, riba ->
                 if (vm.saveTransaction(editing, type, amount, category, note, halal, riba)) showDialog = false
@@ -231,6 +233,7 @@ private fun HalalStatus.label(): String = when (this) {
 @Composable
 private fun TransactionDialog(
     existing: Transaction?,
+    allTransactions: List<Transaction>,
     onDismiss: () -> Unit,
     onSave: (TransactionType, String, String, String, HalalStatus, Boolean) -> Unit,
 ) {
@@ -249,12 +252,12 @@ private fun TransactionDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = type == TransactionType.EXPENSE,
-                        onClick = { type = TransactionType.EXPENSE },
+                        onClick = { if (type != TransactionType.EXPENSE) category = ""; type = TransactionType.EXPENSE },
                         label = { Text("Expense") },
                     )
                     FilterChip(
                         selected = type == TransactionType.INCOME,
-                        onClick = { type = TransactionType.INCOME },
+                        onClick = { if (type != TransactionType.INCOME) category = ""; type = TransactionType.INCOME },
                         label = { Text("Income") },
                     )
                 }
@@ -265,11 +268,11 @@ private fun TransactionDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    label = { Text("Category") },
-                    singleLine = true,
+                CategorySelector(
+                    label = "Category",
+                    options = categoryOptions(type, allTransactions),
+                    selected = category,
+                    onSelect = { category = it },
                 )
                 OutlinedTextField(
                     value = note,
