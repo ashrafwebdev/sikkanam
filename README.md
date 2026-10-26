@@ -2,6 +2,10 @@
 
 A free, offline income and expense tracker for Android. Sikkanam (சிக்கனம்) is Tamil for thrift.
 
+## License
+
+Sikkanam is free software, released under the [GNU General Public License v3.0](LICENSE).
+
 ## Features (v1)
 
 - Add income and expense entries with amount, category, and optional note

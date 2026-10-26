@@ -1,0 +1,1 @@
+First release: add income and expense entries, see your balance, and delete entries. All data stays on the device.

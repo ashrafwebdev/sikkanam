@@ -1,0 +1,10 @@
+Sikkanam (சிக்கனம்) is a simple, private income and expense tracker. The name is Tamil for thrift.
+
+Track what comes in and what goes out:
+- Add income or expense entries with an amount, a category, and an optional note
+- See your balance, total income, and total expenses at a glance
+- Review and delete past entries
+
+Your data stays on your phone. Sikkanam needs no account, shows no ads, and doesn't connect to the internet.
+
+Sikkanam is free and open source under the GPL-3.0 license.
