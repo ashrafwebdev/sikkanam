@@ -3,14 +3,23 @@ package com.ashrafwebdev.sikkanam.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ashrafwebdev.sikkanam.data.Account
 import com.ashrafwebdev.sikkanam.data.AppDatabase
+import com.ashrafwebdev.sikkanam.data.Transfer
 import com.ashrafwebdev.sikkanam.data.BackupData
 import com.ashrafwebdev.sikkanam.data.Budget
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.Donation
 import com.ashrafwebdev.sikkanam.data.DonationKind
+import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
+import com.ashrafwebdev.sikkanam.data.SavingsGoal
 import com.ashrafwebdev.sikkanam.data.Transaction
+import com.ashrafwebdev.sikkanam.data.TripContribution
+import com.ashrafwebdev.sikkanam.data.TripExpense
+import com.ashrafwebdev.sikkanam.data.TripGroup
+import com.ashrafwebdev.sikkanam.data.TripMember
+import com.ashrafwebdev.sikkanam.data.TripSettledMonth
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.data.parseBackup
 import com.ashrafwebdev.sikkanam.data.toJson
@@ -33,6 +42,9 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val donations: StateFlow<List<Donation>> = db.donationDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val goals: StateFlow<List<SavingsGoal>> = db.savingsGoalDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** The master category list, for both income and expense. */
@@ -71,6 +83,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         generateRecurringTransactions()
+        generateRecurringTripExpenses()
     }
 
     /**
@@ -128,9 +141,13 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         halal: HalalStatus,
         isRiba: Boolean,
         recurringMonthly: Boolean,
+        party: String,
+        paymentMethod: String,
+        accountId: Long? = null,
+        receiptPath: String? = null,
     ): Boolean {
         val cents = parseCents(amountText) ?: return false
-        if (category.isBlank()) return false
+        if (category.isBlank() || party.isBlank() || note.isBlank() || paymentMethod.isBlank()) return false
 
         val entry = Transaction(
             id = existing?.id ?: 0,
@@ -138,6 +155,10 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             amountCents = cents,
             category = category.trim(),
             note = note.trim(),
+            party = party.trim(),
+            paymentMethod = paymentMethod.trim(),
+            accountId = accountId,
+            receiptPath = receiptPath,
             dateMillis = existing?.dateMillis ?: System.currentTimeMillis(),
             halalStatus = if (type == TransactionType.INCOME) halal else HalalStatus.NONE,
             isRiba = type == TransactionType.EXPENSE && isRiba,
@@ -145,6 +166,9 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             recurringMonthly = existing?.sourceId == null && recurringMonthly,
             sourceId = existing?.sourceId,
         )
+        // Replacing or removing a receipt leaves the old photo unused, so delete it.
+        val oldReceipt = existing?.receiptPath
+        if (oldReceipt != null && oldReceipt != receiptPath) deleteReceipt(getApplication<Application>(), oldReceipt)
         viewModelScope.launch {
             if (existing == null) db.transactionDao().insert(entry) else db.transactionDao().update(entry)
         }
@@ -152,6 +176,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun deleteTransaction(id: Long) {
+        transactions.value.firstOrNull { it.id == id }?.receiptPath?.let { deleteReceipt(getApplication<Application>(), it) }
         viewModelScope.launch { db.transactionDao().delete(id) }
     }
 
@@ -196,13 +221,252 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch { db.categoryDao().delete(name, type) }
     }
 
+    val tripGroups: StateFlow<List<TripGroup>> = db.tripDao().observeGroups()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val tripMembers: StateFlow<List<TripMember>> = db.tripDao().observeMembers()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val tripContributions: StateFlow<List<TripContribution>> = db.tripDao().observeContributions()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val tripExpenses: StateFlow<List<TripExpense>> = db.tripDao().observeExpenses()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun addTripGroup(name: String, kind: GroupKind = GroupKind.TRIP): Boolean {
+        if (name.isBlank()) return false
+        viewModelScope.launch { db.tripDao().insertGroup(TripGroup(name = name.trim(), kind = kind)) }
+        return true
+    }
+
+    /** Deleting a trip removes its members, contributions, and expenses too. */
+    fun deleteTripGroup(groupId: Long) {
+        viewModelScope.launch {
+            val tripDao = db.tripDao()
+            tripContributions.value.filter { it.groupId == groupId }.forEach { tripDao.deleteContribution(it.id) }
+            tripExpenses.value.filter { it.groupId == groupId }.forEach { tripDao.deleteExpense(it.id) }
+            tripMembers.value.filter { it.groupId == groupId }.forEach { tripDao.deleteMember(it.id) }
+            tripSettledMonths.value.filter { it.groupId == groupId }.forEach {
+                tripDao.deleteSettledMonth(groupId, it.monthMillis)
+            }
+            tripDao.deleteGroup(groupId)
+        }
+    }
+
+    fun addTripMember(groupId: Long, name: String): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank()) return false
+        if (tripMembers.value.any { it.groupId == groupId && it.name.equals(clean, ignoreCase = true) }) return false
+        viewModelScope.launch { db.tripDao().insertMember(TripMember(groupId = groupId, name = clean)) }
+        return true
+    }
+
+    /** A member with money or expenses on record can't be removed, so the totals stay correct. */
+    fun deleteTripMember(member: TripMember): Boolean {
+        val used = tripContributions.value.any { it.memberId == member.id } ||
+            tripExpenses.value.any { it.paidByMemberId == member.id }
+        if (used) return false
+        viewModelScope.launch { db.tripDao().deleteMember(member.id) }
+        return true
+    }
+
+    fun addTripContribution(groupId: Long, memberId: Long, amountText: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        viewModelScope.launch {
+            db.tripDao().insertContribution(
+                TripContribution(groupId = groupId, memberId = memberId, amountCents = cents, dateMillis = System.currentTimeMillis())
+            )
+        }
+        return true
+    }
+
+    fun deleteTripContribution(id: Long) {
+        viewModelScope.launch { db.tripDao().deleteContribution(id) }
+    }
+
+    /**
+     * [paidByMemberId] is null when the cost is paid from the shared pool.
+     * [participantIds] are the members who share this cost. At least one is required.
+     * [recurring] repeats the cost every month, from this month on.
+     */
+    fun addTripExpense(
+        groupId: Long,
+        paidByMemberId: Long?,
+        description: String,
+        amountText: String,
+        participantIds: List<Long>,
+        recurring: Boolean = false,
+    ): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (description.isBlank() || participantIds.isEmpty()) return false
+        viewModelScope.launch {
+            db.tripDao().insertExpense(
+                TripExpense(
+                    groupId = groupId,
+                    paidByMemberId = paidByMemberId,
+                    description = description.trim(),
+                    amountCents = cents,
+                    dateMillis = System.currentTimeMillis(),
+                    participantIds = TripExpense.encode(participantIds),
+                    recurringMonthly = recurring,
+                )
+            )
+        }
+        return true
+    }
+
+    val tripSettledMonths: StateFlow<List<TripSettledMonth>> = db.tripDao().observeSettledMonths()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Marks a month as settled, so balances after it start from zero. */
+    fun markMonthSettled(groupId: Long, monthStart: Long) {
+        viewModelScope.launch {
+            db.tripDao().insertSettledMonth(TripSettledMonth(groupId = groupId, monthMillis = monthStart))
+        }
+    }
+
+    fun reopenMonth(groupId: Long, monthStart: Long) {
+        viewModelScope.launch { db.tripDao().deleteSettledMonth(groupId, monthStart) }
+    }
+
+    val accounts: StateFlow<List<Account>> = db.accountDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val transfers: StateFlow<List<Transfer>> = db.transferDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Current balance of each account: its opening balance, plus income, minus expenses, plus transfers in, minus transfers out. */
+    val accountBalances: StateFlow<Map<Long, Long>> =
+        combine(accounts, transactions, transfers) { accs, txs, moves ->
+            accs.associate { account ->
+                val income = txs.filter { it.accountId == account.id && it.type == TransactionType.INCOME }.sumOf { it.amountCents }
+                val expense = txs.filter { it.accountId == account.id && it.type == TransactionType.EXPENSE }.sumOf { it.amountCents }
+                val movedIn = moves.filter { it.toAccountId == account.id }.sumOf { it.amountCents }
+                val movedOut = moves.filter { it.fromAccountId == account.id }.sumOf { it.amountCents }
+                account.id to (account.openingCents + income - expense + movedIn - movedOut)
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /** Adds an account. The opening balance may be zero, but not negative. */
+    fun addAccount(name: String, openingText: String): Boolean {
+        if (name.isBlank()) return false
+        val opening = openingText.trim().toDoubleOrNull()?.takeIf { it >= 0 } ?: return false
+        viewModelScope.launch {
+            db.accountDao().insert(Account(name = name.trim(), openingCents = Math.round(opening * 100)))
+        }
+        return true
+    }
+
+    fun deleteAccount(id: Long) {
+        viewModelScope.launch { db.accountDao().delete(id) }
+    }
+
+    /** Moves money between two different accounts. */
+    fun addTransfer(fromId: Long, toId: Long, amountText: String, note: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (fromId == toId) return false
+        viewModelScope.launch {
+            db.transferDao().insert(
+                Transfer(
+                    fromAccountId = fromId,
+                    toAccountId = toId,
+                    amountCents = cents,
+                    dateMillis = System.currentTimeMillis(),
+                    note = note.trim(),
+                )
+            )
+        }
+        return true
+    }
+
+    fun deleteTransfer(id: Long) {
+        viewModelScope.launch { db.transferDao().delete(id) }
+    }
+
+    /** Switches a family group between equal shares and income-based shares. */
+    fun setSplitByIncome(group: TripGroup, byIncome: Boolean) {
+        viewModelScope.launch { db.tripDao().updateGroup(group.copy(splitByIncome = byIncome)) }
+    }
+
+    /** Sets a member's monthly income. Zero is allowed; a blank or negative amount is not. */
+    fun setMemberIncome(member: TripMember, amountText: String): Boolean {
+        val amount = amountText.trim().toDoubleOrNull() ?: return false
+        if (amount < 0) return false
+        val cents = Math.round(amount * 100)
+        viewModelScope.launch { db.tripDao().updateMember(member.copy(incomeCents = cents)) }
+        return true
+    }
+
+    /**
+     * Adds a copy of each monthly family expense for every month since it started, up to this
+     * month. Copies that already exist are skipped, so this is safe to run on every launch.
+     */
+    private fun generateRecurringTripExpenses() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tripDao = db.tripDao()
+            val all = tripDao.getAllExpenses()
+            val now = startOfMonth(System.currentTimeMillis())
+            all.filter { it.recurringMonthly && it.sourceId == null }.forEach { template ->
+                val templateMonth = startOfMonth(template.dateMillis)
+                val dayOffset = template.dateMillis - templateMonth
+                var month = addMonths(templateMonth, 1)
+                while (month <= now) {
+                    val exists = all.any { it.sourceId == template.id && startOfMonth(it.dateMillis) == month }
+                    if (!exists) {
+                        tripDao.insertExpense(
+                            template.copy(
+                                id = 0,
+                                dateMillis = month + dayOffset,
+                                recurringMonthly = false,
+                                sourceId = template.id,
+                            )
+                        )
+                    }
+                    month = addMonths(month, 1)
+                }
+            }
+        }
+    }
+
+    fun deleteTripExpense(id: Long) {
+        viewModelScope.launch { db.tripDao().deleteExpense(id) }
+    }
+
+    /** Adds a savings goal. Returns false if the name is blank or the target is not above zero. */
+    fun saveGoal(name: String, targetText: String): Boolean {
+        val cents = parseCents(targetText) ?: return false
+        if (name.isBlank()) return false
+        viewModelScope.launch {
+            db.savingsGoalDao().insert(SavingsGoal(name = name.trim(), targetCents = cents, savedCents = 0))
+        }
+        return true
+    }
+
+    /** Puts money toward a goal. Returns false if the amount is not above zero. */
+    fun addToGoal(goal: SavingsGoal, amountText: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        viewModelScope.launch {
+            db.savingsGoalDao().update(goal.copy(savedCents = goal.savedCents + cents))
+        }
+        return true
+    }
+
+    fun deleteGoal(id: Long) {
+        viewModelScope.launch { db.savingsGoalDao().delete(id) }
+    }
+
     /** The whole app's data as backup text. */
     fun backupText(): String = BackupData(
         transactions = transactions.value,
         budgets = budgets.value,
         donations = donations.value,
         categories = categories.value,
+        goals = goals.value,
+        tripGroups = tripGroups.value,
+        tripMembers = tripMembers.value,
+        tripContributions = tripContributions.value,
+        tripExpenses = tripExpenses.value,
+        tripSettledMonths = tripSettledMonths.value,
+        accounts = accounts.value,
+        transfers = transfers.value,
     ).toJson()
+
 
     /**
      * Replaces all data with the contents of a backup. Returns false if the text isn't a valid backup.
@@ -220,6 +484,14 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.transactions.forEach { db.transactionDao().insert(it) }
             data.budgets.forEach { db.budgetDao().save(it) }
             data.donations.forEach { db.donationDao().insert(it) }
+            data.goals.forEach { db.savingsGoalDao().insert(it) }
+            data.tripGroups.forEach { db.tripDao().insertGroup(it) }
+            data.tripMembers.forEach { db.tripDao().insertMember(it) }
+            data.tripContributions.forEach { db.tripDao().insertContribution(it) }
+            data.tripExpenses.forEach { db.tripDao().insertExpense(it) }
+            data.tripSettledMonths.forEach { db.tripDao().insertSettledMonth(it) }
+            data.accounts.forEach { db.accountDao().insert(it) }
+            data.transfers.forEach { db.transferDao().insert(it) }
         }
         return true
     }

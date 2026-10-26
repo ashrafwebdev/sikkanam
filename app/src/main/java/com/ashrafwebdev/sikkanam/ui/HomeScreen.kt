@@ -19,6 +19,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -43,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.data.Account
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.Transaction
@@ -64,6 +70,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val monthTx by vm.monthTransactions.collectAsState()
     val allTx by vm.transactions.collectAsState()
     val categories by vm.categories.collectAsState()
+    val accounts by vm.accounts.collectAsState()
     val visible by vm.visibleTransactions.collectAsState()
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
@@ -103,14 +110,25 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Balance (carried forward)", style = MaterialTheme.typography.labelLarge)
-                    Text(formatMoney(balanceToDate), style = MaterialTheme.typography.headlineMedium)
-                    Spacer(Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        "Balance (carried forward)",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        formatMoney(balanceToDate),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Income: ${formatMoney(income)}")
-                        Text("Expenses: ${formatMoney(expense)}")
+                        Text("In  ${formatMoney(income)}", color = IncomeColor, fontWeight = FontWeight.SemiBold)
+                        Text("Out  ${formatMoney(expense)}", color = ExpenseColor, fontWeight = FontWeight.SemiBold)
                     }
                     if (interest > 0) {
                         Text("Interest paid (riba): ${formatMoney(interest)}")
@@ -125,6 +143,10 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         item {
             YearSummary(allTx, monthStart)
+        }
+
+        item {
+            AccountsCard(vm)
         }
 
         item {
@@ -179,8 +201,11 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             categories = categories,
             allTransactions = allTx,
             onDismiss = { showDialog = false },
-            onSave = { type, amount, category, note, halal, riba, recurring ->
-                vm.saveTransaction(editing, type, amount, category, note, halal, riba, recurring).also { saved ->
+            accounts = accounts,
+            onSave = { type, amount, category, party, note, method, halal, riba, recurring, accountId, receipt ->
+                vm.saveTransaction(
+                    editing, type, amount, category, note, halal, riba, recurring, party, method, accountId, receipt,
+                ).also { saved ->
                     if (saved) showDialog = false
                 }
             },
@@ -211,6 +236,8 @@ private fun CategoryBreakdown(monthTx: List<Transaction>) {
     }
 }
 
+private const val NO_ACCOUNT = "No account"
+
 /** Income and expense for each month of the year being viewed. Months with no entries are left out. */
 @Composable
 private fun YearSummary(all: List<Transaction>, monthStart: Long) {
@@ -227,14 +254,26 @@ private fun YearSummary(all: List<Transaction>, monthStart: Long) {
         Triple(start, income, expense)
     }.filter { (_, income, expense) -> income > 0 || expense > 0 }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Year $year", style = MaterialTheme.typography.titleSmall)
-            if (months.isEmpty()) {
-                Text("No entries this year.")
+    // Show the latest few months, so the list stays short as data grows.
+    var showAll by remember { mutableStateOf(false) }
+    val visibleMonths = if (showAll) months else months.takeLast(3)
+
+    SectionCard {
+        Text("Year $year", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        if (months.isEmpty()) {
+            Text("No entries this year.", style = MaterialTheme.typography.bodySmall)
+        }
+        visibleMonths.forEach { (start, income, expense) ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(monthLabel(start), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                Text("+${formatMoney(income)}", style = MaterialTheme.typography.bodySmall, color = IncomeColor)
+                Spacer(Modifier.width(8.dp))
+                Text("-${formatMoney(expense)}", style = MaterialTheme.typography.bodySmall, color = ExpenseColor)
             }
-            months.forEach { (start, income, expense) ->
-                Text("${monthLabel(start)}: +${formatMoney(income)}  -${formatMoney(expense)}")
+        }
+        if (months.size > 3) {
+            TextButton(onClick = { showAll = !showAll }) {
+                Text(if (showAll) "Show fewer" else "Show all ${months.size} months")
             }
         }
     }
@@ -247,20 +286,27 @@ private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, onDele
 
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 0.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(transaction.category, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(transaction.category, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 val details = buildList {
                     add(dateLabel(transaction.dateMillis))
+                    if (transaction.party.isNotBlank()) add(if (isIncome) "From ${transaction.party}" else "To ${transaction.party}")
                     if (transaction.note.isNotBlank()) add(transaction.note)
+                    if (transaction.paymentMethod.isNotBlank()) add(transaction.paymentMethod)
                     if (isIncome && transaction.halalStatus != HalalStatus.NONE) add(transaction.halalStatus.label())
                     if (transaction.isRiba) add("Interest (riba)")
                 }
                 Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
             }
-            Text("$sign${formatMoney(transaction.amountCents)}", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "$sign${formatMoney(transaction.amountCents)}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isIncome) IncomeColor else ExpenseColor,
+            )
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete")
             }
@@ -281,12 +327,24 @@ private fun TransactionDialog(
     categories: List<Category>,
     allTransactions: List<Transaction>,
     onDismiss: () -> Unit,
-    onSave: (TransactionType, String, String, String, HalalStatus, Boolean, Boolean) -> Boolean,
+    accounts: List<Account>,
+    onSave: (TransactionType, String, String, String, String, String, HalalStatus, Boolean, Boolean, Long?, String?) -> Boolean,
 ) {
+    var accountName by remember {
+        mutableStateOf(accounts.firstOrNull { it.id == existing?.accountId }?.name ?: "")
+    }
+    val context = LocalContext.current
+    var receiptName by remember { mutableStateOf(existing?.receiptPath) }
+    val pickReceipt = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) saveReceipt(context, uri)?.let { receiptName = it }
+    }
+    val preview = remember(receiptName) { receiptName?.let { loadReceipt(context, it) } }
     var type by remember { mutableStateOf(existing?.type ?: TransactionType.EXPENSE) }
     var amount by remember { mutableStateOf(existing?.let { formatPlain(it.amountCents) } ?: "") }
     var category by remember { mutableStateOf(existing?.category ?: "") }
+    var party by remember { mutableStateOf(existing?.party ?: "") }
     var note by remember { mutableStateOf(existing?.note ?: "") }
+    var paymentMethod by remember { mutableStateOf(existing?.paymentMethod ?: "") }
     var halal by remember { mutableStateOf(existing?.halalStatus ?: HalalStatus.NONE) }
     var riba by remember { mutableStateOf(existing?.isRiba ?: false) }
     var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
@@ -317,17 +375,52 @@ private fun TransactionDialog(
                     singleLine = true,
                 )
                 CategorySelector(
-                    label = "Category",
+                    label = "What (category)",
                     options = categoryOptions(type, categories, allTransactions),
                     selected = category,
                     onSelect = { category = it },
                 )
                 OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text("Note (optional)") },
+                    value = party,
+                    onValueChange = { party = it },
+                    label = { Text(if (type == TransactionType.INCOME) "From whom" else "To whom") },
                     singleLine = true,
                 )
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text("For what") },
+                    singleLine = true,
+                )
+                CategorySelector(
+                    label = "By which (payment method)",
+                    options = paymentMethodOptions,
+                    selected = paymentMethod,
+                    onSelect = { paymentMethod = it },
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { pickReceipt.launch("image/*") }) {
+                        Text(if (receiptName == null) "Attach receipt" else "Replace receipt")
+                    }
+                    if (receiptName != null) {
+                        TextButton(onClick = { receiptName = null }) { Text("Remove") }
+                    }
+                }
+                preview?.let {
+                    Image(
+                        bitmap = it,
+                        contentDescription = "Receipt",
+                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                    )
+                }
+                if (accounts.isNotEmpty()) {
+                    CategorySelector(
+                        label = "Account",
+                        options = listOf(NO_ACCOUNT) + accounts.map { it.name },
+                        selected = accountName.ifBlank { NO_ACCOUNT },
+                        onSelect = { accountName = if (it == NO_ACCOUNT) "" else it },
+                    )
+                }
                 if (type == TransactionType.INCOME) {
                     Text("Source (Islamic status)", style = MaterialTheme.typography.labelLarge)
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -357,8 +450,9 @@ private fun TransactionDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (!onSave(type, amount, category, note, halal, riba, recurring)) {
-                    error = "Enter an amount above zero and choose a category."
+                val accountId = accounts.firstOrNull { it.name == accountName }?.id
+                if (!onSave(type, amount, category, party, note, paymentMethod, halal, riba, recurring, accountId, receiptName)) {
+                    error = "Fill in the amount (above zero), category, who, what for, and payment method."
                 }
             }) { Text("Save") }
         },

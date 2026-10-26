@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">சிக்கனம்</string>
+    <string name="tab_home">முகப்பு</string>
+    <string name="tab_budgets">வரவுசெலவு</string>
+    <string name="tab_charity">தர்மம்</string>
+    <string name="tab_trips">பயணம்</string>
+    <string name="tab_zakat">ஸகாத்</string>
+    <string name="tab_settings">அமைப்புகள்</string>
+    <string name="brand_name">சிக்கனம்</string>
+    <string name="brand_tamil">சிக்கனம்</string>
+</resources>

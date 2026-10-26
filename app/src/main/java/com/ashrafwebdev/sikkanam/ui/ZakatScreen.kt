@@ -3,12 +3,13 @@ package com.ashrafwebdev.sikkanam.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.zakat.ZakatCalculator
@@ -57,38 +59,56 @@ fun ZakatScreen(modifier: Modifier = Modifier) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Zakat calculator", style = MaterialTheme.typography.titleLarge)
-        Text(
-            "Enter your wealth in one currency. Gold and silver are weighed in grams, with the price per gram. " +
-                "Zakat is 2.5% of wealth above the nisab, held for one lunar year. Check your situation with a scholar.",
-            style = MaterialTheme.typography.bodySmall,
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = useSilver, onClick = { useSilver = true }, label = { Text("Silver nisab") })
-            FilterChip(selected = !useSilver, onClick = { useSilver = false }, label = { Text("Gold nisab") })
+        // Result first, so the answer is visible without scrolling.
+        SectionCard(
+            containerColor = if (result.isDue) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            Text(
+                if (result.isDue) "Zakat due" else "No zakat due",
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                if (result.isDue) formatMoney(toCents(result.zakat)) else formatMoney(0L),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                "Net wealth ${formatMoney(toCents(result.wealth))} · nisab ${formatMoney(toCents(result.nisab))}",
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
 
-        MoneyField("Cash and bank balance", cash) { cash = it }
-        MoneyField("Gold (grams)", goldGrams) { goldGrams = it }
-        MoneyField("Gold price per gram", goldPrice) { goldPrice = it }
-        MoneyField("Silver (grams)", silverGrams) { silverGrams = it }
-        MoneyField("Silver price per gram", silverPrice) { silverPrice = it }
-        MoneyField("Trade goods (stock for sale)", tradeGoods) { tradeGoods = it }
-        MoneyField("Money owed to you", owed) { owed = it }
-        MoneyField("Debts due now", debts) { debts = it }
-
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Net wealth: ${formatMoney(toCents(result.wealth))}")
-                Text("Nisab: ${formatMoney(toCents(result.nisab))}")
-                if (result.isDue) {
-                    Text("Zakat due: ${formatMoney(toCents(result.zakat))}", style = MaterialTheme.typography.titleMedium)
-                } else {
-                    Text("No zakat due. Your wealth is below the nisab.")
-                }
+        SectionCard {
+            SectionHeader(title = "Nisab threshold")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = useSilver, onClick = { useSilver = true }, label = { Text("Silver (595 g)") })
+                FilterChip(selected = !useSilver, onClick = { useSilver = false }, label = { Text("Gold (85 g)") })
             }
         }
+
+        SectionCard {
+            SectionHeader(title = "Assets")
+            MoneyField("Cash and bank balance", cash) { cash = it }
+            MoneyField("Gold (grams)", goldGrams) { goldGrams = it }
+            MoneyField("Gold price per gram", goldPrice) { goldPrice = it }
+            MoneyField("Silver (grams)", silverGrams) { silverGrams = it }
+            MoneyField("Silver price per gram", silverPrice) { silverPrice = it }
+            MoneyField("Trade goods (stock for sale)", tradeGoods) { tradeGoods = it }
+            MoneyField("Money owed to you", owed) { owed = it }
+        }
+
+        SectionCard {
+            SectionHeader(title = "Debts")
+            MoneyField("Debts due now", debts) { debts = it }
+        }
+
+        Text(
+            "Zakat is 2.5% of wealth above the nisab, held for one lunar year. " +
+                "The app doesn't check the lunar year for you. Check your situation with a scholar.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Spacer(Modifier.height(16.dp))
     }
 }
 

@@ -28,6 +28,9 @@ fun categoryOptions(type: TransactionType, master: List<Category>, all: List<Tra
     return (fromMaster + used).distinct()
 }
 
+/** How money was paid or received. Fixed, so reports group the same way every time. */
+val paymentMethodOptions = listOf("Cash", "Bank transfer", "Debit card", "Credit card", "Mobile wallet", "Cheque", "Other")
+
 /** A dropdown that only offers [options], so the chosen value always matches an existing category. */
 @Composable
 fun CategorySelector(

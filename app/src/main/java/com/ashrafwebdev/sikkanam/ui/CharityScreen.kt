@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -31,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.data.Donation
@@ -57,47 +57,84 @@ fun CharityScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Purification due", style = MaterialTheme.typography.labelLarge)
-                    Text(formatMoney(purificationDue), style = MaterialTheme.typography.headlineMedium)
-                    Text("Haram income recorded: ${formatMoney(haramIncome)}")
-                    Text("Purified so far: ${formatMoney(purificationPaid)}")
-                    if (doubtfulIncome > 0) {
-                        Text("Doubtful income to review: ${formatMoney(doubtfulIncome)}")
-                    }
-                    Text("Sadaqah given: ${formatMoney(sadaqahGiven)}")
+            SectionCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                Text(
+                    "Purification due",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    formatMoney(purificationDue),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    "Haram income ${formatMoney(haramIncome)} · purified ${formatMoney(purificationPaid)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                if (doubtfulIncome > 0) {
+                    Text(
+                        "Doubtful income to review: ${formatMoney(doubtfulIncome)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
                 }
             }
         }
 
         item {
-            FilledTonalButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Record payment")
+            Row(modifier = Modifier.fillMaxWidth()) {
+                StatTile(
+                    label = "Sadaqah given",
+                    value = formatMoney(sadaqahGiven),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(8.dp))
+                StatTile(
+                    label = "Purification paid",
+                    value = formatMoney(purificationPaid),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
 
+        item {
+            SectionHeader(
+                title = "Payments",
+                action = {
+                    FilledTonalButton(onClick = { showDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Record")
+                    }
+                },
+            )
+        }
+
         if (donations.isEmpty()) {
-            item { Text("No payments yet. Record sadaqah or purification here.") }
+            item { EmptyState("No payments yet. Record sadaqah or purification here.") }
         }
 
         items(donations, key = { it.id }) { donation ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+            SectionCard {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             if (donation.kind == DonationKind.SADAQAH) "Sadaqah" else "Purification",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         val details = listOf(dateLabel(donation.dateMillis), donation.note).filter { it.isNotBlank() }
                         Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                     }
-                    Text(formatMoney(donation.amountCents), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        formatMoney(donation.amountCents),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
                     IconButton(onClick = { vm.deleteDonation(donation.id) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete payment")
                     }

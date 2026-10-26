@@ -20,4 +20,10 @@ class Converters {
 
     @TypeConverter
     fun stringToDonationKind(value: String): DonationKind = DonationKind.valueOf(value)
+
+    @TypeConverter
+    fun groupKindToString(kind: GroupKind): String = kind.name
+
+    @TypeConverter
+    fun stringToGroupKind(value: String): GroupKind = GroupKind.valueOf(value)
 }

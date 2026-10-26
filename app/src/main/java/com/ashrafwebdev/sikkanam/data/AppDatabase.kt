@@ -9,8 +9,12 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [Transaction::class, Budget::class, Donation::class, Category::class],
-    version = 4,
+    entities = [
+        Transaction::class, Budget::class, Donation::class, Category::class, SavingsGoal::class,
+        TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
+        TripSettledMonth::class, Account::class, Transfer::class,
+    ],
+    version = 13,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -20,6 +24,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun donationDao(): DonationDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun savingsGoalDao(): SavingsGoalDao
+    abstract fun tripDao(): TripDao
+    abstract fun accountDao(): AccountDao
+    abstract fun transferDao(): TransferDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -56,9 +64,108 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the from/to-whom and payment-method columns. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN party TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN paymentMethod TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        /** Adds the savings goals table. */
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS savings_goals (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, targetCents INTEGER NOT NULL, savedCents INTEGER NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the group trip tables. */
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS trip_groups (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS trip_members (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, name TEXT NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS trip_contributions (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, memberId INTEGER NOT NULL, amountCents INTEGER NOT NULL, dateMillis INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS trip_expenses (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, paidByMemberId INTEGER, description TEXT NOT NULL, " +
+                        "amountCents INTEGER NOT NULL, dateMillis INTEGER NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the list of people who share each trip expense. Old rows get '' (everyone). */
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trip_expenses ADD COLUMN participantIds TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        /** Marks each group as a trip or a family group. Existing groups become trips. */
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trip_groups ADD COLUMN kind TEXT NOT NULL DEFAULT 'TRIP'")
+            }
+        }
+
+        /** Adds income-based splitting and recurring household expenses. */
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trip_groups ADD COLUMN splitByIncome INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN incomeCents INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE trip_expenses ADD COLUMN recurringMonthly INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE trip_expenses ADD COLUMN sourceId INTEGER")
+            }
+        }
+
+        /** Adds the settled-month record used for carrying balances forward. */
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS trip_settled_months (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, monthMillis INTEGER NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds accounts, transfers, and the account link on each transaction. */
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, openingCents INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS transfers (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "fromAccountId INTEGER NOT NULL, toAccountId INTEGER NOT NULL, amountCents INTEGER NOT NULL, " +
+                        "dateMillis INTEGER NOT NULL, note TEXT NOT NULL)"
+                )
+                db.execSQL("ALTER TABLE transactions ADD COLUMN accountId INTEGER")
+            }
+        }
+
+        /** Adds the receipt file name to each transaction. */
+        private val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN receiptPath TEXT")
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "sikkanam.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(
+                    MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
+                    MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
+                    MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
+                )
                 .build()
     }
 }

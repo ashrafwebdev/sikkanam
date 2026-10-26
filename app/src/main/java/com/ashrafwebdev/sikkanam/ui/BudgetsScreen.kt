@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,8 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.data.Budget
@@ -56,48 +57,72 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            FilledTonalButton(onClick = { editing = null; showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Add budget")
-            }
+            GoalsSection(vm)
+        }
+
+        item {
+            SectionHeader(
+                title = "Monthly budgets",
+                action = {
+                    FilledTonalButton(onClick = { editing = null; showDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Add")
+                    }
+                },
+            )
         }
 
         if (budgets.isEmpty()) {
             item {
-                Text("No budgets yet. Add a monthly limit for a category to track it here.")
+                EmptyState("No budgets yet. Set a monthly limit for a category to see how you're doing.")
             }
         }
 
         items(budgets, key = { it.category }) { budget ->
             val spent = spentByCategory[budget.category] ?: 0L
-            val fraction = (spent.toFloat() / budget.monthlyLimitCents).coerceIn(0f, 1f)
+            val ratio = spent.toFloat() / budget.monthlyLimitCents
             val over = spent > budget.monthlyLimitCents
+            val barColor = when {
+                over -> MaterialTheme.colorScheme.error
+                ratio >= 0.8f -> MaterialTheme.colorScheme.secondary
+                else -> MaterialTheme.colorScheme.primary
+            }
+            val left = budget.monthlyLimitCents - spent
 
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            budget.category,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconButton(onClick = { vm.deleteBudget(budget.category) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete budget")
-                        }
-                    }
+            SectionCard {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Spent ${formatMoney(spent)} of ${formatMoney(budget.monthlyLimitCents)}" +
-                            if (over) " (over budget)" else "",
-                        style = MaterialTheme.typography.bodyMedium,
+                        budget.category,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f),
                     )
-                    LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
-                    TextButton(onClick = { editing = budget; showDialog = true }) { Text("Change limit") }
+                    IconButton(onClick = { editing = budget; showDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Change limit")
+                    }
+                    IconButton(onClick = { vm.deleteBudget(budget.category) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete budget")
+                    }
+                }
+                LinearProgressIndicator(
+                    progress = { ratio.coerceIn(0f, 1f) },
+                    color = barColor,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        "Spent ${formatMoney(spent)} of ${formatMoney(budget.monthlyLimitCents)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        if (over) "Over by ${formatMoney(-left)}" else "Left ${formatMoney(left)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (over) MaterialTheme.colorScheme.error else Color.Unspecified,
+                    )
                 }
             }
         }

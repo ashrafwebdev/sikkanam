@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sikkanam</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_budgets">Budgets</string>
+    <string name="tab_charity">Charity</string>
+    <string name="tab_trips">Trips</string>
+    <string name="tab_zakat">Zakat</string>
+    <string name="tab_settings">Settings</string>
+    <string name="brand_name">Sikkanam</string>
+    <string name="brand_tamil">சிக்கனம்</string>
+    <string name="reminder_channel">Bill and zakat reminders</string>
+    <string name="reminder_bill_title">Bill due tomorrow</string>
+    <string name="reminder_zakat_title">Zakat due tomorrow</string>
+    <string name="reminder_zakat_body">Check your zakat and pay it on time.</string>
 </resources>

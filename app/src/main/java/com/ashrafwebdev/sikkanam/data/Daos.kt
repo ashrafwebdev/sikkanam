@@ -26,6 +26,30 @@ interface TransactionDao {
 }
 
 @Dao
+interface AccountDao {
+    @Query("SELECT * FROM accounts ORDER BY name")
+    fun observeAll(): Flow<List<Account>>
+
+    @Insert
+    suspend fun insert(account: Account)
+
+    @Query("DELETE FROM accounts WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface TransferDao {
+    @Query("SELECT * FROM transfers ORDER BY dateMillis DESC")
+    fun observeAll(): Flow<List<Transfer>>
+
+    @Insert
+    suspend fun insert(transfer: Transfer)
+
+    @Query("DELETE FROM transfers WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
 interface BudgetDao {
     @Query("SELECT * FROM budgets ORDER BY category")
     fun observeAll(): Flow<List<Budget>>
@@ -47,6 +71,78 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE name = :name AND type = :type")
     suspend fun delete(name: String, type: TransactionType)
+}
+
+@Dao
+interface SavingsGoalDao {
+    @Query("SELECT * FROM savings_goals ORDER BY name")
+    fun observeAll(): Flow<List<SavingsGoal>>
+
+    @Insert
+    suspend fun insert(goal: SavingsGoal)
+
+    @Update
+    suspend fun update(goal: SavingsGoal)
+
+    @Query("DELETE FROM savings_goals WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface TripDao {
+    @Query("SELECT * FROM trip_groups ORDER BY id")
+    fun observeGroups(): Flow<List<TripGroup>>
+
+    @Query("SELECT * FROM trip_members ORDER BY id")
+    fun observeMembers(): Flow<List<TripMember>>
+
+    @Query("SELECT * FROM trip_contributions ORDER BY dateMillis DESC")
+    fun observeContributions(): Flow<List<TripContribution>>
+
+    @Query("SELECT * FROM trip_expenses ORDER BY dateMillis DESC")
+    fun observeExpenses(): Flow<List<TripExpense>>
+
+    @Insert
+    suspend fun insertGroup(group: TripGroup): Long
+
+    @Query("DELETE FROM trip_groups WHERE id = :id")
+    suspend fun deleteGroup(id: Long)
+
+    @Update
+    suspend fun updateGroup(group: TripGroup)
+
+    @Update
+    suspend fun updateMember(member: TripMember)
+
+    @Insert
+    suspend fun insertMember(member: TripMember)
+
+    @Query("DELETE FROM trip_members WHERE id = :id")
+    suspend fun deleteMember(id: Long)
+
+    @Insert
+    suspend fun insertContribution(contribution: TripContribution)
+
+    @Query("DELETE FROM trip_contributions WHERE id = :id")
+    suspend fun deleteContribution(id: Long)
+
+    @Query("SELECT * FROM trip_expenses")
+    suspend fun getAllExpenses(): List<TripExpense>
+
+    @Query("SELECT * FROM trip_settled_months")
+    fun observeSettledMonths(): Flow<List<TripSettledMonth>>
+
+    @Insert
+    suspend fun insertSettledMonth(month: TripSettledMonth)
+
+    @Query("DELETE FROM trip_settled_months WHERE groupId = :groupId AND monthMillis = :monthMillis")
+    suspend fun deleteSettledMonth(groupId: Long, monthMillis: Long)
+
+    @Insert
+    suspend fun insertExpense(expense: TripExpense)
+
+    @Query("DELETE FROM trip_expenses WHERE id = :id")
+    suspend fun deleteExpense(id: Long)
 }
 
 @Dao
