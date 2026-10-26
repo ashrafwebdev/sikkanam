@@ -35,6 +35,18 @@ interface BudgetDao {
 }
 
 @Dao
+interface CategoryDao {
+    @Query("SELECT * FROM categories ORDER BY name")
+    fun observeAll(): Flow<List<Category>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(category: Category)
+
+    @Query("DELETE FROM categories WHERE name = :name AND type = :type")
+    suspend fun delete(name: String, type: TransactionType)
+}
+
+@Dao
 interface DonationDao {
     @Query("SELECT * FROM donations ORDER BY dateMillis DESC")
     fun observeAll(): Flow<List<Donation>>

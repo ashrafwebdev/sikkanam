@@ -14,20 +14,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TransactionType
 
-/** Standard categories. Users pick from these, so each category has one spelling. */
-object Categories {
-    val expense = listOf("Food", "Transport", "Bills", "Rent", "Shopping", "Health", "Education", "Family", "Charity", "Other")
-    val income = listOf("Salary", "Business", "Gifts", "Other")
-}
-
-/** Standard categories for [type], plus any older category already used with that type. */
-fun categoryOptions(type: TransactionType, all: List<Transaction>): List<String> {
-    val standard = if (type == TransactionType.INCOME) Categories.income else Categories.expense
+/**
+ * Category names offered for [type]: the master list first, then any older category
+ * already used on a transaction, so existing entries can still be edited.
+ */
+fun categoryOptions(type: TransactionType, master: List<Category>, all: List<Transaction>): List<String> {
+    val fromMaster = master.filter { it.type == type }.map { it.name }
     val used = all.filter { it.type == type }.map { it.category }
-    return (standard + used).distinct()
+    return (fromMaster + used).distinct()
 }
 
 /** A dropdown that only offers [options], so the chosen value always matches an existing category. */

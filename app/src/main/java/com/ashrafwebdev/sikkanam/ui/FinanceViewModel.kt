@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ashrafwebdev.sikkanam.data.AppDatabase
 import com.ashrafwebdev.sikkanam.data.Budget
+import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.Donation
 import com.ashrafwebdev.sikkanam.data.DonationKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
@@ -29,6 +30,24 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
 
     val donations: StateFlow<List<Donation>> = db.donationDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** The master category list, for both income and expense. */
+    val categories: StateFlow<List<Category>> = db.categoryDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Adds a category to the master list. Returns false if the name is blank, too long, or already exists. */
+    fun addCategory(name: String, type: TransactionType): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank() || clean.length > 30) return false
+        val exists = categories.value.any { it.type == type && it.name.equals(clean, ignoreCase = true) }
+        if (exists) return false
+        viewModelScope.launch { db.categoryDao().insert(Category(clean, type)) }
+        return true
+    }
+
+    fun deleteCategory(name: String, type: TransactionType) {
+        viewModelScope.launch { db.categoryDao().delete(name, type) }
+    }
 
     /** Start of the month being viewed, as epoch millis in local time. */
     private val _monthStart = MutableStateFlow(startOfMonth(System.currentTimeMillis()))

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -24,6 +25,7 @@ private enum class Tab(val label: String, val icon: ImageVector) {
     BUDGETS("Budgets", Icons.Default.DateRange),
     CHARITY("Charity", Icons.Default.Favorite),
     ZAKAT("Zakat", Icons.Default.Info),
+    SETTINGS("Settings", Icons.Default.Settings),
 }
 
 @Composable
@@ -50,6 +52,7 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
             Tab.BUDGETS -> BudgetsScreen(viewModel, modifier)
             Tab.CHARITY -> CharityScreen(viewModel, modifier)
             Tab.ZAKAT -> ZakatScreen(modifier)
+            Tab.SETTINGS -> SettingsScreen(viewModel, modifier)
         }
     }
 }

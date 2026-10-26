@@ -9,8 +9,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [Transaction::class, Budget::class, Donation::class],
-    version = 2,
+    entities = [Transaction::class, Budget::class, Donation::class, Category::class],
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -19,6 +19,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun budgetDao(): BudgetDao
     abstract fun donationDao(): DonationDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -33,9 +34,23 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Creates the master category list and seeds it with the standard categories. */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS categories (name TEXT NOT NULL, type TEXT NOT NULL, " +
+                        "PRIMARY KEY(name, type))"
+                )
+                val expense = listOf("Food", "Transport", "Bills", "Rent", "Shopping", "Health", "Education", "Family", "Charity", "Other")
+                val income = listOf("Salary", "Business", "Gifts", "Other")
+                expense.forEach { db.execSQL("INSERT OR IGNORE INTO categories (name, type) VALUES ('$it', 'EXPENSE')") }
+                income.forEach { db.execSQL("INSERT OR IGNORE INTO categories (name, type) VALUES ('$it', 'INCOME')") }
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "sikkanam.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
     }
 }

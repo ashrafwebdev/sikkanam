@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TransactionType
@@ -61,6 +62,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val monthStart by vm.monthStart.collectAsState()
     val monthTx by vm.monthTransactions.collectAsState()
     val allTx by vm.transactions.collectAsState()
+    val categories by vm.categories.collectAsState()
     val visible by vm.visibleTransactions.collectAsState()
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
@@ -71,6 +73,12 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val income = monthTx.filter { it.type == TransactionType.INCOME }.sumOf { it.amountCents }
     val expense = monthTx.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amountCents }
     val interest = monthTx.filter { it.isRiba }.sumOf { it.amountCents }
+
+    // Every transaction up to the end of the viewed month, so the balance carries forward.
+    val monthEnd = addMonths(monthStart, 1)
+    val balanceToDate = allTx.filter { it.dateMillis < monthEnd }.sumOf {
+        if (it.type == TransactionType.INCOME) it.amountCents else -it.amountCents
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -96,8 +104,8 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Balance", style = MaterialTheme.typography.labelLarge)
-                    Text(formatMoney(income - expense), style = MaterialTheme.typography.headlineMedium)
+                    Text("Balance (carried forward)", style = MaterialTheme.typography.labelLarge)
+                    Text(formatMoney(balanceToDate), style = MaterialTheme.typography.headlineMedium)
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text("Income: ${formatMoney(income)}")
@@ -163,6 +171,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     if (showDialog) {
         TransactionDialog(
             existing = editing,
+            categories = categories,
             allTransactions = allTx,
             onDismiss = { showDialog = false },
             onSave = { type, amount, category, note, halal, riba ->
@@ -233,6 +242,7 @@ private fun HalalStatus.label(): String = when (this) {
 @Composable
 private fun TransactionDialog(
     existing: Transaction?,
+    categories: List<Category>,
     allTransactions: List<Transaction>,
     onDismiss: () -> Unit,
     onSave: (TransactionType, String, String, String, HalalStatus, Boolean) -> Unit,
@@ -270,7 +280,7 @@ private fun TransactionDialog(
                 )
                 CategorySelector(
                     label = "Category",
-                    options = categoryOptions(type, allTransactions),
+                    options = categoryOptions(type, categories, allTransactions),
                     selected = category,
                     onSelect = { category = it },
                 )

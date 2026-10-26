@@ -41,6 +41,7 @@ import com.ashrafwebdev.sikkanam.data.TransactionType
 fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val budgets by vm.budgets.collectAsState()
     val monthTx by vm.monthTransactions.collectAsState()
+    val categories by vm.categories.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Budget?>(null) }
 
@@ -105,6 +106,7 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     if (showDialog) {
         BudgetDialog(
             existing = editing,
+            categories = categories,
             onDismiss = { showDialog = false },
             onSave = { category, limit ->
                 if (vm.saveBudget(category, limit)) showDialog = false
@@ -116,6 +118,7 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 @Composable
 private fun BudgetDialog(
     existing: Budget?,
+    categories: List<com.ashrafwebdev.sikkanam.data.Category>,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
 ) {
@@ -131,7 +134,7 @@ private fun BudgetDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 CategorySelector(
                     label = "Category",
-                    options = Categories.expense,
+                    options = categories.filter { it.type == TransactionType.EXPENSE }.map { it.name },
                     selected = category,
                     onSelect = { category = it },
                     enabled = existing == null,
