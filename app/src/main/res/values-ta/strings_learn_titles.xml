@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil titles for the learning content. Religious terms should be checked by a teacher. -->
+<resources>
+    <!-- Category titles, in the order they appear -->
+    <string name="learn_cat_1">சூராக்கள் (குறைந்தது பத்து கற்கவும்)</string>
+    <string name="learn_cat_2">முக்கிய துஆக்கள்</string>
+    <string name="learn_cat_3">அதான் மற்றும் இகாமத்</string>
+    <string name="learn_cat_4">ஹனஃபி: ஐந்து தினசரி தொழுகைகள்</string>
+    <string name="learn_cat_5">ஹனஃபி: தொழும் முறை (படிகள்)</string>
+    <string name="learn_cat_6">ஹனஃபி: ஜனாசா தொழுகை</string>
+    <string name="learn_cat_7">ஹனஃபி: ஜும்ஆ தொழுகையும் இமாமத்தும்</string>
+    <string name="learn_cat_8">ஷாஃபிஈ: ஹனஃபியிலிருந்து வேறுபாடுகள்</string>
+    <string name="learn_cat_9">ஹலால் மற்றும் ஹராம்</string>
+
+    <!-- Surahs -->
+    <string name="learn_item_fatiha">சூரா அல்-ஃபாத்திஹா (1)</string>
+    <string name="learn_item_ikhlas">சூரா அல்-இக்லாஸ் (112)</string>
+    <string name="learn_item_falaq">சூரா அல்-ஃபலக் (113)</string>
+    <string name="learn_item_nas">சூரா அந்-நாஸ் (114)</string>
+    <string name="learn_item_kawthar">சூரா அல்-கவ்ஸர் (108)</string>
+    <string name="learn_item_nasr">சூரா அந்-நஸ்ர் (110)</string>
+    <string name="learn_item_kafirun">சூரா அல்-காஃபிரூன் (109)</string>
+    <string name="learn_item_maun">சூரா அல்-மாஊன் (107)</string>
+    <string name="learn_item_quraysh">சூரா குறைஷ் (106)</string>
+    <string name="learn_item_fil">சூரா அல்-ஃபீல் (105)</string>
+
+    <!-- Duas -->
+    <string name="learn_item_dua_toilet_in">கழிவறைக்குள் நுழையும்போது</string>
+    <string name="learn_item_dua_leave_toilet">கழிவறையிலிருந்து வெளியேறிய பின்</string>
+    <string name="learn_item_dua_eat">சாப்பிடுவதற்கு முன்</string>
+    <string name="learn_item_dua_eat_forgot">சாப்பிடத் தொடங்கும்போது பிஸ்மில்லாஹ் மறந்துவிட்டால்</string>
+    <string name="learn_item_dua_eat_after">சாப்பிட்ட பின்</string>
+    <string name="learn_item_dua_sleep">தூங்குவதற்கு முன்</string>
+    <string name="learn_item_dua_wake">விழித்ததும்</string>
+    <string name="learn_item_dua_leave_home">வீட்டிலிருந்து புறப்படும்போது</string>
+    <string name="learn_item_dua_travel">பயணத் துஆ</string>
+    <string name="learn_item_dua_istighfar">மன்னிப்புக் கோருதல்</string>
+    <string name="learn_item_dua_enter_masjid">பள்ளிவாசலுக்குள் நுழையும்போது</string>
+    <string name="learn_item_dua_leave_masjid">பள்ளிவாசலிலிருந்து வெளியேறும்போது</string>
+    <string name="learn_item_niyyat_itikaf">இஃதிகாஃப் நிய்யத் (பள்ளிவாசலில் தங்குதல்)</string>
+    <string name="learn_item_dua_istikhara">இஸ்திகாரா (அல்லாஹ்விடம் தேர்வு கேட்டல்)</string>
+
+    <!-- Adhan and iqama -->
+    <string name="learn_item_adhan">அதான் (தொழுகை அழைப்பு)</string>
+    <string name="learn_item_adhan_fajr">ஃபஜ்ர் அதானில் சேர்க்கும் வாசகம்</string>
+    <string name="learn_item_iqama">இகாமத் (தொழுகை தொடங்குவதற்கு முன்)</string>
+
+    <!-- Hanafi prayers -->
+    <string name="learn_item_h_fajr">ஃபஜ்ர்: 2 சுன்னத், பின்னர் 2 ஃபர்ள்</string>
+    <string name="learn_item_h_zuhr">லுஹர்: 4 சுன்னத், 4 ஃபர்ள், 2 சுன்னத், 2 நஃபில்</string>
+    <string name="learn_item_h_asr">அஸர்: 4 சுன்னத், பின்னர் 4 ஃபர்ள்</string>
+    <string name="learn_item_h_maghrib">மஃக்ரிப்: 3 ஃபர்ள், பின்னர் 2 சுன்னத்</string>
+    <string name="learn_item_h_isha">இஷா: 4 சுன்னத், 4 ஃபர்ள், 2 சுன்னத், பின்னர் வித்ர்</string>
+    <string name="learn_item_h_witr_qunoot">வித்ர் மற்றும் கூனூத் (ஹனஃபி)</string>
+    <string name="learn_item_h_qunoot">கூனூத் துஆ (ஹனஃபி, வித்ரில்)</string>
+
+    <!-- Hanafi steps -->
+    <string name="learn_item_h_steps">ஹனஃபி தொழுகையின் படிகள்</string>
+
+    <!-- Hanafi funeral prayer -->
+    <string name="learn_item_h_janaza_steps">ஹனஃபி ஜனாசா: படிகள்</string>
+    <string name="learn_item_janaza_thana">சனா (முதல் தக்பீருக்குப் பின்)</string>
+    <string name="learn_item_janaza_durood">இரண்டாம் தக்பீருக்குப் பின் ஸலவாத் (இப்ராஹீமிய்யா)</string>
+    <string name="learn_item_janaza_dua_male">இறந்த ஆணுக்கான துஆ (மூன்றாம் தக்பீருக்குப் பின்)</string>
+    <string name="learn_item_janaza_dua_female">இறந்த பெண்ணுக்கான துஆ (மூன்றாம் தக்பீருக்குப் பின்)</string>
+    <string name="learn_item_janaza_dua_all">அனைத்து இறந்தவர்களுக்கான துஆ (மூன்றாம் தக்பீருக்குப் பின், பொதுவான வடிவம்)</string>
+    <string name="learn_item_janaza_salam">ஜனாசாவை முடிக்கும் ஸலாம்</string>
+
+    <!-- Friday and leading -->
+    <string name="learn_item_h_jumma">ஜும்ஆ தொழுகை</string>
+    <string name="learn_item_h_lead">ஐந்து தொழுகைகளுக்கு இமாமத் செய்தல்</string>
+
+    <!-- Shafi'i -->
+    <string name="learn_item_s_prayer">ஷாஃபிஈ தொழுகை: முக்கிய வேறுபாடுகள்</string>
+    <string name="learn_item_s_qunoot">ஷாஃபிஈ கூனூத் (ஃபஜ்ரில், ருகூஃவிலிருந்து எழுந்த பின்)</string>
+    <string name="learn_item_s_janaza">ஷாஃபிஈ ஜனாசா: முக்கிய வேறுபாடுகள்</string>
+    <string name="learn_item_s_note">இந்த வேறுபாடுகள் பற்றிய குறிப்பு</string>
+
+    <!-- Halal and haram -->
+    <string name="learn_item_halal">ஹலால் (அனுமதிக்கப்பட்டது)</string>
+    <string name="learn_item_haram">ஹராம் (தடுக்கப்பட்டது)</string>
+    <string name="learn_item_doubtful">சந்தேகத்திற்குரியது (முஷ்தபஹ்)</string>
+</resources>

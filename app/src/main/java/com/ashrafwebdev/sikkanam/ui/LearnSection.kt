@@ -34,6 +34,12 @@ import com.ashrafwebdev.sikkanam.learn.LearnItem
 private const val PREFS = "sikkanam_prefs"
 private const val KEY_LEARNED = "learn_done"
 
+/** The title in the app's language if a translation exists under [key], otherwise [fallback]. */
+private fun localTitle(context: Context, key: String, fallback: String): String {
+    val id = context.resources.getIdentifier(key, "string", context.packageName)
+    return if (id != 0) context.getString(id) else fallback
+}
+
 /** The ids of the items marked as learned, kept on the phone. */
 fun loadLearned(context: Context): Set<String> =
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet(KEY_LEARNED, emptySet()).orEmpty()
@@ -62,8 +68,9 @@ fun LearnSection() {
         )
     }
 
-    LearnContent.categories.forEach { category ->
-        LearnCategoryCard(category, learned) { id, checked ->
+    LearnContent.categories.forEachIndexed { index, category ->
+        val title = localTitle(context, "learn_cat_${index + 1}", category.title)
+        LearnCategoryCard(category, title, learned) { id, checked ->
             learned = if (checked) learned + id else learned - id
             saveLearned(context, learned)
         }
@@ -71,14 +78,14 @@ fun LearnSection() {
 }
 
 @Composable
-private fun LearnCategoryCard(category: LearnCategory, learned: Set<String>, onToggle: (String, Boolean) -> Unit) {
+private fun LearnCategoryCard(category: LearnCategory, title: String, learned: Set<String>, onToggle: (String, Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     val done = category.items.count { it.id in learned }
 
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.weight(1f).clickable { open = !open }) {
-                Text(category.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(
                     stringResource(R.string.learn_done, done, category.items.size),
                     style = MaterialTheme.typography.bodySmall,
@@ -101,11 +108,12 @@ private fun LearnCategoryCard(category: LearnCategory, learned: Set<String>, onT
 @Composable
 private fun LearnItemRow(item: LearnItem, isLearned: Boolean, onLearned: (Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
+    val title = localTitle(LocalContext.current, "learn_item_${item.id}", item.title)
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                item.title,
+                title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f).clickable { open = !open },
