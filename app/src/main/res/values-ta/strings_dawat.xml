@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Dawat and taskeel -->
+    <string name="dawat_title">தஃவத் மற்றும் தக்ஸீல்</string>
+    <string name="dawat_summary">சந்தித்தவர்கள்: %1$d · இன்று பின்தொடர வேண்டியவர்கள்: %2$d · கிரூஜுக்கு ஒப்புக்கொண்டவர்கள்: %3$d</string>
+    <string name="dawat_empty">இன்னும் யாரும் பதிவு செய்யப்படவில்லை. தஃவத்தில் சந்தித்தவர்களைச் சேர்க்கவும்.</string>
+    <string name="dawat_add_title">சந்தித்தவரைச் சேர்</string>
+    <string name="dawat_name">பெயர்</string>
+    <string name="dawat_phone">தொலைபேசி எண்</string>
+    <string name="dawat_area">பகுதி</string>
+    <string name="dawat_notes">குறிப்பு (என்ன ஒப்புக்கொண்டார், எதைப் பின்தொடர வேண்டும்)</string>
+    <string name="dawat_name_error">பெயரை உள்ளிடுங்கள்.</string>
+    <string name="dawat_status_met">சந்தித்தது</string>
+    <string name="dawat_status_interested">ஆர்வம்</string>
+    <string name="dawat_status_muqami">முகாமி அமலுக்கு தக்ஸீல்</string>
+    <string name="dawat_status_khurooj">கிரூஜுக்கு தக்ஸீல்</string>
+    <string name="dawat_status_agreed">கிரூஜுக்கு ஒப்புதல்</string>
+    <string name="dawat_status_not_now">இப்போது வேண்டாம்</string>
+    <string name="dawat_followup">%1$s அன்று பின்தொடர்</string>
+    <string name="dawat_followup_due">பின்தொடர வேண்டிய நாள்: %1$s</string>
+    <string name="dawat_set_followup">பின்தொடர்தல்</string>
+    <string name="dawat_followup_title">%1$s உடன் பின்தொடர்தல்</string>
+    <string name="dawat_followup_date">தேதி (dd/mm/yyyy)</string>
+    <string name="dawat_date_error">25/03/2027 போல தேதியை உள்ளிடுங்கள்.</string>
+    <string name="dawat_delete_desc">நீக்கு</string>
+    <string name="dawat_form_jamaat">ஒப்புக்கொண்டவர்களுடன் ஜமாஅத் அமை</string>
+    <string name="dawat_form_title">ஜமாஅத் அமை</string>
+    <string name="dawat_form_name">ஜமாஅத் பெயர்</string>
+    <string name="dawat_form_create">ஜமாஅத்தை உருவாக்கு</string>
+    <string name="dawat_form_error">ஜமாஅத் பெயரை உள்ளிட்டு குறைந்தது ஒருவரைத் தேர்ந்தெடுக்கவும்.</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Page organisation -->
+    <string name="tab_money">Money</string>
+    <string name="tab_islamic">Islamic</string>
+    <string name="tab_jamaat">Jamaat</string>
+    <string name="tab_directory">Directory</string>
+    <string name="islamic_prayer">Prayer</string>
+    <string name="islamic_learn">Learn</string>
+    <string name="pages_title">Pages</string>
+    <string name="pages_desc">Switch off the pages you do not need. They are on by default.</string>
+    <string name="pages_islamic">Islamic pages: prayer, Qibla, zakat, charity, learning</string>
+    <string name="pages_jamaat">Jamaat pages: jamaat, dawat, locality, mashwara</string>
+</resources>

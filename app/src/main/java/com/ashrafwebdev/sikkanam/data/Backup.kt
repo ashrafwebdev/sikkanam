@@ -23,6 +23,8 @@ data class BackupData(
     val goalEntries: List<GoalEntry> = emptyList(),
     val places: List<Place> = emptyList(),
     val debts: List<Debt> = emptyList(),
+    val amaalChecks: List<AmaalCheck> = emptyList(),
+    val khurooj: List<Khurooj> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -106,6 +108,31 @@ fun BackupData.toJson(): String {
                 put("parentId", p.parentId ?: JSONObject.NULL)
                 put("level", p.level.name)
                 put("name", p.name)
+            })
+        }
+    })
+    root.put("amaalChecks", JSONArray().apply {
+        amaalChecks.forEach { c ->
+            put(JSONObject().apply {
+                put("id", c.id)
+                put("groupId", c.groupId)
+                put("memberId", c.memberId)
+                put("dayMillis", c.dayMillis)
+                put("amaal", c.amaal)
+                put("done", c.done)
+            })
+        }
+    })
+    root.put("khurooj", JSONArray().apply {
+        khurooj.forEach { k ->
+            put(JSONObject().apply {
+                put("id", k.id)
+                put("groupId", k.groupId)
+                put("type", k.type.name)
+                put("startMillis", k.startMillis)
+                put("endMillis", k.endMillis)
+                put("places", k.places)
+                put("note", k.note)
             })
         }
     })
@@ -202,6 +229,7 @@ fun BackupData.toJson(): String {
                 put("dateMillis", m.dateMillis)
                 put("topic", m.topic)
                 put("attendees", m.attendees)
+                put("groupId", m.groupId)
                 put("notes", m.notes)
             })
         }
@@ -213,6 +241,7 @@ fun BackupData.toJson(): String {
                 put("dayMillis", d.dayMillis)
                 put("duty", d.duty)
                 put("personName", d.personName)
+                put("groupId", d.groupId)
                 put("done", d.done)
             })
         }
@@ -293,6 +322,34 @@ fun parseBackup(text: String): BackupData {
                 name = o.getString("name"),
                 targetCents = o.getLong("targetCents"),
                 savedCents = o.getLong("savedCents"),
+            )
+        }
+    } ?: emptyList()
+    // Amaal checks and khurooj are optional too. Older backups have none.
+    val amaalChecks = root.optJSONArray("amaalChecks")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            AmaalCheck(
+                id = o.optLong("id", 0),
+                groupId = o.getLong("groupId"),
+                memberId = o.getLong("memberId"),
+                dayMillis = o.getLong("dayMillis"),
+                amaal = o.getString("amaal"),
+                done = o.getBoolean("done"),
+            )
+        }
+    } ?: emptyList()
+    val khurooj = root.optJSONArray("khurooj")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Khurooj(
+                id = o.optLong("id", 0),
+                groupId = o.getLong("groupId"),
+                type = KhuroojType.valueOf(o.optString("type", "OTHER")),
+                startMillis = o.getLong("startMillis"),
+                endMillis = o.optLong("endMillis", 0),
+                places = o.optString("places", ""),
+                note = o.optString("note", ""),
             )
         }
     } ?: emptyList()
@@ -429,6 +486,7 @@ fun parseBackup(text: String): BackupData {
                 dateMillis = o.getLong("dateMillis"),
                 topic = o.getString("topic"),
                 attendees = o.optString("attendees"),
+                groupId = o.optLong("groupId", 0),
                 notes = o.optString("notes"),
             )
         }
@@ -442,6 +500,7 @@ fun parseBackup(text: String): BackupData {
                 dayMillis = o.getLong("dayMillis"),
                 duty = o.getString("duty"),
                 personName = o.getString("personName"),
+                groupId = o.optLong("groupId", 0),
                 done = o.optBoolean("done", false),
             )
         }
@@ -461,5 +520,7 @@ fun parseBackup(text: String): BackupData {
         goalEntries = goalEntries,
         places = places,
         debts = debts,
+        amaalChecks = amaalChecks,
+        khurooj = khurooj,
     )
 }

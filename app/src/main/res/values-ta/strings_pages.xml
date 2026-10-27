@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Page organisation -->
+    <string name="tab_money">பணம்</string>
+    <string name="tab_islamic">இஸ்லாமியம்</string>
+    <string name="tab_jamaat">ஜமாஅத்</string>
+    <string name="tab_directory">அடைவு</string>
+    <string name="islamic_prayer">தொழுகை</string>
+    <string name="islamic_learn">கற்றல்</string>
+    <string name="pages_title">பக்கங்கள்</string>
+    <string name="pages_desc">தேவையில்லாத பக்கங்களை அணைத்து வையுங்கள். இவை இயல்பாகவே இயக்கத்தில் இருக்கும்.</string>
+    <string name="pages_islamic">இஸ்லாமியப் பக்கங்கள்: தொழுகை, கிப்லா, ஸகாத், தர்மம், கற்றல்</string>
+    <string name="pages_jamaat">ஜமாஅத் பக்கங்கள்: ஜமாஅத், தஃவத், பகுதி, மஷ்வரா</string>
+</resources>

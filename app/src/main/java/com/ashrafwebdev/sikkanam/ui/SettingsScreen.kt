@@ -151,6 +151,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             )
         }
 
+        item { PagesSection() }
         item { PrayerSettingsSection() }
         item { LanguageSection() }
         item { TextSizeSection() }

@@ -17,8 +17,19 @@ import com.ashrafwebdev.sikkanam.data.Donation
 import com.ashrafwebdev.sikkanam.data.DonationKind
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
+import com.ashrafwebdev.sikkanam.data.Amaal
+import com.ashrafwebdev.sikkanam.data.AmaalCheck
+import com.ashrafwebdev.sikkanam.data.DawatContact
+import com.ashrafwebdev.sikkanam.data.DawatStatus
+import com.ashrafwebdev.sikkanam.data.TripGroup
+import com.ashrafwebdev.sikkanam.data.TripMember
 import com.ashrafwebdev.sikkanam.data.Debt
 import com.ashrafwebdev.sikkanam.data.DebtDirection
+import com.ashrafwebdev.sikkanam.data.Khurooj
+import com.ashrafwebdev.sikkanam.data.WeeklyProgramme
+import com.ashrafwebdev.sikkanam.data.KhuroojType
+import com.ashrafwebdev.sikkanam.data.LocalityPerson
+import com.ashrafwebdev.sikkanam.data.MeetingVisit
 import com.ashrafwebdev.sikkanam.data.GoalEntry
 import com.ashrafwebdev.sikkanam.data.Place
 import com.ashrafwebdev.sikkanam.network.refreshCuratedNetwork
@@ -26,8 +37,6 @@ import com.ashrafwebdev.sikkanam.data.SavingsGoal
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TripContribution
 import com.ashrafwebdev.sikkanam.data.TripExpense
-import com.ashrafwebdev.sikkanam.data.TripGroup
-import com.ashrafwebdev.sikkanam.data.TripMember
 import com.ashrafwebdev.sikkanam.data.TripSettledMonth
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.data.parseBackup
@@ -393,11 +402,12 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Adds a meeting, or updates [existing]. The topic is required. The date is kept when editing. */
-    fun saveMeeting(existing: Meeting?, topic: String, attendees: String, notes: String): Boolean {
+    fun saveMeeting(existing: Meeting?, topic: String, attendees: String, notes: String, groupId: Long = 0): Boolean {
         val clean = topic.trim()
         if (clean.isBlank()) return false
         val entry = Meeting(
             id = existing?.id ?: 0,
+            groupId = existing?.groupId ?: groupId,
             dateMillis = existing?.dateMillis ?: System.currentTimeMillis(),
             topic = clean,
             attendees = attendees.trim(),
@@ -448,16 +458,16 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /** Gives [duty] on [day] to [person], as decided in the mashwara. Replaces any earlier choice for that duty. */
-    fun assignDuty(day: Long, duty: String, person: String) {
+    fun assignDuty(day: Long, duty: String, person: String, groupId: Long) {
         viewModelScope.launch {
-            db.dutyDao().deleteForDuty(day, duty)
-            db.dutyDao().insert(DutyAssignment(dayMillis = day, duty = duty, personName = person))
+            db.dutyDao().deleteForDuty(day, duty, groupId)
+            db.dutyDao().insert(DutyAssignment(dayMillis = day, duty = duty, personName = person, groupId = groupId))
         }
     }
 
     /** Removes the person given to [duty] on [day]. */
-    fun clearDuty(day: Long, duty: String) {
-        viewModelScope.launch { db.dutyDao().deleteForDuty(day, duty) }
+    fun clearDuty(day: Long, duty: String, groupId: Long) {
+        viewModelScope.launch { db.dutyDao().deleteForDuty(day, duty, groupId) }
     }
 
     fun setDutyDone(assignment: DutyAssignment, done: Boolean) {
@@ -776,6 +786,142 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch { db.debtDao().delete(id) }
     }
 
+    val amaalChecks: StateFlow<List<AmaalCheck>> = db.amaalDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val khurooj: StateFlow<List<Khurooj>> = db.khuroojDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Records whether a member did an amaal on a day. Updates the existing tick if there is one. */
+    fun setAmaal(groupId: Long, memberId: Long, dayMillis: Long, amaal: Amaal, done: Boolean) {
+        val existing = amaalChecks.value.firstOrNull {
+            it.groupId == groupId && it.memberId == memberId && it.dayMillis == dayMillis && it.amaal == amaal.key
+        }
+        viewModelScope.launch {
+            if (existing == null) {
+                db.amaalDao().insert(AmaalCheck(groupId = groupId, memberId = memberId, dayMillis = dayMillis, amaal = amaal.key, done = done))
+            } else {
+                db.amaalDao().update(existing.copy(done = done))
+            }
+        }
+    }
+
+    /** Records whether a member attended a weekly programme in the week starting on [weekStart]. */
+    fun setWeekly(groupId: Long, memberId: Long, weekStart: Long, programme: WeeklyProgramme, done: Boolean) {
+        val existing = amaalChecks.value.firstOrNull {
+            it.groupId == groupId && it.memberId == memberId && it.dayMillis == weekStart && it.amaal == programme.key
+        }
+        viewModelScope.launch {
+            if (existing == null) {
+                db.amaalDao().insert(AmaalCheck(groupId = groupId, memberId = memberId, dayMillis = weekStart, amaal = programme.key, done = done))
+            } else {
+                db.amaalDao().update(existing.copy(done = done))
+            }
+        }
+    }
+
+    /** Adds a khurooj. Returns false if the start date is missing. */
+    fun saveKhurooj(groupId: Long, type: KhuroojType, startMillis: Long, endMillis: Long, places: String, note: String): Boolean {
+        if (startMillis == 0L) return false
+        viewModelScope.launch {
+            db.khuroojDao().insert(
+                Khurooj(groupId = groupId, type = type, startMillis = startMillis, endMillis = endMillis, places = places.trim(), note = note.trim()),
+            )
+        }
+        return true
+    }
+
+    fun deleteKhurooj(id: Long) {
+        viewModelScope.launch { db.khuroojDao().delete(id) }
+    }
+
+    val dawatContacts: StateFlow<List<DawatContact>> = db.dawatDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Records a person met in dawat. Returns false if the name is blank. */
+    fun addDawatContact(name: String, phone: String, area: String, notes: String): Boolean {
+        if (name.isBlank()) return false
+        viewModelScope.launch {
+            db.dawatDao().insert(
+                DawatContact(name = name.trim(), phone = phone.trim(), area = area.trim(), metMillis = System.currentTimeMillis(), notes = notes.trim()),
+            )
+        }
+        return true
+    }
+
+    fun setDawatStatus(contact: DawatContact, status: DawatStatus) {
+        viewModelScope.launch { db.dawatDao().update(contact.copy(status = status)) }
+    }
+
+    /** Sets the follow-up date. 0 clears it. */
+    fun setDawatFollowUp(contact: DawatContact, followUpMillis: Long) {
+        viewModelScope.launch { db.dawatDao().update(contact.copy(followUpMillis = followUpMillis)) }
+    }
+
+    fun deleteDawatContact(id: Long) {
+        viewModelScope.launch { db.dawatDao().delete(id) }
+    }
+
+    /**
+     * Forms a new jamaat from the people who agreed to khurooj. Each person becomes a member, with the phone
+     * number and area carried over. Returns false if the name is blank or nobody is selected.
+     */
+    fun formJamaat(name: String, contacts: List<DawatContact>): Boolean {
+        if (name.isBlank() || contacts.isEmpty()) return false
+        viewModelScope.launch {
+            val groupId = db.tripDao().insertGroup(TripGroup(name = name.trim(), kind = GroupKind.TRIP))
+            contacts.forEach { person ->
+                db.tripDao().insertMember(
+                    TripMember(groupId = groupId, name = person.name, phone = person.phone, address = person.area, confirmed = true),
+                )
+            }
+        }
+        return true
+    }
+
+    val localityPeople: StateFlow<List<LocalityPerson>> = db.localityDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Adds a person from the locality. Returns false if the name is blank. */
+    fun addLocalityPerson(person: LocalityPerson): Boolean {
+        if (person.name.isBlank()) return false
+        viewModelScope.launch {
+            db.localityDao().insert(person.copy(name = person.name.trim(), phone = person.phone.trim(), locality = person.locality.trim(), notes = person.notes.trim()))
+        }
+        return true
+    }
+
+    /** Saves changes to a person (khurooj history, active or inactive, and details). */
+    fun updateLocalityPerson(person: LocalityPerson) {
+        viewModelScope.launch { db.localityDao().update(person) }
+    }
+
+    fun deleteLocalityPerson(id: Long) {
+        viewModelScope.launch { db.localityDao().delete(id) }
+    }
+
+    val meetingVisits: StateFlow<List<MeetingVisit>> = db.meetingVisitDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Records a meeting with [personId] on [dayMillis], with the taskeel given (or null for none).
+     * Only one record per person per day.
+     */
+    fun recordVisit(personId: Long, dayMillis: Long, taskeel: KhuroojType?, note: String = ""): Boolean {
+        val already = meetingVisits.value.any { it.personId == personId && it.dayMillis == dayMillis }
+        if (already) return false
+        viewModelScope.launch {
+            db.meetingVisitDao().insert(
+                MeetingVisit(personId = personId, dayMillis = dayMillis, taskeel = taskeel?.name.orEmpty(), note = note.trim()),
+            )
+        }
+        return true
+    }
+
+    fun deleteVisit(id: Long) {
+        viewModelScope.launch { db.meetingVisitDao().delete(id) }
+    }
+
     /** Downloads the curated network list. Returns an error message, or null on success. */
     suspend fun refreshNetwork(): String? = refreshCuratedNetwork(getApplication<Application>(), db.placeDao())
 
@@ -804,6 +950,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         goalEntries = goalEntries.value,
         places = places.value,
         debts = debts.value,
+        amaalChecks = amaalChecks.value,
+        khurooj = khurooj.value,
     ).toJson()
 
 
@@ -827,6 +975,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.goalEntries.forEach { db.goalEntryDao().insert(it) }
             data.places.forEach { db.placeDao().insert(it) }
             data.debts.forEach { db.debtDao().insert(it) }
+            data.amaalChecks.forEach { db.amaalDao().insert(it) }
+            data.khurooj.forEach { db.khuroojDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

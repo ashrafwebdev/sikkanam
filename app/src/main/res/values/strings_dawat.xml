@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dawat and taskeel -->
+    <string name="dawat_title">Dawat and taskeel</string>
+    <string name="dawat_summary">Met: %1$d · follow-ups due: %2$d · agreed for khurooj: %3$d</string>
+    <string name="dawat_empty">No one recorded yet. Add the people you meet in dawat.</string>
+    <string name="dawat_add_title">Add a person met</string>
+    <string name="dawat_name">Name</string>
+    <string name="dawat_phone">Phone number</string>
+    <string name="dawat_area">Area</string>
+    <string name="dawat_notes">Notes (what was agreed, what to follow up)</string>
+    <string name="dawat_name_error">Enter a name.</string>
+    <string name="dawat_status_met">Met</string>
+    <string name="dawat_status_interested">Interested</string>
+    <string name="dawat_status_muqami">Taskeel for muqami amaal</string>
+    <string name="dawat_status_khurooj">Taskeel for khurooj</string>
+    <string name="dawat_status_agreed">Agreed for khurooj</string>
+    <string name="dawat_status_not_now">Not now</string>
+    <string name="dawat_followup">Follow up on %1$s</string>
+    <string name="dawat_followup_due">Follow up due: %1$s</string>
+    <string name="dawat_set_followup">Follow-up</string>
+    <string name="dawat_followup_title">Follow-up with %1$s</string>
+    <string name="dawat_followup_date">Date (dd/mm/yyyy)</string>
+    <string name="dawat_date_error">Enter the date like 25/03/2027.</string>
+    <string name="dawat_delete_desc">Delete</string>
+    <string name="dawat_form_jamaat">Form a jamaat from those who agreed</string>
+    <string name="dawat_form_title">Form a jamaat</string>
+    <string name="dawat_form_name">Jamaat name</string>
+    <string name="dawat_form_create">Create jamaat</string>
+    <string name="dawat_form_error">Enter a jamaat name and choose at least one person.</string>
+</resources>

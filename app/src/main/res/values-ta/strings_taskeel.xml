@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Taskeel per person and per month -->
+    <string name="locality_available">கிடைக்கும்: %1$s</string>
+    <string name="locality_available_label">கிரூஜுக்கு கிடைப்பவர்</string>
+    <string name="taskeel_dialog_title">%1$s உடன் சந்திப்பு</string>
+    <string name="taskeel_none">தக்ஸீல் இல்லை</string>
+    <string name="taskeel_month_title">%1$s இல் தக்ஸீல்</string>
+    <string name="taskeel_month_empty">இந்த மாதம் தக்ஸீல் பதிவு செய்யப்படவில்லை.</string>
+    <string name="taskeel_month_line">%1$s: %2$d</string>
+</resources>

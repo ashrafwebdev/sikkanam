@@ -50,4 +50,6 @@ data class DutyAssignment(
     val duty: String,
     val personName: String,
     val done: Boolean = false,
+    // The jamaat this duty was given in. 0 means not linked to a jamaat (older records).
+    val groupId: Long = 0,
 )

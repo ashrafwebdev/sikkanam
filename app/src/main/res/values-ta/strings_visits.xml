@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Meeting visits from the register -->
+    <string name="locality_met_today">இன்று சந்தித்தேன்</string>
+    <string name="locality_met_today_done">இன்று சந்தித்தேன் ✓</string>
+    <string name="locality_never_met">இன்னும் சந்திக்கவில்லை</string>
+    <string name="locality_met_count">%1$d முறை சந்தித்தது · கடைசியாக %2$s</string>
+</resources>

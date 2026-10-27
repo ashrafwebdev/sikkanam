@@ -12,4 +12,6 @@ data class Meeting(
     // Names of the people who attended, separated by commas.
     val attendees: String,
     val notes: String,
+    // The jamaat this meeting belongs to. 0 means not linked to a jamaat (older records).
+    val groupId: Long = 0,
 )

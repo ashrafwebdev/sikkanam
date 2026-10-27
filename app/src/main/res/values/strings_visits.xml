@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Meeting visits from the register -->
+    <string name="locality_met_today">Met today</string>
+    <string name="locality_met_today_done">Met today ✓</string>
+    <string name="locality_never_met">Not met yet</string>
+    <string name="locality_met_count">Met %1$d times · last %2$s</string>
+</resources>

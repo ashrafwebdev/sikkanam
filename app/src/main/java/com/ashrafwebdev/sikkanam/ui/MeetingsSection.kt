@@ -34,8 +34,9 @@ import com.ashrafwebdev.sikkanam.data.Meeting
 
 /** Daily meetings (mashwara): a short log of each consultation, with who attended and what was decided. */
 @Composable
-fun MeetingsSection(vm: FinanceViewModel) {
-    val meetings by vm.meetings.collectAsState()
+fun MeetingsSection(vm: FinanceViewModel, groupId: Long) {
+    val allMeetings by vm.meetings.collectAsState()
+    val meetings = allMeetings.filter { it.groupId == groupId }
     var showNew by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Meeting?>(null) }
 
@@ -79,7 +80,7 @@ fun MeetingsSection(vm: FinanceViewModel) {
             existing = null,
             onDismiss = { showNew = false },
             onSave = { topic, attendees, notes ->
-                if (vm.saveMeeting(null, topic, attendees, notes)) {
+                if (vm.saveMeeting(null, topic, attendees, notes, groupId)) {
                     showNew = false
                     true
                 } else {
@@ -94,7 +95,7 @@ fun MeetingsSection(vm: FinanceViewModel) {
             existing = meeting,
             onDismiss = { editing = null },
             onSave = { topic, attendees, notes ->
-                if (vm.saveMeeting(meeting, topic, attendees, notes)) {
+                if (vm.saveMeeting(meeting, topic, attendees, notes, groupId)) {
                     editing = null
                     true
                 } else {

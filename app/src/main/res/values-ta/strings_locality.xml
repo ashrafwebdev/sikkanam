@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Locality register -->
+    <string name="locality_title">பள்ளிவாசல் பகுதி மக்கள்</string>
+    <string name="locality_total">பகுதியில் மொத்தம்: %1$d</string>
+    <string name="locality_went">கிரூஜ் சென்றவர்கள்: %1$d</string>
+    <string name="locality_forty">40 நாட்கள் சென்றவர்கள்: %1$d</string>
+    <string name="locality_four_months">4 மாதங்கள் சென்றவர்கள்: %1$d</string>
+    <string name="locality_active">செயலில் உள்ளவர்கள்: %1$d · செயலற்றவர்கள்: %2$d</string>
+    <string name="locality_empty">இன்னும் யாரும் பதிவு செய்யப்படவில்லை. பகுதியில் வசிப்பவர்களைச் சேர்க்கவும்.</string>
+    <string name="locality_add_title">ஒருவரைச் சேர்</string>
+    <string name="locality_edit_title">நபரைத் திருத்து</string>
+    <string name="locality_field">பகுதி (மஹல்லா)</string>
+    <string name="locality_tag_forty">40 நாட்கள்</string>
+    <string name="locality_tag_four_months">4 மாதங்கள்</string>
+    <string name="locality_status_active">செயலில்</string>
+    <string name="locality_status_inactive">செயலற்றவர்</string>
+    <string name="locality_delete_desc">நீக்கு</string>
+</resources>

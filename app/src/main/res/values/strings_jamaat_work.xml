@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Muqami amaal -->
+    <string name="amaal_title">Muqami amaal</string>
+    <string name="amaal_desc">Tick each amaal a member did today. The count is for the last seven days.</string>
+    <string name="amaal_add_members">Add members to the jamaat first.</string>
+    <string name="amaal_week_count">This week: %1$d of %2$d</string>
+    <string name="amaal_masjid_ward_fikr">Masjid ward fikr</string>
+    <string name="amaal_taaleem_masjid">Ta\'leem in masjid</string>
+    <string name="amaal_taaleem_house">Ta\'leem in house</string>
+    <string name="amaal_muqami_gasht">Muqami gasht</string>
+    <string name="amaal_second_gasht">Second gasht</string>
+    <string name="amaal_masjid_abad">Masjid abad ki mehnat</string>
+    <string name="amaal_three_days">Three days jamaat</string>
+
+    <!-- Khurooj -->
+    <string name="khurooj_title">Khurooj</string>
+    <string name="khurooj_empty">No khurooj recorded yet.</string>
+    <string name="khurooj_men_40_india">Men: 40 days inside India</string>
+    <string name="khurooj_men_4m_india">Men: 4 months inside India</string>
+    <string name="khurooj_men_5m_foreign">Men: 5 months foreign</string>
+    <string name="khurooj_women_3_days">Ladies: 3 days inside India</string>
+    <string name="khurooj_women_10_days">Ladies: 10 days inside India</string>
+    <string name="khurooj_women_40_india">Ladies: 40 days inside India</string>
+    <string name="khurooj_women_2m_foreign">Ladies: 2 months foreign</string>
+    <string name="khurooj_women_2m_nizamuddin">Ladies: 2 months Nizamuddin Markaz khidmat</string>
+    <string name="khurooj_other">Other</string>
+    <string name="khurooj_from">From %1$s</string>
+    <string name="khurooj_dates">%1$s to %2$s</string>
+    <string name="khurooj_delete_desc">Delete khurooj</string>
+    <string name="khurooj_new_title">New khurooj</string>
+    <string name="khurooj_start">Start date (dd/mm/yyyy)</string>
+    <string name="khurooj_end">End date (dd/mm/yyyy, optional)</string>
+    <string name="khurooj_places">Places visited</string>
+    <string name="khurooj_note">Note (optional)</string>
+    <string name="khurooj_date_error">Enter the start date like 25/03/2027.</string>
+</resources>

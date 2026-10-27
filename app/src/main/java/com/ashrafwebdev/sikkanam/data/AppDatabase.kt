@@ -13,9 +13,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         Transaction::class, Budget::class, Donation::class, Category::class, SavingsGoal::class,
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
         TripSettledMonth::class, Account::class, Transfer::class, Meeting::class, DutyAssignment::class, DutyType::class,
-        GoalEntry::class, Place::class, Debt::class,
+        GoalEntry::class, Place::class, Debt::class, AmaalCheck::class, Khurooj::class, DawatContact::class, LocalityPerson::class, MeetingVisit::class,
     ],
-    version = 23,
+    version = 29,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -29,6 +29,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun goalEntryDao(): GoalEntryDao
     abstract fun placeDao(): PlaceDao
     abstract fun debtDao(): DebtDao
+    abstract fun amaalDao(): AmaalDao
+    abstract fun khuroojDao(): KhuroojDao
+    abstract fun dawatDao(): DawatDao
+    abstract fun localityDao(): LocalityDao
+    abstract fun meetingVisitDao(): MeetingVisitDao
     abstract fun tripDao(): TripDao
     abstract fun accountDao(): AccountDao
     abstract fun transferDao(): TransferDao
@@ -265,6 +270,71 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Links meetings and duty assignments to a jamaat. Older rows get 0 (not linked). */
+        private val MIGRATION_23_24 = object : Migration(23, 24) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE meetings ADD COLUMN groupId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE duty_assignments ADD COLUMN groupId INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** Adds the muqami amaal checks and the khurooj records. */
+        private val MIGRATION_24_25 = object : Migration(24, 25) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS amaal_checks (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, memberId INTEGER NOT NULL, dayMillis INTEGER NOT NULL, " +
+                        "amaal TEXT NOT NULL, done INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS khurooj (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, type TEXT NOT NULL DEFAULT 'OTHER', startMillis INTEGER NOT NULL, " +
+                        "endMillis INTEGER NOT NULL, places TEXT NOT NULL, note TEXT NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the dawat contacts (people met, taskeel status, follow-up dates). */
+        private val MIGRATION_25_26 = object : Migration(25, 26) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS dawat_contacts (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, phone TEXT NOT NULL, area TEXT NOT NULL, status TEXT NOT NULL, " +
+                        "metMillis INTEGER NOT NULL, followUpMillis INTEGER NOT NULL, notes TEXT NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the locality register (people in the masjid's area, and their khurooj history). */
+        private val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS locality_people (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, phone TEXT NOT NULL, locality TEXT NOT NULL, " +
+                        "wentFortyDays INTEGER NOT NULL, wentFourMonths INTEGER NOT NULL, active INTEGER NOT NULL, " +
+                        "notes TEXT NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the visit log, so each meeting with a person from the register is counted. */
+        private val MIGRATION_27_28 = object : Migration(27, 28) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS meeting_visits (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "personId INTEGER NOT NULL, dayMillis INTEGER NOT NULL, note TEXT NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the khurooj types each person is available for, and the taskeel given at each visit. */
+        private val MIGRATION_28_29 = object : Migration(28, 29) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE locality_people ADD COLUMN availableTypes TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE meeting_visits ADD COLUMN taskeel TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -280,7 +350,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
-                    MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23,
+                    MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

@@ -69,8 +69,8 @@ interface DutyDao {
     @Query("DELETE FROM duty_assignments")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM duty_assignments WHERE dayMillis = :day AND duty = :duty")
-    suspend fun deleteForDuty(day: Long, duty: String)
+    @Query("DELETE FROM duty_assignments WHERE dayMillis = :day AND duty = :duty AND groupId = :groupId")
+    suspend fun deleteForDuty(day: Long, duty: String, groupId: Long)
 
     /** Renames a duty on every past assignment, so the history follows the new name. */
     @Query("UPDATE duty_assignments SET duty = :newName WHERE duty = :oldName")
@@ -161,6 +161,75 @@ interface SavingsGoalDao {
 
     @Query("UPDATE savings_goals SET savedCents = :savedCents WHERE id = :id")
     suspend fun setSaved(id: Long, savedCents: Long)
+}
+
+@Dao
+interface AmaalDao {
+    @Query("SELECT * FROM amaal_checks")
+    fun observeAll(): Flow<List<AmaalCheck>>
+
+    @Insert
+    suspend fun insert(check: AmaalCheck)
+
+    @Update
+    suspend fun update(check: AmaalCheck)
+}
+
+@Dao
+interface DawatDao {
+    @Query("SELECT * FROM dawat_contacts ORDER BY followUpMillis = 0, followUpMillis, name")
+    fun observeAll(): Flow<List<DawatContact>>
+
+    @Insert
+    suspend fun insert(contact: DawatContact)
+
+    @Update
+    suspend fun update(contact: DawatContact)
+
+    @Query("DELETE FROM dawat_contacts WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface LocalityDao {
+    @Query("SELECT * FROM locality_people ORDER BY name")
+    fun observeAll(): Flow<List<LocalityPerson>>
+
+    @Insert
+    suspend fun insert(person: LocalityPerson)
+
+    @Update
+    suspend fun update(person: LocalityPerson)
+
+    @Query("DELETE FROM locality_people WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface MeetingVisitDao {
+    @Query("SELECT * FROM meeting_visits ORDER BY dayMillis DESC")
+    fun observeAll(): Flow<List<MeetingVisit>>
+
+    @Insert
+    suspend fun insert(visit: MeetingVisit)
+
+    @Query("DELETE FROM meeting_visits WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface KhuroojDao {
+    @Query("SELECT * FROM khurooj ORDER BY startMillis DESC")
+    fun observeAll(): Flow<List<Khurooj>>
+
+    @Insert
+    suspend fun insert(khurooj: Khurooj)
+
+    @Update
+    suspend fun update(khurooj: Khurooj)
+
+    @Query("DELETE FROM khurooj WHERE id = :id")
+    suspend fun delete(id: Long)
 }
 
 @Dao

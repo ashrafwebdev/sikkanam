@@ -1,13 +1,12 @@
 package com.ashrafwebdev.sikkanam.ui
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -28,43 +27,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.DutyAssignment
 
-private const val PREFS = "sikkanam_prefs"
-private const val KEY_PEOPLE = "mashwara_people"
-
-/** The people in the mashwara group, kept on the phone. */
-fun loadMashwaraPeople(context: Context): List<String> =
-    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .getString(KEY_PEOPLE, "")
-        .orEmpty()
-        .split('\n')
-        .filter { it.isNotBlank() }
-
-fun saveMashwaraPeople(context: Context, people: List<String>) {
-    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .edit()
-        .putString(KEY_PEOPLE, people.joinToString("\n"))
-        .apply()
-}
-
 /**
- * Duties for today's mashwara. Each day the group decides who takes each duty, and ticks it when
- * it's done. The duty list can be changed: add a duty, rename it, or remove it.
+ * Duties for today's mashwara in one jamaat. The people are the jamaat's members. Each day the jamaat
+ * decides who takes each duty, and ticks it when it's done. The duty list is shared by all jamaats and
+ * can be changed: add a duty, rename it, or remove it.
  */
 @Composable
-fun DutiesSection(vm: FinanceViewModel) {
-    val context = LocalContext.current
-    val assignments by vm.dutyAssignments.collectAsState()
+fun DutiesSection(vm: FinanceViewModel, groupId: Long, members: List<String>) {
+    val allAssignments by vm.dutyAssignments.collectAsState()
+    val assignments = allAssignments.filter { it.groupId == groupId }
     val dutyTypes by vm.dutyTypes.collectAsState()
     val names = dutyTypes.map { it.name }
-    var people by remember { mutableStateOf(loadMashwaraPeople(context)) }
-    var newPerson by remember { mutableStateOf("") }
     var newDuty by remember { mutableStateOf("") }
     var dutyError by remember { mutableStateOf<String?>(null) }
     var renaming by remember { mutableStateOf<String?>(null) }
@@ -75,36 +54,6 @@ fun DutiesSection(vm: FinanceViewModel) {
 
     SectionCard {
         SectionHeader(title = stringResource(R.string.duty_title))
-
-        Text(stringResource(R.string.duty_people), style = MaterialTheme.typography.labelLarge)
-        people.forEach { name ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                IconButton(onClick = {
-                    people = people - name
-                    saveMashwaraPeople(context, people)
-                }) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.duty_remove_person))
-                }
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = newPerson,
-                onValueChange = { newPerson = it },
-                label = { Text(stringResource(R.string.duty_name)) },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
-            FilledTonalButton(onClick = {
-                val clean = newPerson.trim()
-                if (clean.isNotBlank() && people.none { it.equals(clean, ignoreCase = true) }) {
-                    people = people + clean
-                    saveMashwaraPeople(context, people)
-                    newPerson = ""
-                }
-            }) { Text(stringResource(R.string.action_add)) }
-        }
 
         Text(stringResource(R.string.duty_list_title), style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -129,7 +78,7 @@ fun DutiesSection(vm: FinanceViewModel) {
         }
         dutyError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
-        if (people.isEmpty()) {
+        if (members.isEmpty()) {
             Text(stringResource(R.string.duty_add_people_first), style = MaterialTheme.typography.bodySmall)
         } else {
             Text(stringResource(R.string.duty_today), style = MaterialTheme.typography.labelLarge)
@@ -140,9 +89,9 @@ fun DutiesSection(vm: FinanceViewModel) {
                     Column(modifier = Modifier.weight(1f)) {
                         CategorySelector(
                             label = duty,
-                            options = people,
+                            options = members,
                             selected = assignment?.personName.orEmpty(),
-                            onSelect = { vm.assignDuty(today, duty, it) },
+                            onSelect = { vm.assignDuty(today, duty, it, groupId) },
                         )
                     }
                     if (assignment != null) {
@@ -158,8 +107,8 @@ fun DutiesSection(vm: FinanceViewModel) {
             }
 
             Text(stringResource(R.string.duty_so_far), style = MaterialTheme.typography.labelLarge)
-            // Every duty each person has been given, across all days recorded.
-            people.forEach { person ->
+            // Every duty each member has been given in this jamaat, across all days recorded.
+            members.forEach { person ->
                 val received = assignments.filter { it.personName == person }.map { it.duty }.toSet()
                 val remaining = names.filter { it !in received }
                 val line = stringResource(R.string.duty_count, person, names.count { it in received }, names.size) +

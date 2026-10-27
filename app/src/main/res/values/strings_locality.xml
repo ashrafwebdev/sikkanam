@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Locality register -->
+    <string name="locality_title">People of the locality</string>
+    <string name="locality_total">Total in the locality: %1$d</string>
+    <string name="locality_went">Have gone on khurooj: %1$d</string>
+    <string name="locality_forty">Gone 40 days: %1$d</string>
+    <string name="locality_four_months">Gone 4 months: %1$d</string>
+    <string name="locality_active">Active: %1$d · Inactive: %2$d</string>
+    <string name="locality_empty">No one recorded yet. Add the people living in the locality.</string>
+    <string name="locality_add_title">Add a person</string>
+    <string name="locality_edit_title">Edit person</string>
+    <string name="locality_field">Locality (mahalla)</string>
+    <string name="locality_tag_forty">40 days</string>
+    <string name="locality_tag_four_months">4 months</string>
+    <string name="locality_status_active">Active</string>
+    <string name="locality_status_inactive">Inactive</string>
+    <string name="locality_delete_desc">Delete</string>
+</resources>

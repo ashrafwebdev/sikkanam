@@ -111,24 +111,8 @@ private fun TripList(
                 },
             )
         }
-        item { MeetingsSection(vm) }
-        item { DutiesSection(vm) }
-        item {
-            SectionCard {
-                SectionHeader(title = "Directory")
-                Text(
-                    "Masjids in the network, and local services such as electricians, plumbers and housekeepers.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                FilledTonalButton(onClick = onOpenDirectory) { Text("Open directory") }
-            }
-        }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                LearnSection()
-            }
-        }
+        item { DawatSection(vm) }
+        item { LocalitySection(vm) }
         if (groups.isEmpty()) {
             item { EmptyState(stringResource(R.string.trip_empty)) }
         }
@@ -322,6 +306,11 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
             }
         }
 
+        item { MuqamiAmaalSection(vm, group.id, members) }
+        item { WeeklyProgrammeSection(vm, group.id, members) }
+        item { KhuroojSection(vm, group.id) }
+        item { MeetingsSection(vm, group.id) }
+        item { DutiesSection(vm, group.id, members.map { it.name }) }
         item { SectionHeader(title = stringResource(R.string.trip_members)) }
         item {
             FilledTonalButton(onClick = { showAddMember = true }) {
