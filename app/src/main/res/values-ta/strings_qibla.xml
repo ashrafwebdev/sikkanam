@@ -6,5 +6,8 @@
     <string name="qibla_degrees">கிப்லா வடக்கிலிருந்து %1$d° இல் உள்ளது</string>
     <string name="qibla_waiting">திசையைக் கண்டறிய தொலைபேசியை மெதுவாகத் திருப்புங்கள்.</string>
     <string name="qibla_no_sensor">இந்தத் தொலைபேசியில் திசைகாட்டி உணரி இல்லை.</string>
-    <string name="qibla_hint">தொலைபேசியைத் தட்டையாகப் பிடியுங்கள். அம்பு கஅபாவை நோக்கி இருக்கும்.</string>
+    <string name="qibla_hint">தொலைபேசியைத் தட்டையாகப் பிடியுங்கள். சதுரம் கிப்லாவைக் குறிக்கும்; அது டயலின் மேல் பகுதியுடன் சேரும் வரை திருப்புங்கள்.</string>
+    <string name="qibla_turn_right">வலப்புறம் %1$d° திருப்புங்கள்</string>
+    <string name="qibla_turn_left">இடப்புறம் %1$d° திருப்புங்கள்</string>
+    <string name="qibla_facing">நீங்கள் கிப்லாவை நோக்கி உள்ளீர்கள்</string>
 </resources>
