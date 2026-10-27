@@ -109,21 +109,11 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
     )
 }
 
-/** Opens the email app with the feedback filled in. Returns false if no email app is installed. */
-private fun openFeedbackEmail(context: Context, type: FeedbackType, message: String, includeDevice: Boolean): Boolean {
-    val body = buildString {
-        appendLine(message)
-        if (includeDevice) {
-            appendLine()
-            appendLine("---")
-            appendLine("App: Sikkanam ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, build ${BuildConfig.VERSION_CODE})")
-            appendLine("Phone: ${Build.MANUFACTURER} ${Build.MODEL}")
-            appendLine("Android: ${Build.VERSION.RELEASE}")
-        }
-    }
+/** Opens the email app with the subject and body filled in. Returns false if no email app is installed. */
+fun openSupportEmail(context: Context, subject: String, body: String): Boolean {
     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
         putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-        putExtra(Intent.EXTRA_SUBJECT, "[Sikkanam] ${type.label}")
+        putExtra(Intent.EXTRA_SUBJECT, subject)
         putExtra(Intent.EXTRA_TEXT, body)
     }
     return try {
@@ -133,4 +123,23 @@ private fun openFeedbackEmail(context: Context, type: FeedbackType, message: Str
         Toast.makeText(context, "No email app found. Please write to $SUPPORT_EMAIL", Toast.LENGTH_LONG).show()
         false
     }
+}
+
+/** Device details that help a developer reproduce a problem. */
+fun deviceDetails(): String = buildString {
+    appendLine("---")
+    appendLine("App: Sikkanam ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, build ${BuildConfig.VERSION_CODE})")
+    appendLine("Phone: ${Build.MANUFACTURER} ${Build.MODEL}")
+    appendLine("Android: ${Build.VERSION.RELEASE}")
+}
+
+private fun openFeedbackEmail(context: Context, type: FeedbackType, message: String, includeDevice: Boolean): Boolean {
+    val body = buildString {
+        appendLine(message)
+        if (includeDevice) {
+            appendLine()
+            append(deviceDetails())
+        }
+    }
+    return openSupportEmail(context, "[Sikkanam] ${type.label}", body)
 }

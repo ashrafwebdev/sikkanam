@@ -5,7 +5,7 @@ Track what comes in and what goes out:
 - See your balance, total income, and total expenses at a glance
 - Review and delete past entries
 
-Your data stays on your phone. Sikkanam needs no account, shows no ads, and doesn't connect to the internet.
+Your data stays on your phone. Sikkanam needs no account and shows no ads. It connects to the internet only to download the shared list of places, and it sends no personal data.
 
 Sikkanam is free and open source under the GPL-3.0 license.
 

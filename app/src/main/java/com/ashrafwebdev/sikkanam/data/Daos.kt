@@ -164,6 +164,19 @@ interface SavingsGoalDao {
 }
 
 @Dao
+interface PlaceDao {
+    @Query("SELECT * FROM places ORDER BY id")
+    fun observeAll(): Flow<List<Place>>
+
+    /** Returns the new row's id, so child places can point to their parent. */
+    @Insert
+    suspend fun insert(place: Place): Long
+
+    @Query("DELETE FROM places")
+    suspend fun clearAll()
+}
+
+@Dao
 interface GoalEntryDao {
     @Query("SELECT * FROM goal_entries ORDER BY dateMillis DESC, id DESC")
     fun observeAll(): Flow<List<GoalEntry>>

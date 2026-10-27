@@ -1,0 +1,27 @@
+{
+  "states": [
+    {
+      "name": "Tamil Nadu",
+      "districts": [
+        {
+          "name": "Chennai",
+          "zones": [
+            {
+              "name": "Chennai",
+              "halqas": [
+                {
+                  "name": "Guduvancheri",
+                  "masjids": [
+                    "Rahmaniyya Jumma Masjid, Vallalar Nagar (Ameer: Bilal Ahmed sb)",
+                    "Masjide Ummah, Kuttanur",
+                    "Alharamain Masjid, Varatharajapuram (Ameer: Haji Mustafa sb)"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

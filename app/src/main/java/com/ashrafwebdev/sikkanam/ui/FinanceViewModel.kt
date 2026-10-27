@@ -18,6 +18,8 @@ import com.ashrafwebdev.sikkanam.data.DonationKind
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.GoalEntry
+import com.ashrafwebdev.sikkanam.data.Place
+import com.ashrafwebdev.sikkanam.network.refreshCuratedNetwork
 import com.ashrafwebdev.sikkanam.data.SavingsGoal
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TripContribution
@@ -52,6 +54,9 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val goals: StateFlow<List<SavingsGoal>> = db.savingsGoalDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val goalEntries: StateFlow<List<GoalEntry>> = db.goalEntryDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val places: StateFlow<List<Place>> = db.placeDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** The master category list, for both income and expense. */
@@ -732,6 +737,9 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /** Downloads the curated network list. Returns an error message, or null on success. */
+    suspend fun refreshNetwork(): String? = refreshCuratedNetwork(getApplication<Application>(), db.placeDao())
+
     /** Keeps a goal's saved total equal to the sum of its history. */
     private suspend fun refreshSaved(goalId: Long) {
         db.savingsGoalDao().setSaved(goalId, db.goalEntryDao().total(goalId))
@@ -755,6 +763,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         dutyAssignments = dutyAssignments.value,
         dutyTypes = dutyTypes.value,
         goalEntries = goalEntries.value,
+        places = places.value,
     ).toJson()
 
 
@@ -776,6 +785,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.donations.forEach { db.donationDao().insert(it) }
             data.goals.forEach { db.savingsGoalDao().insert(it) }
             data.goalEntries.forEach { db.goalEntryDao().insert(it) }
+            data.places.forEach { db.placeDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

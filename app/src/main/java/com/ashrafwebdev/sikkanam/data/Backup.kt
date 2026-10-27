@@ -21,6 +21,7 @@ data class BackupData(
     val dutyAssignments: List<DutyAssignment> = emptyList(),
     val dutyTypes: List<DutyType> = emptyList(),
     val goalEntries: List<GoalEntry> = emptyList(),
+    val places: List<Place> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -94,6 +95,16 @@ fun BackupData.toJson(): String {
                 put("amountCents", e.amountCents)
                 put("dateMillis", e.dateMillis)
                 put("note", e.note)
+            })
+        }
+    })
+    root.put("places", JSONArray().apply {
+        places.forEach { p ->
+            put(JSONObject().apply {
+                put("id", p.id)
+                put("parentId", p.parentId ?: JSONObject.NULL)
+                put("level", p.level.name)
+                put("name", p.name)
             })
         }
     })
@@ -270,6 +281,18 @@ fun parseBackup(text: String): BackupData {
             )
         }
     } ?: emptyList()
+    // Places are optional too. Older backups have none.
+    val places = root.optJSONArray("places")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Place(
+                id = o.optLong("id", 0),
+                parentId = if (o.isNull("parentId")) null else o.getLong("parentId"),
+                level = PlaceLevel.valueOf(o.getString("level")),
+                name = o.getString("name"),
+            )
+        }
+    } ?: emptyList()
     // Goal history is optional too. Older backups have none.
     val goalEntries = root.optJSONArray("goalEntries")?.let { arr ->
         List(arr.length()) { i ->
@@ -405,5 +428,6 @@ fun parseBackup(text: String): BackupData {
         tripGroups, tripMembers, tripContributions, tripExpenses, tripSettledMonths,
         accounts, transfers, meetings, dutyAssignments, dutyTypes,
         goalEntries = goalEntries,
+        places = places,
     )
 }

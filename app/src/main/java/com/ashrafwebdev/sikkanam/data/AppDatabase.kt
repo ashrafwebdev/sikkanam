@@ -13,9 +13,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         Transaction::class, Budget::class, Donation::class, Category::class, SavingsGoal::class,
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
         TripSettledMonth::class, Account::class, Transfer::class, Meeting::class, DutyAssignment::class, DutyType::class,
-        GoalEntry::class,
+        GoalEntry::class, Place::class,
     ],
-    version = 21,
+    version = 22,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -27,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun savingsGoalDao(): SavingsGoalDao
     abstract fun goalEntryDao(): GoalEntryDao
+    abstract fun placeDao(): PlaceDao
     abstract fun tripDao(): TripDao
     abstract fun accountDao(): AccountDao
     abstract fun transferDao(): TransferDao
@@ -241,6 +242,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the places hierarchy (states, districts, zones, halqas, masjids). */
+        private val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS places (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "parentId INTEGER, level TEXT NOT NULL, name TEXT NOT NULL)"
+                )
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -256,7 +267,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
-                    MIGRATION_20_21,
+                    MIGRATION_20_21, MIGRATION_21_22,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

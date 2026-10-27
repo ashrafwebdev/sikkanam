@@ -100,6 +100,8 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
         }
         item { MeetingsSection(vm) }
         item { DutiesSection(vm) }
+        item { NetworkSection(vm) }
+        item { DirectorySection() }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 LearnSection()
