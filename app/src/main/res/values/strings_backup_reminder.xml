@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Backup reminder -->
+    <string name="backup_reminder_title">Time to save a backup</string>
+    <string name="backup_reminder_never">You have not saved a backup yet. If you lose this phone, your data is lost.</string>
+    <string name="backup_reminder_last">Your last backup was on %1$s.</string>
+    <string name="backup_reminder_how">Open Settings and tap Save backup.</string>
+</resources>

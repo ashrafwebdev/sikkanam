@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Daily dhikr and Quran tracker -->
+    <string name="ibadah_title">Today: dhikr and Quran</string>
+    <string name="ibadah_dhikr">Dhikr today: %1$d</string>
+    <string name="ibadah_plus_one">+1</string>
+    <string name="ibadah_plus_33">+33</string>
+    <string name="ibadah_reset">Reset</string>
+    <string name="ibadah_pages">Quran pages read today: %1$d</string>
+    <string name="ibadah_minus_one">−1</string>
+</resources>

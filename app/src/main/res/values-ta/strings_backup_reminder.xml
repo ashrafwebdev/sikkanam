@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Backup reminder -->
+    <string name="backup_reminder_title">காப்புப்பிரதி சேமிக்கும் நேரம்</string>
+    <string name="backup_reminder_never">இன்னும் காப்புப்பிரதி சேமிக்கப்படவில்லை. இந்தத் தொலைபேசியை இழந்தால் தரவு போய்விடும்.</string>
+    <string name="backup_reminder_last">உங்கள் கடைசி காப்புப்பிரதி %1$s அன்று சேமிக்கப்பட்டது.</string>
+    <string name="backup_reminder_how">அமைப்புகளைத் திறந்து, காப்புப்பிரதி சேமி என்பதைத் தட்டுங்கள்.</string>
+</resources>

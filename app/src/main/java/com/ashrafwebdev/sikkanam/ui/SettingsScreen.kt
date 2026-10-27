@@ -576,6 +576,7 @@ private fun BackupSection(vm: FinanceViewModel) {
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(vm.backupText()) }
+            markBackupSaved(context)
             status = savedText
         }
     }

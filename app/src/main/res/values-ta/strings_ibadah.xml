@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Daily dhikr and Quran tracker -->
+    <string name="ibadah_title">இன்று: திக்ர் மற்றும் குர்ஆன்</string>
+    <string name="ibadah_dhikr">இன்றைய திக்ர்: %1$d</string>
+    <string name="ibadah_plus_one">+1</string>
+    <string name="ibadah_plus_33">+33</string>
+    <string name="ibadah_reset">மீட்டமை</string>
+    <string name="ibadah_pages">இன்று ஓதிய குர்ஆன் பக்கங்கள்: %1$d</string>
+    <string name="ibadah_minus_one">−1</string>
+</resources>
