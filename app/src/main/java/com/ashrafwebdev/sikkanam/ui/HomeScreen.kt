@@ -111,6 +111,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             }
         }
 
+        item { MonthlySummaryCard(vm) }
         item { PrayerCard() }
         item { QiblaCard() }
         item { IslamicDatesCard() }

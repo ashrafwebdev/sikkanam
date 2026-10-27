@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Monthly summary -->
+    <string name="summary_title">%1$s இன் சுருக்கம்</string>
+    <string name="summary_in">வரவு: %1$s</string>
+    <string name="summary_out">செலவு: %1$s</string>
+    <string name="summary_net">மீதம்: %1$s</string>
+    <string name="summary_saved">சேமிப்பு இலக்குகளில் சேர்த்தது: %1$s</string>
+    <string name="summary_within_budgets">எல்லா வரவுசெலவுத் திட்டங்களுக்குள்ளும் இருந்தீர்கள்.</string>
+    <string name="summary_over_budgets">வரம்பை மீறியவை:</string>
+    <string name="summary_over_item">%1$s: %2$s அதிகம்</string>
+</resources>

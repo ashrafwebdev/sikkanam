@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Monthly summary -->
+    <string name="summary_title">Summary of %1$s</string>
+    <string name="summary_in">Money in: %1$s</string>
+    <string name="summary_out">Money out: %1$s</string>
+    <string name="summary_net">Difference: %1$s</string>
+    <string name="summary_saved">Put into savings goals: %1$s</string>
+    <string name="summary_within_budgets">You stayed within every budget.</string>
+    <string name="summary_over_budgets">Over budget:</string>
+    <string name="summary_over_item">%1$s: over by %2$s</string>
+</resources>
