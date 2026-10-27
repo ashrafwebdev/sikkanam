@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Trips -->
-    <string name="trip_list_title">Trips and family</string>
-    <string name="trip_btn_trip">Trip</string>
+    <!-- Jamaat (khurooj) groups -->
+    <string name="trip_list_title">Jamaat and family</string>
+    <string name="trip_btn_trip">Jamaat</string>
     <string name="trip_btn_family">Family</string>
-    <string name="trip_empty">No trips yet. Create one for a tour and invite everyone to share the costs.</string>
-    <string name="trip_kind_trip">Trip</string>
+    <string name="trip_empty">No jamaat yet. Create one for a khurooj and share the costs with everyone going.</string>
+    <string name="trip_kind_trip">Jamaat</string>
     <string name="trip_kind_family">Family</string>
     <string name="trip_open">Open</string>
     <string name="trip_summary">%1$s · %2$d members · spent %3$s</string>
     <string name="trip_new_family">New family group</string>
-    <string name="trip_new_trip">New trip</string>
+    <string name="trip_new_trip">New jamaat</string>
     <string name="trip_family_name_hint">Family name, for example Joint family</string>
-    <string name="trip_name_hint">Trip name, for example Ooty tour</string>
+    <string name="trip_name_hint">Jamaat name, for example Khurooj to Guduvancheri</string>
     <string name="trip_back">Back</string>
-    <string name="trip_rename_desc">Rename trip</string>
-    <string name="trip_delete_desc">Delete trip</string>
+    <string name="trip_rename_desc">Rename jamaat</string>
+    <string name="trip_delete_desc">Delete jamaat</string>
     <string name="trip_settled_this_month">Settled for this month</string>
     <string name="trip_not_settled_yet">Not settled yet</string>
     <string name="trip_carried_note">Includes balances brought forward</string>
@@ -53,16 +53,16 @@
     <string name="trip_unknown">Unknown</string>
     <string name="trip_edit_payment_desc">Edit payment in</string>
     <string name="trip_delete_payment_desc">Delete payment in</string>
-    <string name="trip_name_label">Trip name</string>
+    <string name="trip_name_label">Jamaat name</string>
     <string name="trip_delete_title">Delete %1$s?</string>
-    <string name="trip_delete_body">This removes the trip, its members, and all its money records.</string>
+    <string name="trip_delete_body">This removes the jamaat, its members, and all its money records.</string>
     <string name="trip_who">Who</string>
     <string name="trip_choose_error">Choose a member and enter an amount above zero.</string>
     <string name="trip_income_title">Monthly income of %1$s</string>
     <string name="trip_income_per_month">Income per month</string>
     <string name="trip_income_hint">Used only when the family splits costs by income.</string>
     <string name="trip_income_error">Enter an amount, zero or more.</string>
-    <string name="trip_expense_title">Trip expense</string>
+    <string name="trip_expense_title">Jamaat expense</string>
     <string name="trip_for_what">For what</string>
     <string name="trip_paid_by">Paid by</string>
     <string name="trip_shared_by">Shared by</string>
@@ -82,7 +82,7 @@
     <string name="trip_address">Address</string>
     <string name="trip_days_optional">Number of days (optional)</string>
     <string name="trip_advance_optional">Advance paid (optional)</string>
-    <string name="trip_going_label">Going on the trip (shares costs)</string>
+    <string name="trip_going_label">Going on the khurooj (shares costs)</string>
     <string name="trip_save_to_contacts">Also save to my phone contacts</string>
     <string name="trip_name_error">Enter a name.</string>
 </resources>
