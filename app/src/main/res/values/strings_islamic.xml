@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Islamic calendar dates -->
+    <string name="islamic_title">Islamic dates</string>
+    <string name="islamic_note">Dates may differ by a day depending on the moon sighting in your area.</string>
+    <string name="islamic_days_away">%1$s · in %2$d days</string>
+    <string name="islamic_new_year">Islamic New Year</string>
+    <string name="islamic_ashura">Ashura</string>
+    <string name="islamic_isra_miraj">Isra and Mi\'raj</string>
+    <string name="islamic_shab_e_barat">Shab-e-Barat</string>
+    <string name="islamic_ramadan_start">Ramadan begins</string>
+    <string name="islamic_laylat_al_qadr">Laylat al-Qadr</string>
+    <string name="islamic_eid_al_fitr">Eid al-Fitr</string>
+    <string name="islamic_arafah">Day of Arafah</string>
+    <string name="islamic_eid_al_adha">Eid al-Adha</string>
+    <string name="islamic_mawlid">Mawlid (Milad un-Nabi)</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Islamic calendar dates -->
+    <string name="islamic_title">இஸ்லாமிய நாட்கள்</string>
+    <string name="islamic_note">உங்கள் பகுதியில் பிறை தெரியும் நாளைப் பொறுத்து தேதி ஒரு நாள் வேறுபடலாம்.</string>
+    <string name="islamic_days_away">%1$s · %2$d நாட்களில்</string>
+    <string name="islamic_new_year">ஹிஜ்ரி புத்தாண்டு</string>
+    <string name="islamic_ashura">ஆஷூரா</string>
+    <string name="islamic_isra_miraj">இஸ்ரா மிஃராஜ்</string>
+    <string name="islamic_shab_e_barat">ஷபே பராஅத்</string>
+    <string name="islamic_ramadan_start">ரமலான் தொடக்கம்</string>
+    <string name="islamic_laylat_al_qadr">லைலத்துல் கத்ர்</string>
+    <string name="islamic_eid_al_fitr">ஈத் அல்-ஃபித்ர்</string>
+    <string name="islamic_arafah">அரஃபா நாள்</string>
+    <string name="islamic_eid_al_adha">ஈத் அல்-அள்ஹா</string>
+    <string name="islamic_mawlid">மௌலித் (மீலாது நபி)</string>
+</resources>
