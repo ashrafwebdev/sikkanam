@@ -154,6 +154,34 @@ interface SavingsGoalDao {
 
     @Query("DELETE FROM savings_goals WHERE id = :id")
     suspend fun delete(id: Long)
+
+    /** Changes only the name and target, so the saved total is never overwritten from a stale copy. */
+    @Query("UPDATE savings_goals SET name = :name, targetCents = :targetCents WHERE id = :id")
+    suspend fun updateDetails(id: Long, name: String, targetCents: Long)
+
+    @Query("UPDATE savings_goals SET savedCents = :savedCents WHERE id = :id")
+    suspend fun setSaved(id: Long, savedCents: Long)
+}
+
+@Dao
+interface GoalEntryDao {
+    @Query("SELECT * FROM goal_entries ORDER BY dateMillis DESC, id DESC")
+    fun observeAll(): Flow<List<GoalEntry>>
+
+    @Insert
+    suspend fun insert(entry: GoalEntry)
+
+    @Update
+    suspend fun update(entry: GoalEntry)
+
+    @Query("DELETE FROM goal_entries WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("DELETE FROM goal_entries WHERE goalId = :goalId")
+    suspend fun deleteForGoal(goalId: Long)
+
+    @Query("SELECT COALESCE(SUM(amountCents), 0) FROM goal_entries WHERE goalId = :goalId")
+    suspend fun total(goalId: Long): Long
 }
 
 @Dao

@@ -5,7 +5,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
 // Deep green for the brand, gold for accents. Green and red mark income and expenses.
 private val Green700 = Color(0xFF0B6B4F)
@@ -44,8 +50,16 @@ val ExpenseColor = Color(0xFFC62828)
 
 @Composable
 fun SikkanamTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
-        content = content,
-    )
+    val context = LocalContext.current
+    remember { TextSizeSetting.load(context) }
+    val textSize by TextSizeSetting.size.collectAsState()
+    val base = LocalDensity.current
+
+    // Scales every sp text size in the app. The phone's own font size is already in base.fontScale.
+    CompositionLocalProvider(LocalDensity provides Density(base.density, base.fontScale * textSize.factor)) {
+        MaterialTheme(
+            colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+            content = content,
+        )
+    }
 }

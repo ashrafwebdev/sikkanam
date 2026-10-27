@@ -17,6 +17,7 @@ import com.ashrafwebdev.sikkanam.data.Donation
 import com.ashrafwebdev.sikkanam.data.DonationKind
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
+import com.ashrafwebdev.sikkanam.data.GoalEntry
 import com.ashrafwebdev.sikkanam.data.SavingsGoal
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TripContribution
@@ -49,6 +50,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val goals: StateFlow<List<SavingsGoal>> = db.savingsGoalDao().observeAll()
+    val goalEntries: StateFlow<List<GoalEntry>> = db.goalEntryDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** The master category list, for both income and expense. */
@@ -480,7 +482,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         val cents = parseCents(targetText) ?: return false
         if (name.isBlank()) return false
         viewModelScope.launch {
-            db.savingsGoalDao().update(goal.copy(name = name.trim(), targetCents = cents))
+            db.savingsGoalDao().updateDetails(goal.id, name.trim(), cents)
         }
         return true
     }
@@ -695,17 +697,43 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         return true
     }
 
-    /** Puts money toward a goal. Returns false if the amount is not above zero. */
-    fun addToGoal(goal: SavingsGoal, amountText: String): Boolean {
+    /** Puts money toward a goal and records it in the history. Returns false if the amount is not above zero. */
+    fun addToGoal(goal: SavingsGoal, amountText: String, note: String): Boolean {
         val cents = parseCents(amountText) ?: return false
         viewModelScope.launch {
-            db.savingsGoalDao().update(goal.copy(savedCents = goal.savedCents + cents))
+            db.goalEntryDao().insert(GoalEntry(goalId = goal.id, amountCents = cents, dateMillis = System.currentTimeMillis(), note = note.trim()))
+            refreshSaved(goal.id)
         }
         return true
     }
 
+    /** Corrects a mistaken amount or note in the history. Returns false if the amount is not above zero. */
+    fun updateGoalEntry(entry: GoalEntry, amountText: String, note: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        viewModelScope.launch {
+            db.goalEntryDao().update(entry.copy(amountCents = cents, note = note.trim()))
+            refreshSaved(entry.goalId)
+        }
+        return true
+    }
+
+    fun deleteGoalEntry(entry: GoalEntry) {
+        viewModelScope.launch {
+            db.goalEntryDao().delete(entry.id)
+            refreshSaved(entry.goalId)
+        }
+    }
+
     fun deleteGoal(id: Long) {
-        viewModelScope.launch { db.savingsGoalDao().delete(id) }
+        viewModelScope.launch {
+            db.goalEntryDao().deleteForGoal(id)
+            db.savingsGoalDao().delete(id)
+        }
+    }
+
+    /** Keeps a goal's saved total equal to the sum of its history. */
+    private suspend fun refreshSaved(goalId: Long) {
+        db.savingsGoalDao().setSaved(goalId, db.goalEntryDao().total(goalId))
     }
 
     /** The whole app's data as backup text. */
@@ -725,6 +753,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         meetings = meetings.value,
         dutyAssignments = dutyAssignments.value,
         dutyTypes = dutyTypes.value,
+        goalEntries = goalEntries.value,
     ).toJson()
 
 
@@ -745,6 +774,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.budgets.forEach { db.budgetDao().save(it) }
             data.donations.forEach { db.donationDao().insert(it) }
             data.goals.forEach { db.savingsGoalDao().insert(it) }
+            data.goalEntries.forEach { db.goalEntryDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

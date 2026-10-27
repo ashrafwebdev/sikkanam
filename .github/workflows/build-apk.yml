@@ -1,8 +1,7 @@
 name: Build debug APK
 
+# Runs only when started by hand (Actions tab, Run workflow), not on every push.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -44,7 +43,7 @@ jobs:
 
       # Publish the build as a release, so installed copies can see that a newer build exists.
       - name: Publish release
-        if: github.event_name == 'push' && env.HAS_KEYSTORE == 'true'
+        if: env.HAS_KEYSTORE == 'true'
         run: >
           gh release create "build-${GITHUB_RUN_NUMBER}" app/build/outputs/apk/github/debug/app-github-debug.apk
           --title "Build ${GITHUB_RUN_NUMBER}" --notes "Automatic build from main."

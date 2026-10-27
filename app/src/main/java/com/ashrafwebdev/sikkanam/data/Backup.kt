@@ -20,6 +20,7 @@ data class BackupData(
     val meetings: List<Meeting> = emptyList(),
     val dutyAssignments: List<DutyAssignment> = emptyList(),
     val dutyTypes: List<DutyType> = emptyList(),
+    val goalEntries: List<GoalEntry> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -82,6 +83,17 @@ fun BackupData.toJson(): String {
                 put("name", g.name)
                 put("targetCents", g.targetCents)
                 put("savedCents", g.savedCents)
+            })
+        }
+    })
+    root.put("goalEntries", JSONArray().apply {
+        goalEntries.forEach { e ->
+            put(JSONObject().apply {
+                put("id", e.id)
+                put("goalId", e.goalId)
+                put("amountCents", e.amountCents)
+                put("dateMillis", e.dateMillis)
+                put("note", e.note)
             })
         }
     })
@@ -258,6 +270,19 @@ fun parseBackup(text: String): BackupData {
             )
         }
     } ?: emptyList()
+    // Goal history is optional too. Older backups have none.
+    val goalEntries = root.optJSONArray("goalEntries")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            GoalEntry(
+                id = o.optLong("id", 0),
+                goalId = o.getLong("goalId"),
+                amountCents = o.getLong("amountCents"),
+                dateMillis = o.getLong("dateMillis"),
+                note = o.optString("note", ""),
+            )
+        }
+    } ?: emptyList()
     // Trip data is also optional, so older backups still restore.
     val tripGroups = root.optJSONArray("tripGroups")?.let { arr ->
         List(arr.length()) { i ->
@@ -379,5 +404,6 @@ fun parseBackup(text: String): BackupData {
         transactions, budgets, donations, categories, goals,
         tripGroups, tripMembers, tripContributions, tripExpenses, tripSettledMonths,
         accounts, transfers, meetings, dutyAssignments, dutyTypes,
+        goalEntries = goalEntries,
     )
 }

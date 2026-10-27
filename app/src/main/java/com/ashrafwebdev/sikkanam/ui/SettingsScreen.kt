@@ -144,6 +144,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             )
         }
 
+        item { TextSizeSection() }
         item { SecuritySection() }
         if (BuildConfig.PAYMENT_ALERTS) item { PaymentSection() }
         item { ReminderSection() }
@@ -285,6 +286,31 @@ private fun CategoryTypeSection(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Makes the app's text bigger or smaller, on top of the phone's own font size. */
+@Composable
+private fun TextSizeSection() {
+    val context = LocalContext.current
+    remember { TextSizeSetting.load(context) }
+    val textSize by TextSizeSetting.size.collectAsState()
+
+    SectionCard {
+        SectionHeader(title = "Text size")
+        Text(
+            "Changes the size of the text in the app. This adds to your phone's own font size setting.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextSize.entries.forEach { option ->
+                FilterChip(
+                    selected = textSize == option,
+                    onClick = { TextSizeSetting.set(context, option) },
+                    label = { Text(option.label) },
+                )
             }
         }
     }

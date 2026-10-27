@@ -13,7 +13,21 @@ fun parseCents(text: String): Long? {
     return cents.takeIf { it > 0 }
 }
 
-fun formatMoney(cents: Long): String = String.format(Locale.US, "%,.2f", cents / 100.0)
+/**
+ * Rupees in the Indian style: ₹1,00,000.00 (groups of two after the first three digits).
+ * Negative amounts show the minus sign before the rupee sign.
+ */
+fun formatMoney(cents: Long): String {
+    val rupees = (kotlin.math.abs(cents) / 100).toString()
+    val paise = (kotlin.math.abs(cents) % 100).toString().padStart(2, '0')
+    val grouped = if (rupees.length <= 3) {
+        rupees
+    } else {
+        rupees.dropLast(3).reversed().chunked(2).joinToString(",").reversed() + "," + rupees.takeLast(3)
+    }
+    val sign = if (cents < 0) "-" else ""
+    return "$sign₹$grouped.$paise"
+}
 
 /** Plain amount for editing and export, for example 1500 cents becomes "15.00". */
 fun formatPlain(cents: Long): String = String.format(Locale.US, "%.2f", cents / 100.0)
@@ -53,8 +67,9 @@ fun addMonths(monthStart: Long, months: Int): Long {
 fun monthLabel(monthStart: Long): String =
     SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date(monthStart))
 
+/** Indian date format, for example 26/10/2026. */
 fun dateLabel(millis: Long): String =
-    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(millis))
+    SimpleDateFormat("dd/MM/yyyy", Locale("en", "IN")).format(Date(millis))
 
 /** Today's date in the Islamic (Hijri) calendar, for example "14 Jumada II 1448". */
 fun hijriToday(): String =

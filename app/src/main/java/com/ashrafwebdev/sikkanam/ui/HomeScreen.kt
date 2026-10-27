@@ -83,9 +83,10 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val expense = monthTx.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amountCents }
     val interest = monthTx.filter { it.isRiba }.sumOf { it.amountCents }
 
-    // Every transaction up to the end of the viewed month, so the balance carries forward.
+    // Starts from every account's opening balance, then adds every transaction up to the end of the
+    // viewed month, so the balance carries forward. Transfers between accounts net to zero, so they are left out.
     val monthEnd = addMonths(monthStart, 1)
-    val balanceToDate = allTx.filter { it.dateMillis < monthEnd }.sumOf {
+    val balanceToDate = accounts.sumOf { it.openingCents } + allTx.filter { it.dateMillis < monthEnd }.sumOf {
         if (it.type == TransactionType.INCOME) it.amountCents else -it.amountCents
     }
 
