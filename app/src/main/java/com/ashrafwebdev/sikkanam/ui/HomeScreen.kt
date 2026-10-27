@@ -65,6 +65,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
     }
 
+    val exportFileName = stringResource(R.string.home_export_file)
     val monthStart by vm.monthStart.collectAsState()
     val monthTx by vm.monthTransactions.collectAsState()
     val allTx by vm.transactions.collectAsState()
@@ -163,7 +164,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.action_add))
                 }
-                TextButton(onClick = { exportLauncher.launch(stringResource(R.string.home_export_file)) }) {
+                TextButton(onClick = { exportLauncher.launch(exportFileName) }) {
                     Text(stringResource(R.string.home_export_csv))
                 }
             }
@@ -378,6 +379,7 @@ private fun TransactionDialog(
     var halal by remember { mutableStateOf(existing?.halalStatus ?: HalalStatus.NONE) }
     var riba by remember { mutableStateOf(existing?.isRiba ?: false) }
     var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
+    val errorText = stringResource(R.string.home_error_transaction)
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -496,7 +498,7 @@ private fun TransactionDialog(
             TextButton(onClick = {
                 val accountId = accounts.firstOrNull { it.name == accountName }?.id
                 if (!onSave(type, amount, category, party, note, paymentMethod, halal, riba, recurring, accountId, receiptName)) {
-                    error = stringResource(R.string.home_error_transaction)
+                    error = errorText
                 }
             }) { Text(stringResource(R.string.action_save)) }
         },
