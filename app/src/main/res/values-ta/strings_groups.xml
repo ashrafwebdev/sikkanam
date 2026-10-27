@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Category group titles -->
+    <string name="group_essentials">அத்தியாவசியங்கள்</string>
+    <string name="group_family">குடும்பமும் வாழ்க்கை முறையும்</string>
+    <string name="group_islamic">இஸ்லாமியம்</string>
+    <string name="group_savings">சேமிப்பும் பிறவும்</string>
+    <string name="group_work">வேலை</string>
+    <string name="group_other_income">பிற வருமானம்</string>
+    <string name="group_custom">தனிப்பயன்</string>
+</resources>

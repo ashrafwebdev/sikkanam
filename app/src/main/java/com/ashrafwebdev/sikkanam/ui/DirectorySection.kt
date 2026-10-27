@@ -31,9 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.network.DirectoryCategory
 import com.ashrafwebdev.sikkanam.network.DirectoryEntry
 import com.ashrafwebdev.sikkanam.network.refreshDirectory
@@ -67,9 +69,9 @@ fun DirectorySection(
         .filter { it.entries.isNotEmpty() }
 
     SectionCard {
-        SectionHeader(title = "Services")
+        SectionHeader(title = stringResource(R.string.directory_title))
         Text(
-            "Electricians, plumbers, housekeepers and businesses.",
+            stringResource(R.string.directory_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -85,19 +87,19 @@ fun DirectorySection(
                         updating = false
                     }
                 },
-            ) { Text(if (updating) "Updating..." else "Update") }
-            OutlinedButton(onClick = { showForm = true }) { Text("Add my listing") }
+            ) { Text(if (updating) stringResource(R.string.directory_updating) else stringResource(R.string.directory_update)) }
+            OutlinedButton(onClick = { showForm = true }) { Text(stringResource(R.string.directory_add)) }
         }
         status?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
         if (categories.isEmpty()) {
             Text(
-                "No listings yet. Tap Update when you are online.",
+                stringResource(R.string.directory_empty),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else if (visible.isEmpty()) {
-            Text("No services match your search.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.directory_no_match), style = MaterialTheme.typography.bodySmall)
         }
         visible.forEach { category ->
             CategoryHeader(category)
@@ -154,7 +156,8 @@ private fun DirectoryCard(entry: DirectoryEntry, onReportChange: () -> Unit) {
             Text(entry.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             val meta = listOfNotNull(
                 entry.area.takeIf { it.isNotBlank() },
-                entry.languages.joinToString(", ").takeIf { it.isNotBlank() }?.let { "Speaks $it" },
+                entry.languages.joinToString(", ").takeIf { it.isNotBlank() }
+                    ?.let { stringResource(R.string.directory_speaks, it) },
             ).joinToString("  ·  ")
             if (meta.isNotBlank()) {
                 Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -176,7 +179,7 @@ private fun DirectoryCard(entry: DirectoryEntry, onReportChange: () -> Unit) {
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onReportChange) { Text("Report a change") }
+                TextButton(onClick = onReportChange) { Text(stringResource(R.string.directory_report)) }
             }
         }
     }
@@ -196,38 +199,47 @@ private fun DirectoryFormDialog(prefill: DirectoryEntry?, onDismiss: () -> Unit)
     var description by remember { mutableStateOf(prefill?.description.orEmpty()) }
     var languages by remember { mutableStateOf(prefill?.languages?.joinToString(", ").orEmpty()) }
     var error by remember { mutableStateOf<String?>(null) }
+    val formError = stringResource(R.string.directory_form_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (prefill == null) "Add my listing" else "Report a change") },
+        title = {
+            Text(
+                if (prefill == null) stringResource(R.string.directory_form_new_title)
+                else stringResource(R.string.directory_form_change_title),
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Your details are emailed to the developer, who adds them to the directory. " +
-                        "Once listed, your name, phone number and description are shown to people using the app. " +
-                        "Only send details you agree to share.",
+                    stringResource(R.string.directory_form_info),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Category (electrician, plumber, housekeeper, business)") },
+                    label = { Text(stringResource(R.string.directory_field_category)) },
                     singleLine = true,
                 )
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, singleLine = true)
-                OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text("Area") }, singleLine = true)
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.directory_field_name)) }, singleLine = true)
+                OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text(stringResource(R.string.directory_field_area)) }, singleLine = true)
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Phone number") },
+                    label = { Text(stringResource(R.string.directory_field_phone)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                 )
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Short description") }, minLines = 2)
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text(stringResource(R.string.directory_field_description)) },
+                    minLines = 2,
+                )
                 OutlinedTextField(
                     value = languages,
                     onValueChange = { languages = it },
-                    label = { Text("Languages spoken (comma separated)") },
+                    label = { Text(stringResource(R.string.directory_field_languages)) },
                     singleLine = true,
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -236,7 +248,7 @@ private fun DirectoryFormDialog(prefill: DirectoryEntry?, onDismiss: () -> Unit)
         confirmButton = {
             TextButton(onClick = {
                 if (name.isBlank() || phone.isBlank()) {
-                    error = "Please enter at least the name and phone number."
+                    error = formError
                 } else {
                     val body = buildString {
                         appendLine(if (prefill == null) "New listing request" else "Change to an existing listing")
@@ -252,8 +264,8 @@ private fun DirectoryFormDialog(prefill: DirectoryEntry?, onDismiss: () -> Unit)
                     val subject = if (prefill == null) "[Sikkanam] Directory listing" else "[Sikkanam] Directory change"
                     if (openSupportEmail(context, subject, body)) onDismiss()
                 }
-            }) { Text("Open email") }
+            }) { Text(stringResource(R.string.feedback_open_email)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

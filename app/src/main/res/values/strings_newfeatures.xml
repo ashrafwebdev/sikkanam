@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Feedback -->
+    <string name="feedback_title">Feedback and support</string>
+    <string name="feedback_desc">Send a suggestion, feedback, or report a mistake. It opens your email app, so you can read it before sending.</string>
+    <string name="feedback_send">Send feedback</string>
+    <string name="feedback_type_suggestion">Suggestion</string>
+    <string name="feedback_type_feedback">Feedback</string>
+    <string name="feedback_type_mistake">Report a mistake</string>
+    <string name="feedback_message">Your message</string>
+    <string name="feedback_include_device">Include app version and phone model</string>
+    <string name="feedback_write_first">Please write your message first.</string>
+    <string name="feedback_open_email">Open email</string>
+    <string name="feedback_no_email">No email app found. Please write to %1$s</string>
+
+    <!-- Network -->
+    <string name="network_title">Network</string>
+    <string name="network_not_downloaded">Not downloaded yet. Tap Update list when you are online.</string>
+    <string name="network_updated">Updated %1$s</string>
+    <string name="network_update">Update list</string>
+    <string name="network_updating">Updating...</string>
+    <string name="network_suggest">Suggest a place</string>
+    <string name="network_empty_list">The downloaded list is empty.</string>
+    <string name="network_no_match">No places match your search.</string>
+    <string name="network_suggest_title">Suggest a place</string>
+    <string name="network_suggest_desc">Fill in what you know. Your email app opens with this, and you can read it before sending.</string>
+    <string name="network_state">State</string>
+    <string name="network_district">District</string>
+    <string name="network_zone">Zone</string>
+    <string name="network_halqa">Halqa</string>
+    <string name="network_masjid">Masjid</string>
+    <string name="network_note">Note (optional)</string>
+    <string name="network_suggest_error">Please fill in at least the state, district or masjid.</string>
+    <string name="network_level_state">State</string>
+    <string name="network_level_district">District</string>
+    <string name="network_level_zone">Zone</string>
+    <string name="network_level_halqa">Halqa</string>
+    <string name="network_level_masjid">Masjid</string>
+    <string name="network_children">%1$s · %2$d %3$s</string>
+    <string name="network_plural_district">districts</string>
+    <string name="network_plural_zone">zones</string>
+    <string name="network_plural_halqa">halqas</string>
+    <string name="network_plural_masjid">masjids</string>
+    <string name="network_open">Open</string>
+    <string name="network_close">Close</string>
+    <string name="network_path_india">India</string>
+
+    <!-- Directory -->
+    <string name="directory_title">Services</string>
+    <string name="directory_desc">Electricians, plumbers, housekeepers and businesses.</string>
+    <string name="directory_update">Update</string>
+    <string name="directory_updating">Updating...</string>
+    <string name="directory_add">Add my listing</string>
+    <string name="directory_empty">No listings yet. Tap Update when you are online.</string>
+    <string name="directory_no_match">No services match your search.</string>
+    <string name="directory_speaks">Speaks %1$s</string>
+    <string name="directory_report">Report a change</string>
+    <string name="directory_page_title">Directory</string>
+    <string name="directory_back">Back</string>
+    <string name="directory_search">Search name, area, service or language</string>
+    <string name="directory_filter_all">All</string>
+    <string name="directory_filter_masjids">Masjids</string>
+    <string name="directory_form_new_title">Add my listing</string>
+    <string name="directory_form_change_title">Report a change</string>
+    <string name="directory_form_info">Your details are emailed to the developer, who adds them to the directory. Once listed, your name, phone number and description are shown to people using the app. Only send details you agree to share.</string>
+    <string name="directory_field_category">Category (electrician, plumber, housekeeper, business)</string>
+    <string name="directory_field_name">Name</string>
+    <string name="directory_field_area">Area</string>
+    <string name="directory_field_phone">Phone number</string>
+    <string name="directory_field_description">Short description</string>
+    <string name="directory_field_languages">Languages spoken (comma separated)</string>
+    <string name="directory_form_error">Please enter at least the name and phone number.</string>
+
+    <!-- Payment alerts card -->
+    <string name="payments_title">Payments found (%1$d)</string>
+    <string name="payments_info">These came from your payment app notifications. Add the ones that are yours.</string>
+    <string name="payments_add">Add</string>
+    <string name="payments_dismiss">Dismiss</string>
+    <string name="payments_to">%1$s to %2$s</string>
+    <string name="payments_app_date">%1$s · %2$s</string>
+    <string name="payments_more">Showing the latest 5 of %1$d.</string>
+
+    <!-- Text size labels -->
+    <string name="text_size_small">Small</string>
+    <string name="text_size_normal">Normal</string>
+    <string name="text_size_large">Large</string>
+    <string name="text_size_extra_large">Extra large</string>
+</resources>

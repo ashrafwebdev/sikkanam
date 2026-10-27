@@ -248,7 +248,7 @@ private fun CategoryTypeSection(
                 val expanded = group in openGroups || query.isNotBlank()
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "$group (${groupNames.size})",
+                        "${groupTitle(group)} (${groupNames.size})",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f).clickable {
@@ -335,7 +335,16 @@ private fun TextSizeSection() {
                         // The size is read when the activity starts, so restart it to apply the change.
                         (context as? Activity)?.recreate()
                     },
-                    label = { Text(option.label) },
+                    label = {
+                        Text(
+                            when (option) {
+                                TextSize.SMALL -> stringResource(R.string.text_size_small)
+                                TextSize.NORMAL -> stringResource(R.string.text_size_normal)
+                                TextSize.LARGE -> stringResource(R.string.text_size_large)
+                                TextSize.EXTRA_LARGE -> stringResource(R.string.text_size_extra_large)
+                            },
+                        )
+                    },
                 )
             }
         }

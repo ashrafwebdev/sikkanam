@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Category group titles -->
+    <string name="group_essentials">Essentials</string>
+    <string name="group_family">Family and lifestyle</string>
+    <string name="group_islamic">Islamic</string>
+    <string name="group_savings">Savings and other</string>
+    <string name="group_work">Work</string>
+    <string name="group_other_income">Other income</string>
+    <string name="group_custom">Custom</string>
+</resources>

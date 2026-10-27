@@ -1,8 +1,17 @@
 name: Build debug APK
 
 # Runs only when started by hand (Actions tab, Run workflow), not on every push.
+# Choose "github" for the GitHub build (it is published as a release) or "play" to check the Play build.
 on:
   workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Which build to make'
+        type: choice
+        options:
+          - github
+          - play
+        default: github
 
 permissions:
   contents: write
@@ -25,27 +34,32 @@ jobs:
         if: env.HAS_KEYSTORE == 'true'
         run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sikkanam.jks"
 
-      # Only the GitHub build is published here. The Play build (flavor "play") is built separately
-      # for upload to Google Play and is not a GitHub release.
-      - name: Run unit tests
-        run: ./gradlew :app:testGithubDebugUnitTest --no-daemon
+      - name: Choose build
+        run: |
+          FLAVOR="${{ github.event.inputs.flavor || 'github' }}"
+          echo "FLAVOR=$FLAVOR" >> "$GITHUB_ENV"
+          echo "CAP=${FLAVOR^}" >> "$GITHUB_ENV"
+          echo "APK_DIR=app/build/outputs/apk/$FLAVOR/debug" >> "$GITHUB_ENV"
 
-      - name: Build GitHub debug APK
-        run: ./gradlew :app:assembleGithubDebug --no-daemon
+      - name: Run unit tests
+        run: ./gradlew :app:test${CAP}DebugUnitTest --no-daemon
+
+      - name: Build debug APK
+        run: ./gradlew :app:assemble${CAP}Debug --no-daemon
         env:
           SIKKANAM_KEYSTORE: ${{ env.HAS_KEYSTORE == 'true' && format('{0}/sikkanam.jks', runner.temp) || '' }}
           SIKKANAM_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sikkanam-debug-apk
-          path: app/build/outputs/apk/github/debug/*.apk
+          name: sikkanam-${{ env.FLAVOR }}-debug-apk
+          path: ${{ env.APK_DIR }}/*.apk
 
-      # Publish the build as a release, so installed copies can see that a newer build exists.
+      # Publish the GitHub build as a release, so installed copies can see that a newer build exists.
       - name: Publish release
-        if: env.HAS_KEYSTORE == 'true'
+        if: env.FLAVOR == 'github' && env.HAS_KEYSTORE == 'true'
         run: >
-          gh release create "build-${GITHUB_RUN_NUMBER}" app/build/outputs/apk/github/debug/app-github-debug.apk
-          --title "Build ${GITHUB_RUN_NUMBER}" --notes "Automatic build from main."
+          gh release create "build-${GITHUB_RUN_NUMBER}" "${APK_DIR}/app-github-debug.apk"
+          --title "Build ${GITHUB_RUN_NUMBER}" --notes "Build from main."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

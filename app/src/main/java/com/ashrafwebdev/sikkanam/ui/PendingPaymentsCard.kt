@@ -14,8 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.payments.PendingPayments
@@ -30,20 +32,23 @@ fun PendingPaymentsCard(vm: FinanceViewModel) {
     if (items.isEmpty()) return
 
     SectionCard {
-        SectionHeader(title = "Payments found (${items.size})")
+        SectionHeader(title = stringResource(R.string.payments_title, items.size))
         Text(
-            "These came from your payment app notifications. Add the ones that are yours.",
+            stringResource(R.string.payments_info),
             style = MaterialTheme.typography.bodySmall,
         )
         items.take(5).forEach { payment ->
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "${formatMoney(payment.amountCents)} to ${payment.payee}",
+                        stringResource(R.string.payments_to, formatMoney(payment.amountCents), payment.payee),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Text("${payment.app} · ${dateLabel(payment.detectedMillis)}", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.payments_app_date, payment.app, dateLabel(payment.detectedMillis)),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 TextButton(onClick = {
                     val added = vm.saveTransaction(
@@ -59,12 +64,14 @@ fun PendingPaymentsCard(vm: FinanceViewModel) {
                         paymentMethod = "UPI",
                     )
                     if (added) PendingPayments.remove(context, payment.key)
-                }) { Text("Add") }
-                TextButton(onClick = { PendingPayments.remove(context, payment.key) }) { Text("Dismiss") }
+                }) { Text(stringResource(R.string.payments_add)) }
+                TextButton(onClick = { PendingPayments.remove(context, payment.key) }) {
+                    Text(stringResource(R.string.payments_dismiss))
+                }
             }
         }
         if (items.size > 5) {
-            Text("Showing the latest 5 of ${items.size}.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.payments_more, items.size), style = MaterialTheme.typography.bodySmall)
         }
     }
 }

@@ -24,11 +24,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.BuildConfig
+import com.ashrafwebdev.sikkanam.R
 
 private const val SUPPORT_EMAIL = "support@smatechsolution.com"
 
+/** The kinds of feedback. The English [label] is used in the email subject, so the developer sees it in English. */
 enum class FeedbackType(val label: String) {
     SUGGESTION("Suggestion"),
     FEEDBACK("Feedback"),
@@ -44,12 +47,12 @@ fun FeedbackSection() {
     var showForm by remember { mutableStateOf(false) }
 
     SectionCard {
-        SectionHeader(title = "Feedback and support")
+        SectionHeader(title = stringResource(R.string.feedback_title))
         Text(
-            "Send a suggestion, feedback, or report a mistake. It opens your email app, so you can read it before sending.",
+            stringResource(R.string.feedback_desc),
             style = MaterialTheme.typography.bodySmall,
         )
-        FilledTonalButton(onClick = { showForm = true }) { Text("Send feedback") }
+        FilledTonalButton(onClick = { showForm = true }) { Text(stringResource(R.string.feedback_send)) }
     }
 
     if (showForm) {
@@ -64,10 +67,11 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
     var message by remember { mutableStateOf("") }
     var includeDevice by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
+    val writeFirst = stringResource(R.string.feedback_write_first)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Send feedback") },
+        title = { Text(stringResource(R.string.feedback_send)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Stacked, so each label has the full width and does not wrap letter by letter.
@@ -76,7 +80,7 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
                         FilterChip(
                             selected = type == option,
                             onClick = { type = option },
-                            label = { Text(option.label) },
+                            label = { Text(feedbackTypeLabel(option)) },
                         )
                     }
                 }
@@ -86,13 +90,16 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
                         message = it
                         error = null
                     },
-                    label = { Text("Your message") },
+                    label = { Text(stringResource(R.string.feedback_message)) },
                     minLines = 4,
                     maxLines = 8,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = includeDevice, onCheckedChange = { includeDevice = it })
-                    Text("Include app version and phone model", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.feedback_include_device),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
@@ -100,15 +107,24 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = {
                 if (message.isBlank()) {
-                    error = "Please write your message first."
+                    error = writeFirst
                 } else {
                     if (openFeedbackEmail(context, type, message.trim(), includeDevice)) onDismiss()
                 }
-            }) { Text("Open email") }
+            }) { Text(stringResource(R.string.feedback_open_email)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
+
+@Composable
+private fun feedbackTypeLabel(type: FeedbackType): String = stringResource(
+    when (type) {
+        FeedbackType.SUGGESTION -> R.string.feedback_type_suggestion
+        FeedbackType.FEEDBACK -> R.string.feedback_type_feedback
+        FeedbackType.MISTAKE -> R.string.feedback_type_mistake
+    },
+)
 
 /** Opens the email app with the subject and body filled in. Returns false if no email app is installed. */
 fun openSupportEmail(context: Context, subject: String, body: String): Boolean {
@@ -121,7 +137,7 @@ fun openSupportEmail(context: Context, subject: String, body: String): Boolean {
         context.startActivity(intent)
         true
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "No email app found. Please write to $SUPPORT_EMAIL", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.feedback_no_email, SUPPORT_EMAIL), Toast.LENGTH_LONG).show()
         false
     }
 }

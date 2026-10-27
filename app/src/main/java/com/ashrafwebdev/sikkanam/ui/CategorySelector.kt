@@ -115,7 +115,7 @@ private fun CategoryPickerDialog(
                         groupCategories(matching, type).forEach { (group, names) ->
                             item {
                                 Text(
-                                    group,
+                                    groupTitle(group),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(top = 8.dp, bottom = 2.dp),

@@ -25,10 +25,10 @@
     <string name="settings_lock_app">செயலியைப் பூட்டு</string>
     <string name="settings_lock_on">செயலியைத் திறக்கும்போது கைரேகை அல்லது திரைப் பூட்டைக் கேள்.</string>
     <string name="settings_lock_unavailable">இதைப் பயன்படுத்த, இந்தத் தொலைபேசியில் கைரேகை அல்லது திரைப் பூட்டை அமையுங்கள்.</string>
-    <string name="settings_about_title">பற்றி</string>
+    <string name="settings_about_title">செயலி பற்றி</string>
     <string name="settings_developed_by">சிக்கனம் செயலியை முகம்மது அஷ்ரஃப் உருவாக்கியுள்ளார்.</string>
     <string name="settings_license">GPL-3.0 கீழ் இலவசமாகவும் திறந்த மூலமாகவும் உள்ளது.</string>
-    <string name="settings_visit_site">smatechsolution.com ஐப் பார்</string>
+    <string name="settings_visit_site">smatechsolution.com</string>
     <string name="settings_payment_title">பணம் செலுத்தல் எச்சரிக்கைகள் (விருப்பம்)</string>
     <string name="settings_payment_desc">கூகிள் பே மற்றும் ஃபோன்பே அறிவிப்புகளிலிருந்து பணம் செலுத்தல்களைக் கண்டறிந்து ஒரே தட்டில் சேர்க்க உதவும். எதுவும் தொலைபேசியிலிருந்து அனுப்பப்படாது. நீங்களே பதிவுகளைச் சேர்க்க விரும்பினால் இதை அணைத்து வையுங்கள்.</string>
     <string name="settings_payment_toggle">அறிவிப்புகளில் பணம் செலுத்தல்களைக் கண்டறி</string>

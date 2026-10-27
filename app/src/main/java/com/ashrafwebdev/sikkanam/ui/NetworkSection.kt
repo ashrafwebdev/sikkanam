@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -33,9 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Place
 import com.ashrafwebdev.sikkanam.data.PlaceLevel
 import com.ashrafwebdev.sikkanam.network.lastNetworkUpdate
@@ -59,10 +60,10 @@ fun NetworkSection(vm: FinanceViewModel, query: String = "") {
     val states = places.filter { it.parentId == null }
 
     SectionCard {
-        SectionHeader(title = "Network")
+        SectionHeader(title = stringResource(R.string.network_title))
         Text(
-            if (updatedAt == 0L) "Not downloaded yet. Tap Update list when you are online."
-            else "Updated ${dateLabel(updatedAt)}",
+            if (updatedAt == 0L) stringResource(R.string.network_not_downloaded)
+            else stringResource(R.string.network_updated, dateLabel(updatedAt)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -78,27 +79,27 @@ fun NetworkSection(vm: FinanceViewModel, query: String = "") {
                         updating = false
                     }
                 },
-            ) { Text(if (updating) "Updating..." else "Update list") }
-            TextButton(onClick = { showSuggest = true }) { Text("Suggest a place") }
+            ) { Text(if (updating) stringResource(R.string.network_updating) else stringResource(R.string.network_update)) }
+            TextButton(onClick = { showSuggest = true }) { Text(stringResource(R.string.network_suggest)) }
         }
         status?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
         if (states.isEmpty() && updatedAt != 0L) {
-            Text("The downloaded list is empty.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.network_empty_list), style = MaterialTheme.typography.bodySmall)
         }
         val needle = query.trim()
         if (needle.isNotEmpty()) {
             // Searching shows every matching place as a flat list, with its path, instead of the tree.
             val matches = places.filter { it.name.contains(needle, ignoreCase = true) }
             if (matches.isEmpty()) {
-                Text("No places match your search.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.network_no_match), style = MaterialTheme.typography.bodySmall)
             }
             matches.forEach { place ->
                 HorizontalDivider()
                 Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                     Text(place.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "${place.level.label} · ${pathOf(place, places)}",
+                        "${levelName(place.level)} · ${pathOf(place, places)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -123,6 +124,27 @@ fun NetworkSection(vm: FinanceViewModel, query: String = "") {
     }
 }
 
+@Composable
+private fun levelName(level: PlaceLevel): String = stringResource(
+    when (level) {
+        PlaceLevel.STATE -> R.string.network_level_state
+        PlaceLevel.DISTRICT -> R.string.network_level_district
+        PlaceLevel.ZONE -> R.string.network_level_zone
+        PlaceLevel.HALQA -> R.string.network_level_halqa
+        PlaceLevel.MASJID -> R.string.network_level_masjid
+    },
+)
+
+@Composable
+private fun childName(level: PlaceLevel): String = stringResource(
+    when (level) {
+        PlaceLevel.STATE -> R.string.network_plural_district
+        PlaceLevel.DISTRICT -> R.string.network_plural_zone
+        PlaceLevel.ZONE -> R.string.network_plural_halqa
+        PlaceLevel.HALQA, PlaceLevel.MASJID -> R.string.network_plural_masjid
+    },
+)
+
 /** The chain of names above a place, for example "Tamil Nadu › Chennai › Chennai › Guduvancheri". */
 private fun pathOf(place: Place, all: List<Place>): String {
     val names = mutableListOf<String>()
@@ -132,7 +154,7 @@ private fun pathOf(place: Place, all: List<Place>): String {
         val parentId = current.parentId
         current = parentId?.let { id -> all.firstOrNull { it.id == id } }
     }
-    return if (names.isEmpty()) "India" else names.joinToString(" › ")
+    return if (names.isEmpty()) "" else names.joinToString(" › ")
 }
 
 /** One place in the tree. Places with children open and close when tapped. */
@@ -166,7 +188,7 @@ private fun PlaceNode(
             )
             children.isNotEmpty() -> Icon(
                 if (isOpen) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight,
-                contentDescription = if (isOpen) "Close" else "Open",
+                contentDescription = stringResource(if (isOpen) R.string.network_close else R.string.network_open),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
@@ -179,8 +201,8 @@ private fun PlaceNode(
                 style = if (isTopLevel) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
                 fontWeight = if (isMasjid) FontWeight.Normal else FontWeight.SemiBold,
             )
-            val info = if (children.isEmpty()) place.level.label
-            else "${place.level.label} · ${children.size} ${place.level.childLabel?.lowercase().orEmpty()}${if (children.size == 1) "" else "s"}"
+            val info = if (children.isEmpty()) levelName(place.level)
+            else stringResource(R.string.network_children, levelName(place.level), children.size, childName(place.level))
             Text(
                 info,
                 style = MaterialTheme.typography.labelSmall,
@@ -207,29 +229,36 @@ private fun SuggestPlaceDialog(onDismiss: () -> Unit) {
     var masjid by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val suggestError = stringResource(R.string.network_suggest_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Suggest a place") },
+        title = { Text(stringResource(R.string.network_suggest_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Fill in what you know. Your email app opens with this, and you can read it before sending.",
+                    stringResource(R.string.network_suggest_desc),
                     style = MaterialTheme.typography.bodySmall,
                 )
-                OutlinedTextField(value = state, onValueChange = { state = it }, label = { Text("State") }, singleLine = true)
-                OutlinedTextField(value = district, onValueChange = { district = it }, label = { Text("District") }, singleLine = true)
-                OutlinedTextField(value = zone, onValueChange = { zone = it }, label = { Text("Zone") }, singleLine = true)
-                OutlinedTextField(value = halqa, onValueChange = { halqa = it }, label = { Text("Halqa") }, singleLine = true)
-                OutlinedTextField(value = masjid, onValueChange = { masjid = it }, label = { Text("Masjid") }, singleLine = true)
-                OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, minLines = 2)
+                OutlinedTextField(value = state, onValueChange = { state = it }, label = { Text(stringResource(R.string.network_state)) }, singleLine = true)
+                OutlinedTextField(value = district, onValueChange = { district = it }, label = { Text(stringResource(R.string.network_district)) }, singleLine = true)
+                OutlinedTextField(value = zone, onValueChange = { zone = it }, label = { Text(stringResource(R.string.network_zone)) }, singleLine = true)
+                OutlinedTextField(value = halqa, onValueChange = { halqa = it }, label = { Text(stringResource(R.string.network_halqa)) }, singleLine = true)
+                OutlinedTextField(value = masjid, onValueChange = { masjid = it }, label = { Text(stringResource(R.string.network_masjid)) }, singleLine = true)
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text(stringResource(R.string.network_note)) },
+                    minLines = 2,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 if (state.isBlank() && district.isBlank() && masjid.isBlank()) {
-                    error = "Please fill in at least the state, district or masjid."
+                    error = suggestError
                 } else {
                     val body = buildString {
                         appendLine("State: ${state.trim()}")
@@ -243,8 +272,8 @@ private fun SuggestPlaceDialog(onDismiss: () -> Unit) {
                     }
                     if (openSupportEmail(context, "[Sikkanam] Network suggestion", body)) onDismiss()
                 }
-            }) { Text("Open email") }
+            }) { Text(stringResource(R.string.feedback_open_email)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

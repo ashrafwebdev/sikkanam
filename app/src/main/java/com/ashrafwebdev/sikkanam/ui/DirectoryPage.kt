@@ -27,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.network.loadDirectory
 
 private const val FILTER_ALL = "All"
@@ -46,7 +48,11 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf(FILTER_ALL) }
 
-    val filters = listOf(FILTER_ALL, FILTER_MASJIDS) + categories.map { it.name }
+    // Each chip has a stable key (used for the filter) and a label shown on screen.
+    val filters = listOf(
+        FILTER_ALL to stringResource(R.string.directory_filter_all),
+        FILTER_MASJIDS to stringResource(R.string.directory_filter_masjids),
+    ) + categories.map { it.name to it.name }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -54,14 +60,14 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.directory_back))
             }
-            Text("Directory", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.directory_page_title), style = MaterialTheme.typography.titleLarge)
         }
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            label = { Text("Search name, area, service or language") },
+            label = { Text(stringResource(R.string.directory_search)) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -70,11 +76,11 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            filters.forEach { option ->
+            filters.forEach { (key, label) ->
                 FilterChip(
-                    selected = filter == option,
-                    onClick = { filter = option },
-                    label = { Text(option) },
+                    selected = filter == key,
+                    onClick = { filter = key },
+                    label = { Text(label) },
                 )
             }
         }
@@ -86,12 +92,12 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
             if (filter == FILTER_ALL || filter == FILTER_MASJIDS) {
                 item { NetworkSection(vm, query = query) }
             }
-            if (filter == FILTER_ALL || filter != FILTER_MASJIDS) {
+            if (filter != FILTER_MASJIDS) {
                 item {
                     DirectorySection(
                         categories = categories,
                         query = query,
-                        categoryFilter = if (filter == FILTER_ALL || filter == FILTER_MASJIDS) null else filter,
+                        categoryFilter = if (filter == FILTER_ALL) null else filter,
                         onReload = { categories = loadDirectory(context) },
                     )
                 }
