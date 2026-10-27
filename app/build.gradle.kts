@@ -62,6 +62,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 
     implementation("androidx.biometric:biometric:1.1.0")
+    // Pinned newer than the biometric library's own fragment, so the file pickers
+    // (backup, restore, receipts, CSV) can use request codes that FragmentActivity accepts.
+    implementation("androidx.fragment:fragment:1.8.5")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.glance:glance-appwidget:1.1.0")
     implementation("androidx.core:core-ktx:1.13.1")
