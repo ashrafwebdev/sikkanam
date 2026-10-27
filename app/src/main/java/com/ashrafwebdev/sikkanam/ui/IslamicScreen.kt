@@ -29,11 +29,12 @@ private enum class IslamicPage(@StringRes val labelRes: Int) {
     ZAKAT(R.string.tab_zakat),
     CHARITY(R.string.tab_charity),
     LEARN(R.string.islamic_learn),
+    BOOKS(R.string.islamic_books),
 }
 
 /**
  * The Islamic tab: prayer times, Qibla, Islamic dates and the daily dhikr and Quran tracker; then zakat
- * (with inheritance), charity and purification, and learning. Each page has its own chip above it.
+ * (with inheritance), charity and purification, learning, and books to read. Each page has its own chip above it.
  */
 @Composable
 fun IslamicScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -71,6 +72,7 @@ fun IslamicScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 ) {
                     LearnSection()
                 }
+                IslamicPage.BOOKS -> BooksPage(Modifier.fillMaxSize())
             }
         }
     }

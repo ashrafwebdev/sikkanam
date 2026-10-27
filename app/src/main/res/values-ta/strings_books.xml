@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Islamic books: the library on the Islamic tab and the reader -->
+    <string name="islamic_books">நூல்கள்</string>
+    <string name="books_title">இஸ்லாமிய நூல்கள்</string>
+    <string name="books_desc">சிக்கனம் வெளியிடும் நூல்களைப் பதிவிறக்கலாம், அல்லது இந்தத் தொலைபேசியிலுள்ள EPUB, PDF அல்லது TXT கோப்பை இறக்குமதி செய்யலாம். நூல் தொலைபேசியில் வந்ததும் இணையம் இல்லாமலே திறக்கலாம்.</string>
+    <string name="books_update">பட்டியலைப் புதுப்பி</string>
+    <string name="books_updating">புதுப்பிக்கிறது…</string>
+    <string name="books_import">நூலை இறக்குமதி செய்</string>
+    <string name="books_update_failed">நூல் பட்டியலைப் பெற முடியவில்லை. இணைய இணைப்பைச் சரிபாருங்கள்.</string>
+    <string name="books_download_failed">நூலைப் பதிவிறக்க முடியவில்லை. இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயலுங்கள்.</string>
+    <string name="books_import_failed">இந்தக் கோப்பை நூலாகத் திறக்க முடியவில்லை. EPUB, PDF அல்லது TXT கோப்பைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="books_on_phone">இந்தத் தொலைபேசியில்</string>
+    <string name="books_none_on_phone">இந்தத் தொலைபேசியில் இன்னும் நூல்கள் இல்லை.</string>
+    <string name="books_remote_title">smatechsolution.com இலிருந்து</string>
+    <string name="books_remote_empty">smatechsolution.com இல் வெளியிடப்பட்ட நூல்களைக் காண பட்டியலைப் புதுப்பி என்பதைத் தட்டுங்கள்.</string>
+    <string name="books_download">பதிவிறக்கு</string>
+    <string name="books_downloading">பதிவிறக்குகிறது…</string>
+    <string name="books_read">படி</string>
+    <string name="books_continue">தொடர்ந்து படி</string>
+    <string name="books_remove">அகற்று</string>
+    <string name="books_remove_title">இந்த நூலை அகற்றவா?</string>
+    <string name="books_remove_text">இந்தத் தொலைபேசியிலுள்ள நகல் நீக்கப்படும்; படித்த இடமும் மறக்கப்படும். நூலை மீண்டும் பதிவிறக்கலாம் அல்லது இறக்குமதி செய்யலாம்.</string>
+    <string name="books_cancel">ரத்து செய்</string>
+    <string name="books_back">பின்செல்</string>
+    <string name="books_missing">இந்த நூல் கோப்பு தொலைபேசியில் இல்லை. அகற்றிவிட்டு மீண்டும் பதிவிறக்கவும் அல்லது இறக்குமதி செய்யவும்.</string>
+    <string name="books_error_open">இந்த நூலைத் திறக்க முடியவில்லை.</string>
+    <string name="books_empty_book">இந்த நூலில் காட்ட உரை இல்லை.</string>
+    <string name="books_page_number">பக்கம் %1$d</string>
+    <string name="books_by">ஆசிரியர்: %1$s</string>
+</resources>

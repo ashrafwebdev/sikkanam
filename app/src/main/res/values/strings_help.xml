@@ -21,7 +21,10 @@
     <string name="help_summary_text">During the first week of each month, Home shows last month: money in and out, savings, and any budget that went over. Reminders come the day before a monthly bill is due, a day before your zakat date, 10 minutes before each prayer, and on a debt due date. Turn prayer reminders off in Settings if you do not want them.</string>
 
     <string name="help_islamic_title">Islamic: prayer, Qibla, dates, dhikr</string>
-    <string name="help_islamic_text">Prayer shows today's five prayers and sunrise for the city you choose in Settings. You can pick standard or Hanafi Asr. Qibla turns with the phone and tells you which way to turn. Islamic dates lists Ramadan, Eid, Arafah and other key days. The daily personal amaal checklist has Quran tilawat, morning and evening tasbeehat, the five prayers in jamaat, nawafil, and finding halal rizq; tick each one as you do it. The dhikr and Quran tracker counts dhikr and pages read each day.</string>
+    <string name="help_islamic_text">Prayer shows today\'s five prayers and sunrise for the city you choose in Settings. You can pick standard or Hanafi Asr. Qibla turns with the phone and tells you which way to turn. Islamic dates lists Ramadan, Eid, Arafah and other key days. The daily personal amaal checklist has Quran tilawat, morning and evening tasbeehat, the five prayers in jamaat, nawafil, and finding halal rizq; tick each one as you do it. The dhikr and Quran tracker counts dhikr and pages read each day.</string>
+
+    <string name="help_books_title">Islamic books</string>
+    <string name="help_books_text">Open Islamic and tap Books. Update list shows the books published on smatechsolution.com. Tap Download to keep a copy on this phone, then Read to open it. Import a book lets you choose any EPUB, PDF or TXT file on the phone. Books open without internet. The place you stopped is saved, and Continue reading returns to it. Remove deletes the copy from the phone.</string>
 
     <string name="help_zakat_title">Zakat and inheritance</string>
     <string name="help_zakat_text">Zakat works out 2.5% on the wealth above nisab, using silver or gold. Inheritance (faraid) shows each share for the spouse, parents, sons and daughters, after debts. Check every case with a scholar, because brothers, sisters, grandchildren and wills are not included.</string>
@@ -33,7 +36,7 @@
     <string name="help_learn_text">Surahs, duas, adhan, prayer steps, funeral prayer, and halal and haram, each with Arabic, transliteration and meaning in Tamil and English. Tap a title to open it, and tick it when you have learned it. Check the content with a teacher before teaching it.</string>
 
     <string name="help_jamaat_title">Jamaat</string>
-    <string name="help_jamaat_text">Create a jamaat for a khurooj and add its members. Record each member's expenses, money in, and advance. Under each jamaat you can keep the daily mashwara, duties, the daily muqami amaal checklist, the weekly programmes (halqa mashwara, city mashwara, shabgujari), and khurooj records with dates and places.</string>
+    <string name="help_jamaat_text">Create a jamaat for a khurooj and add its members. Record each member\'s expenses, money in, and advance. Under each jamaat you can keep the daily mashwara, duties, the daily muqami amaal checklist, the weekly programmes (halqa mashwara, city mashwara, shabgujari), and khurooj records with dates and places.</string>
 
     <string name="help_dawat_title">Dawat, taskeel, and locality</string>
     <string name="help_dawat_text">Dawat and taskeel records the people you meet, their status, and follow-up dates. Once someone agrees to khurooj, form a new jamaat from them. The locality register lists people in the area, the khurooj they have done, and which khurooj they are available for. Tap Met today to record a meeting and the taskeel given, and the monthly list shows who was given taskeel for each khurooj.</string>
