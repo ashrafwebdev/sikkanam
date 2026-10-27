@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Language setting -->
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_desc">Choose the language for the app. System follows your phone\'s language.</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_tamil">தமிழ்</string>
+</resources>

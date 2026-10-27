@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
+import com.ashrafwebdev.sikkanam.ui.AppLanguageSetting
 import com.ashrafwebdev.sikkanam.ui.TextSizeSetting
 import com.ashrafwebdev.sikkanam.update.UpdateStatus
 import com.ashrafwebdev.sikkanam.update.checkForUpdate
@@ -37,8 +38,11 @@ class MainActivity : FragmentActivity() {
     // Applies the chosen text size to the whole activity, so menus and dialogs scale too, not only the content.
     override fun attachBaseContext(newBase: Context) {
         val size = TextSizeSetting.read(newBase)
+        val language = AppLanguageSetting.read(newBase)
         val config = Configuration(newBase.resources.configuration)
         config.fontScale = config.fontScale * size.factor
+        // The chosen language replaces the phone's language. SYSTEM keeps the phone's language.
+        language.tag?.let { config.setLocale(java.util.Locale(it)) }
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 

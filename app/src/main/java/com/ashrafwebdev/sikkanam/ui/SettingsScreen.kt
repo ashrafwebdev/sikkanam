@@ -151,6 +151,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             )
         }
 
+        item { LanguageSection() }
         item { TextSizeSection() }
         item { SecuritySection() }
         if (BuildConfig.PAYMENT_ALERTS) item { PaymentSection() }
@@ -271,6 +272,42 @@ private fun CategoryTypeSection(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Chooses the app's language: the phone's language, English, or Tamil. The change applies straight away. */
+@Composable
+private fun LanguageSection() {
+    val context = LocalContext.current
+    var language by remember { mutableStateOf(AppLanguageSetting.read(context)) }
+
+    SectionCard {
+        SectionHeader(title = stringResource(R.string.settings_language_title))
+        Text(
+            stringResource(R.string.settings_language_desc),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            AppLanguage.entries.forEach { option ->
+                FilterChip(
+                    selected = language == option,
+                    onClick = {
+                        language = option
+                        AppLanguageSetting.save(context, option)
+                        (context as? Activity)?.recreate()
+                    },
+                    label = {
+                        Text(
+                            when (option) {
+                                AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
+                                AppLanguage.ENGLISH -> stringResource(R.string.settings_language_english)
+                                AppLanguage.TAMIL -> stringResource(R.string.settings_language_tamil)
+                            },
+                        )
+                    },
+                )
             }
         }
     }

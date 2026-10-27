@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Language setting -->
+    <string name="settings_language_title">மொழி</string>
+    <string name="settings_language_desc">செயலிக்கான மொழியைத் தேர்ந்தெடுங்கள். அமைப்பு என்பது உங்கள் தொலைபேசியின் மொழியைப் பின்பற்றும்.</string>
+    <string name="settings_language_system">தொலைபேசி அமைப்பு</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_tamil">தமிழ்</string>
+</resources>
