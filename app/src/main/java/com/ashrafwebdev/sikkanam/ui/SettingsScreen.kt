@@ -151,6 +151,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         item { ReminderSection() }
         if (BuildConfig.SELF_UPDATE) item { UpdateSection() }
         item { BackupSection(vm) }
+        item { FeedbackSection() }
         item { AboutSection() }
         item { Spacer(Modifier.height(16.dp)) }
     }
