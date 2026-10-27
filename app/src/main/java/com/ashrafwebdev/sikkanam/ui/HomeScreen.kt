@@ -112,6 +112,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
 
         item { PrayerCard() }
+        item { QiblaCard() }
         if (BuildConfig.PAYMENT_ALERTS) item { PendingPaymentsCard(vm) }
 
         item {

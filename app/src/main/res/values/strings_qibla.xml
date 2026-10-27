@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Qibla -->
+    <string name="qibla_title">Qibla</string>
+    <string name="qibla_degrees">Qibla is %1$d° from north</string>
+    <string name="qibla_waiting">Turn the phone slowly to find the direction.</string>
+    <string name="qibla_no_sensor">This phone has no compass sensor.</string>
+    <string name="qibla_hint">Hold the phone flat. The arrow points toward the Kaaba.</string>
+</resources>
