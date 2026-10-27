@@ -4,11 +4,28 @@
     <!-- Lets bill and zakat reminders show as notifications on Android 13 and later. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Only used to check GitHub for a newer version, and only when the user turns that on. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Lets the app open Android's install prompt for a downloaded update. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Shares the downloaded update file with Android's installer. -->
+
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Sikkanam">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <receiver
             android:name=".widget.BalanceWidgetReceiver"

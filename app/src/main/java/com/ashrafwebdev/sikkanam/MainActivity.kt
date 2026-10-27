@@ -7,6 +7,9 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
+import com.ashrafwebdev.sikkanam.update.UpdateStatus
+import com.ashrafwebdev.sikkanam.update.checkForUpdate
+import com.ashrafwebdev.sikkanam.update.isAutoUpdateCheckOn
 import androidx.glance.appwidget.updateAll
 import com.ashrafwebdev.sikkanam.widget.BalanceWidget
 import com.ashrafwebdev.sikkanam.reminders.scheduleReminders
@@ -37,6 +40,10 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         scheduleReminders(this)
+        // Look for a newer build on launch, if the user has turned that on.
+        if (isAutoUpdateCheckOn(this)) {
+            lifecycleScope.launch { UpdateStatus.set(checkForUpdate(this@MainActivity)) }
+        }
         // FragmentActivity only accepts small request codes, so this uses the older API with a small code.
         if (!canNotify(this)) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST)

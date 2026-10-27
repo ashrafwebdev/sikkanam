@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
         TripSettledMonth::class, Account::class, Transfer::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -152,10 +152,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the newer default categories to existing installs. Existing categories are kept. */
+        private val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
+            }
+        }
+
         /** Adds the receipt file name to each transaction. */
         private val MIGRATION_12_13 = object : Migration(12, 13) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN receiptPath TEXT")
+            }
+        }
+
+        /** Seeds the default categories on a brand-new install, which skips the migrations. */
+        private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
             }
         }
 
@@ -164,8 +178,9 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(
                     MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                     MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
-                    MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
+                    MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                 )
+                .addCallback(SEED_ON_CREATE)
                 .build()
     }
 }

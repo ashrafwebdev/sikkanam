@@ -37,7 +37,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.data.Category
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
+import com.ashrafwebdev.sikkanam.update.UpdateStatus
+import com.ashrafwebdev.sikkanam.update.checkForUpdate
+import com.ashrafwebdev.sikkanam.update.isAutoUpdateCheckOn
+import com.ashrafwebdev.sikkanam.update.setAutoUpdateCheck
 import com.ashrafwebdev.sikkanam.reminders.setZakatDueDate
 import com.ashrafwebdev.sikkanam.reminders.zakatDueDate
 import java.text.SimpleDateFormat
@@ -113,6 +119,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         item { SecuritySection() }
         item { ReminderSection() }
+        item { UpdateSection() }
         item { BackupSection(vm) }
         item { Spacer(Modifier.height(16.dp)) }
     }
@@ -168,6 +175,47 @@ private fun SecuritySection() {
                     setLockEnabled(context, it)
                 },
             )
+        }
+    }
+}
+
+/** Checks GitHub for a newer build. Off by default, so the app makes no network calls unless turned on. */
+@Composable
+private fun UpdateSection() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var autoCheck by remember { mutableStateOf(isAutoUpdateCheckOn(context)) }
+    val update by UpdateStatus.available.collectAsState()
+    var message by remember { mutableStateOf<String?>(null) }
+
+    SectionCard {
+        SectionHeader(title = "Updates")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Check for updates automatically", style = MaterialTheme.typography.bodyLarge)
+                Text("Uses the internet only to look for a newer build when the app opens.", style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(
+                checked = autoCheck,
+                onCheckedChange = {
+                    autoCheck = it
+                    setAutoUpdateCheck(context, it)
+                },
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedButton(onClick = {
+                scope.launch {
+                    val found = checkForUpdate(context)
+                    UpdateStatus.set(found)
+                    message = if (found != null) "Build ${found.versionCode} is available. Use the Install button at the top."
+                    else "You have the latest build, or the check could not reach GitHub."
+                }
+            }) { Text("Check now") }
+        }
+        message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        if (update != null) {
+            Text("An update is available. Use the Install button at the top.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
