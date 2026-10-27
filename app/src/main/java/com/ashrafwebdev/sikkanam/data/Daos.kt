@@ -164,6 +164,21 @@ interface SavingsGoalDao {
 }
 
 @Dao
+interface DebtDao {
+    @Query("SELECT * FROM debts ORDER BY dueMillis = 0, dueMillis, id")
+    fun observeAll(): Flow<List<Debt>>
+
+    @Insert
+    suspend fun insert(debt: Debt)
+
+    @Update
+    suspend fun update(debt: Debt)
+
+    @Query("DELETE FROM debts WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
 interface PlaceDao {
     @Query("SELECT * FROM places ORDER BY id")
     fun observeAll(): Flow<List<Place>>

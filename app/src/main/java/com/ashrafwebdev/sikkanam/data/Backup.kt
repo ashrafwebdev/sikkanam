@@ -22,6 +22,7 @@ data class BackupData(
     val dutyTypes: List<DutyType> = emptyList(),
     val goalEntries: List<GoalEntry> = emptyList(),
     val places: List<Place> = emptyList(),
+    val debts: List<Debt> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -105,6 +106,20 @@ fun BackupData.toJson(): String {
                 put("parentId", p.parentId ?: JSONObject.NULL)
                 put("level", p.level.name)
                 put("name", p.name)
+            })
+        }
+    })
+    root.put("debts", JSONArray().apply {
+        debts.forEach { d ->
+            put(JSONObject().apply {
+                put("id", d.id)
+                put("person", d.person)
+                put("direction", d.direction.name)
+                put("amountCents", d.amountCents)
+                put("paidCents", d.paidCents)
+                put("dateMillis", d.dateMillis)
+                put("dueMillis", d.dueMillis)
+                put("note", d.note)
             })
         }
     })
@@ -281,6 +296,22 @@ fun parseBackup(text: String): BackupData {
             )
         }
     } ?: emptyList()
+    // Debts are optional too. Older backups have none.
+    val debts = root.optJSONArray("debts")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Debt(
+                id = o.optLong("id", 0),
+                person = o.getString("person"),
+                direction = DebtDirection.valueOf(o.getString("direction")),
+                amountCents = o.getLong("amountCents"),
+                paidCents = o.optLong("paidCents", 0),
+                dateMillis = o.getLong("dateMillis"),
+                dueMillis = o.optLong("dueMillis", 0),
+                note = o.optString("note", ""),
+            )
+        }
+    } ?: emptyList()
     // Places are optional too. Older backups have none.
     val places = root.optJSONArray("places")?.let { arr ->
         List(arr.length()) { i ->
@@ -429,5 +460,6 @@ fun parseBackup(text: String): BackupData {
         accounts, transfers, meetings, dutyAssignments, dutyTypes,
         goalEntries = goalEntries,
         places = places,
+        debts = debts,
     )
 }

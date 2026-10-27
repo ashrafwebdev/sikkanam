@@ -17,6 +17,8 @@ import com.ashrafwebdev.sikkanam.data.Donation
 import com.ashrafwebdev.sikkanam.data.DonationKind
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.HalalStatus
+import com.ashrafwebdev.sikkanam.data.Debt
+import com.ashrafwebdev.sikkanam.data.DebtDirection
 import com.ashrafwebdev.sikkanam.data.GoalEntry
 import com.ashrafwebdev.sikkanam.data.Place
 import com.ashrafwebdev.sikkanam.network.refreshCuratedNetwork
@@ -737,6 +739,43 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    val debts: StateFlow<List<Debt>> = db.debtDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Records money lent or borrowed. [dueMillis] is 0 when there is no due date.
+     * Returns false if the person is blank or the amount is not above zero.
+     */
+    fun saveDebt(person: String, direction: DebtDirection, amountText: String, dueMillis: Long, note: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (person.isBlank()) return false
+        viewModelScope.launch {
+            db.debtDao().insert(
+                Debt(
+                    person = person.trim(),
+                    direction = direction,
+                    amountCents = cents,
+                    dateMillis = System.currentTimeMillis(),
+                    dueMillis = dueMillis,
+                    note = note.trim(),
+                ),
+            )
+        }
+        return true
+    }
+
+    /** Records a repayment. Returns false if the amount is not above zero or is more than is still owed. */
+    fun recordRepayment(debt: Debt, amountText: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (cents > debt.remainingCents) return false
+        viewModelScope.launch { db.debtDao().update(debt.copy(paidCents = debt.paidCents + cents)) }
+        return true
+    }
+
+    fun deleteDebt(id: Long) {
+        viewModelScope.launch { db.debtDao().delete(id) }
+    }
+
     /** Downloads the curated network list. Returns an error message, or null on success. */
     suspend fun refreshNetwork(): String? = refreshCuratedNetwork(getApplication<Application>(), db.placeDao())
 
@@ -764,6 +803,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         dutyTypes = dutyTypes.value,
         goalEntries = goalEntries.value,
         places = places.value,
+        debts = debts.value,
     ).toJson()
 
 
@@ -786,6 +826,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.goals.forEach { db.savingsGoalDao().insert(it) }
             data.goalEntries.forEach { db.goalEntryDao().insert(it) }
             data.places.forEach { db.placeDao().insert(it) }
+            data.debts.forEach { db.debtDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

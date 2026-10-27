@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Debt tracker (qarz) -->
+    <string name="debt_title">கடன் கொடுத்தவை, வாங்கியவை</string>
+    <string name="debt_add">சேர்</string>
+    <string name="debt_lent_total">மக்கள் உங்களுக்குத் தர வேண்டியது %1$s</string>
+    <string name="debt_borrowed_total">நீங்கள் தர வேண்டியது %1$s</string>
+    <string name="debt_empty">இன்னும் கடன் பதிவுகள் இல்லை.</string>
+    <string name="debt_lent">கொடுத்தது</string>
+    <string name="debt_borrowed">வாங்கியது</string>
+    <string name="debt_person">பெயர்</string>
+    <string name="debt_amount">தொகை</string>
+    <string name="debt_due">திருப்பித் தர வேண்டிய தேதி (dd/mm/yyyy, விருப்பம்)</string>
+    <string name="debt_note">குறிப்பு (விருப்பம்)</string>
+    <string name="debt_date_error">25/03/2027 போல தேதியை உள்ளிடுங்கள்; அல்லது காலியாக விடுங்கள்.</string>
+    <string name="debt_amount_error">பெயரையும், பூஜ்யத்துக்கு மேல் தொகையையும் உள்ளிடுங்கள்.</string>
+    <string name="debt_remaining">%2$s இல் %1$s மீதம்</string>
+    <string name="debt_due_on">திருப்பித் தர வேண்டிய தேதி %1$s</string>
+    <string name="debt_overdue">%1$s முதல் தவணை கடந்துவிட்டது</string>
+    <string name="debt_settled">தீர்ந்தது</string>
+    <string name="debt_repay">திருப்பிச் செலுத்தியதைப் பதிவு செய்</string>
+    <string name="debt_repay_error">பூஜ்யத்துக்கு மேல் தொகையை உள்ளிடுங்கள்; இன்னும் தர வேண்டியதை விட அதிகமாக வேண்டாம்.</string>
+    <string name="debt_repay_title">%1$s இடமிருந்து திருப்பிச் செலுத்தல்</string>
+    <string name="debt_delete_desc">நீக்கு</string>
+    <string name="debt_new_title">புதிய கடன் பதிவு</string>
+</resources>

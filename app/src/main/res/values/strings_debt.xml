@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Debt tracker (qarz) -->
+    <string name="debt_title">Money lent and borrowed</string>
+    <string name="debt_add">Add</string>
+    <string name="debt_lent_total">People owe you %1$s</string>
+    <string name="debt_borrowed_total">You owe %1$s</string>
+    <string name="debt_empty">No loans recorded yet.</string>
+    <string name="debt_lent">Lent to</string>
+    <string name="debt_borrowed">Borrowed from</string>
+    <string name="debt_person">Name</string>
+    <string name="debt_amount">Amount</string>
+    <string name="debt_due">Due date (dd/mm/yyyy, optional)</string>
+    <string name="debt_note">Note (optional)</string>
+    <string name="debt_date_error">Enter the due date like 25/03/2027, or leave it empty.</string>
+    <string name="debt_amount_error">Enter a name and an amount above zero.</string>
+    <string name="debt_remaining">Remaining %1$s of %2$s</string>
+    <string name="debt_due_on">Due %1$s</string>
+    <string name="debt_overdue">Overdue since %1$s</string>
+    <string name="debt_settled">Settled</string>
+    <string name="debt_repay">Record repayment</string>
+    <string name="debt_repay_error">Enter an amount above zero, not more than what is still owed.</string>
+    <string name="debt_repay_title">Repayment from %1$s</string>
+    <string name="debt_delete_desc">Delete</string>
+    <string name="debt_new_title">New loan record</string>
+</resources>

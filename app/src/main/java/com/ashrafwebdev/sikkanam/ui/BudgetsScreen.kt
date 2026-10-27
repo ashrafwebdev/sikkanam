@@ -63,6 +63,8 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             GoalsSection(vm)
         }
 
+        item { DebtSection(vm) }
+
         item {
             SectionHeader(
                 title = stringResource(R.string.budget_monthly_title),
