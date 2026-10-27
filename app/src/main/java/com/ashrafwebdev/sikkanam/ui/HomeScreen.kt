@@ -341,7 +341,7 @@ private fun TransactionDialog(
     var category by remember { mutableStateOf(existing?.category ?: "") }
     var party by remember { mutableStateOf(existing?.party ?: "") }
     var note by remember { mutableStateOf(existing?.note ?: "") }
-    var paymentMethod by remember { mutableStateOf(existing?.paymentMethod ?: "") }
+    var paymentMethod by remember { mutableStateOf(existing?.paymentMethod ?: "Cash") }
     var halal by remember { mutableStateOf(existing?.halalStatus ?: HalalStatus.NONE) }
     var riba by remember { mutableStateOf(existing?.isRiba ?: false) }
     var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
