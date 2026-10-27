@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Prayer times -->
+    <string name="prayer_title">Prayer times · %1$s</string>
+    <string name="prayer_fajr">Fajr</string>
+    <string name="prayer_sunrise">Sunrise</string>
+    <string name="prayer_zuhr">Zuhr</string>
+    <string name="prayer_asr">Asr</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isha</string>
+    <string name="prayer_settings_title">Prayer times</string>
+    <string name="prayer_settings_desc">Pick your city. Times are calculated on this phone, without internet.</string>
+    <string name="prayer_city">City</string>
+    <string name="prayer_asr_label">Asr time</string>
+    <string name="prayer_asr_standard">Standard</string>
+    <string name="prayer_asr_hanafi">Hanafi</string>
+</resources>

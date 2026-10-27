@@ -111,6 +111,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             }
         }
 
+        item { PrayerCard() }
         if (BuildConfig.PAYMENT_ALERTS) item { PendingPaymentsCard(vm) }
 
         item {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Prayer times -->
+    <string name="prayer_title">தொழுகை நேரம் · %1$s</string>
+    <string name="prayer_fajr">ஃபஜ்ர்</string>
+    <string name="prayer_sunrise">சூரியோதயம்</string>
+    <string name="prayer_zuhr">லுஹர்</string>
+    <string name="prayer_asr">அஸர்</string>
+    <string name="prayer_maghrib">மஃக்ரிப்</string>
+    <string name="prayer_isha">இஷா</string>
+    <string name="prayer_settings_title">தொழுகை நேரம்</string>
+    <string name="prayer_settings_desc">உங்கள் ஊரைத் தேர்ந்தெடுங்கள். நேரம் இந்தத் தொலைபேசியிலேயே கணக்கிடப்படும்; இணையம் தேவையில்லை.</string>
+    <string name="prayer_city">ஊர்</string>
+    <string name="prayer_asr_label">அஸர் நேரம்</string>
+    <string name="prayer_asr_standard">பொது</string>
+    <string name="prayer_asr_hanafi">ஹனஃபி</string>
+</resources>
