@@ -1,10 +1,12 @@
 package com.ashrafwebdev.sikkanam.inheritance
 
 /** Exact fractions, so that shares add up to exactly 1 with no rounding. */
-data class Fraction(val num: Long, val den: Long) {
+data class Fraction(val num: Long, val den: Long) : Comparable<Fraction> {
     init {
         require(den != 0L)
     }
+
+    override fun compareTo(other: Fraction): Int = (num * other.den).compareTo(other.num * den)
 
     operator fun plus(o: Fraction) = of(num * o.den + o.num * den, den * o.den)
     operator fun minus(o: Fraction) = of(num * o.den - o.num * den, den * o.den)
