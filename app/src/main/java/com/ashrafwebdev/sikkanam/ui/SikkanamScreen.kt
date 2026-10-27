@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,7 +54,7 @@ private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
     DIRECTORY(R.string.tab_directory, Icons.Default.LocationOn),
-    HELP(R.string.tab_help, Icons.Default.Star),
+    HELP(R.string.tab_help, Icons.Default.List),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings),
 }
 
