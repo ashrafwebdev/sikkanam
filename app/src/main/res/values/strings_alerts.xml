@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Prayer and debt reminders -->
+    <string name="alert_channel">Prayer and debt reminders</string>
+    <string name="alert_prayer_title">%1$s in %2$d minutes</string>
+    <string name="alert_prayer_body">It is almost time for %1$s prayer.</string>
+    <string name="alert_prayer_fajr">Fajr</string>
+    <string name="alert_prayer_zuhr">Zuhr</string>
+    <string name="alert_prayer_asr">Asr</string>
+    <string name="alert_prayer_maghrib">Maghrib</string>
+    <string name="alert_prayer_isha">Isha</string>
+    <string name="alert_debt_title">Debt due</string>
+    <string name="alert_debt_body">Money %1$s %2$s: %3$s, due %4$s</string>
+    <string name="alert_from">from</string>
+    <string name="alert_to">to</string>
+    <string name="alert_today">today</string>
+    <string name="alert_tomorrow">tomorrow</string>
+    <string name="prayer_reminders">Remind me 10 minutes before each prayer</string>
+</resources>

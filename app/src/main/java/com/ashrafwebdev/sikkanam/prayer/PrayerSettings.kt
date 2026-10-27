@@ -22,6 +22,14 @@ object PrayerSettings {
         return saved?.let { runCatching { AsrMethod.valueOf(it) }.getOrNull() } ?: AsrMethod.STANDARD
     }
 
+    /** Whether a reminder is shown 10 minutes before each prayer. On by default. */
+    fun remindersOn(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("reminders_on", true)
+
+    fun saveRemindersOn(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("reminders_on", on).apply()
+    }
+
     fun saveAsr(context: Context, method: AsrMethod) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_ASR, method.name).apply()
     }

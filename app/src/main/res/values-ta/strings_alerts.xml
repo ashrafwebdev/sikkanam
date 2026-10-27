@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Prayer and debt reminders -->
+    <string name="alert_channel">தொழுகை மற்றும் கடன் நினைவூட்டல்கள்</string>
+    <string name="alert_prayer_title">%2$d நிமிடங்களில் %1$s</string>
+    <string name="alert_prayer_body">%1$s தொழுகைக்கான நேரம் நெருங்குகிறது.</string>
+    <string name="alert_prayer_fajr">ஃபஜ்ர்</string>
+    <string name="alert_prayer_zuhr">லுஹர்</string>
+    <string name="alert_prayer_asr">அஸர்</string>
+    <string name="alert_prayer_maghrib">மஃக்ரிப்</string>
+    <string name="alert_prayer_isha">இஷா</string>
+    <string name="alert_debt_title">கடன் செலுத்த வேண்டிய நாள்</string>
+    <string name="alert_debt_body">%2$s %1$s இடம்: %3$s, %4$s செலுத்த வேண்டும்</string>
+    <string name="alert_from">இடமிருந்து</string>
+    <string name="alert_to">இடம்</string>
+    <string name="alert_today">இன்று</string>
+    <string name="alert_tomorrow">நாளை</string>
+    <string name="prayer_reminders">ஒவ்வொரு தொழுகைக்கும் 10 நிமிடங்களுக்கு முன் நினைவூட்டு</string>
+</resources>

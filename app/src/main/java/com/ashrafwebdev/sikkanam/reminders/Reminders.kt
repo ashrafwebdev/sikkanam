@@ -97,6 +97,7 @@ private fun ensureChannel(context: Context) {
 fun scheduleReminders(context: Context) {
     val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS).build()
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+    scheduleAlerts(context)
 }
 
 /** Whether the app may post notifications (always true before Android 13). */

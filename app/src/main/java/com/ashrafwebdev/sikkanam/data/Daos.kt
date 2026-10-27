@@ -168,6 +168,9 @@ interface DebtDao {
     @Query("SELECT * FROM debts ORDER BY dueMillis = 0, dueMillis, id")
     fun observeAll(): Flow<List<Debt>>
 
+    @Query("SELECT * FROM debts")
+    suspend fun getAll(): List<Debt>
+
     @Insert
     suspend fun insert(debt: Debt)
 
