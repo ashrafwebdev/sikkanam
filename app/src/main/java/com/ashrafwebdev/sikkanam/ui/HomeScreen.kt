@@ -1,5 +1,8 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +23,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -42,9 +41,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Account
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.HalalStatus
@@ -90,10 +92,10 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            Text("Hijri date: ${hijriToday()}", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.home_hijri_date, hijriToday()), style = MaterialTheme.typography.bodySmall)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { vm.shiftMonth(-1) }) {
-                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous month")
+                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = stringResource(R.string.home_previous_month))
                 }
                 Text(
                     monthLabel(monthStart),
@@ -101,7 +103,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = { vm.shiftMonth(1) }) {
-                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next month")
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = stringResource(R.string.home_next_month))
                 }
             }
         }
@@ -113,7 +115,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "Balance (carried forward)",
+                        stringResource(R.string.home_balance),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -124,11 +126,19 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     )
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("In  ${formatMoney(income)}", color = IncomeColor, fontWeight = FontWeight.SemiBold)
-                        Text("Out  ${formatMoney(expense)}", color = ExpenseColor, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            stringResource(R.string.home_money_in, formatMoney(income)),
+                            color = IncomeColor,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            stringResource(R.string.home_money_out, formatMoney(expense)),
+                            color = ExpenseColor,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                     if (interest > 0) {
-                        Text("Interest paid (riba): ${formatMoney(interest)}")
+                        Text(stringResource(R.string.home_interest_paid, formatMoney(interest)))
                     }
                 }
             }
@@ -151,9 +161,11 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 FilledTonalButton(onClick = { editing = null; showDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Add")
+                    Text(stringResource(R.string.action_add))
                 }
-                TextButton(onClick = { exportLauncher.launch("sikkanam-transactions.csv") }) { Text("Export CSV") }
+                TextButton(onClick = { exportLauncher.launch(stringResource(R.string.home_export_file)) }) {
+                    Text(stringResource(R.string.home_export_csv))
+                }
             }
         }
 
@@ -161,7 +173,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             OutlinedTextField(
                 value = query,
                 onValueChange = vm::setQuery,
-                label = { Text("Search category or note") },
+                label = { Text(stringResource(R.string.home_search)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -169,16 +181,20 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = typeFilter == null, onClick = { vm.setTypeFilter(null) }, label = { Text("All") })
+                FilterChip(
+                    selected = typeFilter == null,
+                    onClick = { vm.setTypeFilter(null) },
+                    label = { Text(stringResource(R.string.filter_all)) },
+                )
                 FilterChip(
                     selected = typeFilter == TransactionType.INCOME,
                     onClick = { vm.setTypeFilter(TransactionType.INCOME) },
-                    label = { Text("Income") },
+                    label = { Text(stringResource(R.string.type_income)) },
                 )
                 FilterChip(
                     selected = typeFilter == TransactionType.EXPENSE,
                     onClick = { vm.setTypeFilter(TransactionType.EXPENSE) },
-                    label = { Text("Expense") },
+                    label = { Text(stringResource(R.string.type_expense)) },
                 )
             }
         }
@@ -221,14 +237,12 @@ private fun CategoryBreakdown(monthTx: List<Transaction>) {
     if (byCategory.isEmpty()) return
 
     val total = byCategory.sumOf { it.value }.toFloat()
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Spending by category", style = MaterialTheme.typography.titleSmall)
-            byCategory.forEach { (category, cents) ->
-                val fraction = cents / total
-                Text("$category: ${formatMoney(cents)}")
-                LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
-            }
+    SectionCard {
+        Text(stringResource(R.string.home_spending_by_category), style = MaterialTheme.typography.titleSmall)
+        byCategory.forEach { (category, cents) ->
+            val fraction = cents / total
+            Text("$category: ${formatMoney(cents)}")
+            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -256,9 +270,13 @@ private fun YearSummary(all: List<Transaction>, monthStart: Long) {
     val visibleMonths = if (showAll) months else months.takeLast(3)
 
     SectionCard {
-        Text("Year $year", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(R.string.home_year, year),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
         if (months.isEmpty()) {
-            Text("No entries this year.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.home_no_entries_year), style = MaterialTheme.typography.bodySmall)
         }
         visibleMonths.forEach { (start, income, expense) ->
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -270,7 +288,10 @@ private fun YearSummary(all: List<Transaction>, monthStart: Long) {
         }
         if (months.size > 3) {
             TextButton(onClick = { showAll = !showAll }) {
-                Text(if (showAll) "Show fewer" else "Show all ${months.size} months")
+                Text(
+                    if (showAll) stringResource(R.string.home_show_fewer)
+                    else stringResource(R.string.home_show_all_months, months.size),
+                )
             }
         }
     }
@@ -280,6 +301,13 @@ private fun YearSummary(all: List<Transaction>, monthStart: Long) {
 private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, onDelete: () -> Unit) {
     val isIncome = transaction.type == TransactionType.INCOME
     val sign = if (isIncome) "+" else "-"
+    val fromLabel = if (transaction.party.isNotBlank()) {
+        if (isIncome) stringResource(R.string.home_from, transaction.party) else stringResource(R.string.home_to, transaction.party)
+    } else {
+        ""
+    }
+    val riba = stringResource(R.string.home_interest_tag)
+    val halal = if (isIncome && transaction.halalStatus != HalalStatus.NONE) halalLabel(transaction.halalStatus) else ""
 
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
@@ -290,11 +318,11 @@ private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, onDele
                 Text(transaction.category, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 val details = buildList {
                     add(dateLabel(transaction.dateMillis))
-                    if (transaction.party.isNotBlank()) add(if (isIncome) "From ${transaction.party}" else "To ${transaction.party}")
+                    if (fromLabel.isNotBlank()) add(fromLabel)
                     if (transaction.note.isNotBlank()) add(transaction.note)
                     if (transaction.paymentMethod.isNotBlank()) add(transaction.paymentMethod)
-                    if (isIncome && transaction.halalStatus != HalalStatus.NONE) add(transaction.halalStatus.label())
-                    if (transaction.isRiba) add("Interest (riba)")
+                    if (halal.isNotBlank()) add(halal)
+                    if (transaction.isRiba) add(riba)
                 }
                 Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
             }
@@ -305,17 +333,18 @@ private fun TransactionRow(transaction: Transaction, onClick: () -> Unit, onDele
                 color = if (isIncome) IncomeColor else ExpenseColor,
             )
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete))
             }
         }
     }
 }
 
-private fun HalalStatus.label(): String = when (this) {
-    HalalStatus.NONE -> ""
-    HalalStatus.HALAL -> "Halal"
-    HalalStatus.DOUBTFUL -> "Doubtful"
-    HalalStatus.HARAM -> "Haram"
+@Composable
+private fun halalLabel(status: HalalStatus): String = when (status) {
+    HalalStatus.NONE -> stringResource(R.string.home_halal_not_set)
+    HalalStatus.HALAL -> stringResource(R.string.halal_halal)
+    HalalStatus.DOUBTFUL -> stringResource(R.string.halal_doubtful)
+    HalalStatus.HARAM -> stringResource(R.string.halal_haram)
 }
 
 @Composable
@@ -353,30 +382,35 @@ private fun TransactionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Add transaction" else "Edit transaction") },
+        title = {
+            Text(
+                if (existing == null) stringResource(R.string.home_add_transaction)
+                else stringResource(R.string.home_edit_transaction),
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = type == TransactionType.EXPENSE,
                         onClick = { if (type != TransactionType.EXPENSE) category = ""; type = TransactionType.EXPENSE },
-                        label = { Text("Expense") },
+                        label = { Text(stringResource(R.string.type_expense)) },
                     )
                     FilterChip(
                         selected = type == TransactionType.INCOME,
                         onClick = { if (type != TransactionType.INCOME) category = ""; type = TransactionType.INCOME },
-                        label = { Text("Income") },
+                        label = { Text(stringResource(R.string.type_income)) },
                     )
                 }
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Amount") },
+                    label = { Text(stringResource(R.string.label_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
                 CategorySelector(
-                    label = "What (category)",
+                    label = stringResource(R.string.home_label_category),
                     options = categoryOptions(type, categories, allTransactions),
                     selected = category,
                     onSelect = { category = it },
@@ -385,66 +419,74 @@ private fun TransactionDialog(
                 OutlinedTextField(
                     value = party,
                     onValueChange = { party = it },
-                    label = { Text(if (type == TransactionType.INCOME) "From whom" else "To whom") },
+                    label = {
+                        Text(
+                            if (type == TransactionType.INCOME) stringResource(R.string.home_label_from_whom)
+                            else stringResource(R.string.home_label_to_whom),
+                        )
+                    },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = { Text("For what") },
+                    label = { Text(stringResource(R.string.home_label_for_what)) },
                     singleLine = true,
                 )
                 CategorySelector(
-                    label = "By which (payment method)",
+                    label = stringResource(R.string.home_label_payment_method),
                     options = paymentMethodOptions,
                     selected = paymentMethod,
                     onSelect = { paymentMethod = it },
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = { pickReceipt.launch("image/*") }) {
-                        Text(if (receiptName == null) "Attach receipt" else "Replace receipt")
+                        Text(
+                            if (receiptName == null) stringResource(R.string.home_attach_receipt)
+                            else stringResource(R.string.home_replace_receipt),
+                        )
                     }
                     if (receiptName != null) {
-                        TextButton(onClick = { receiptName = null }) { Text("Remove") }
+                        TextButton(onClick = { receiptName = null }) { Text(stringResource(R.string.home_remove_receipt)) }
                     }
                 }
                 preview?.let {
                     Image(
                         bitmap = it,
-                        contentDescription = "Receipt",
+                        contentDescription = stringResource(R.string.home_receipt),
                         modifier = Modifier.fillMaxWidth().height(140.dp),
                     )
                 }
                 if (accounts.isNotEmpty()) {
                     CategorySelector(
-                        label = "Account",
+                        label = stringResource(R.string.home_label_account),
                         options = listOf(NO_ACCOUNT) + accounts.map { it.name },
                         selected = accountName.ifBlank { NO_ACCOUNT },
                         onSelect = { accountName = if (it == NO_ACCOUNT) "" else it },
                     )
                 }
                 if (type == TransactionType.INCOME) {
-                    Text("Source (Islamic status)", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.home_label_islamic_status), style = MaterialTheme.typography.labelLarge)
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf(HalalStatus.NONE, HalalStatus.HALAL, HalalStatus.DOUBTFUL, HalalStatus.HARAM).forEach { status ->
                             FilterChip(
                                 selected = halal == status,
                                 onClick = { halal = status },
-                                label = { Text(if (status == HalalStatus.NONE) "Not set" else status.label()) },
+                                label = { Text(halalLabel(status)) },
                             )
                         }
                     }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = riba, onCheckedChange = { riba = it })
-                        Text("This is interest (riba)")
+                        Text(stringResource(R.string.home_riba_label))
                     }
                 }
                 // Only the original entry can repeat. Copies made from it are already linked.
                 if (existing == null || existing.sourceId == null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = recurring, onCheckedChange = { recurring = it })
-                        Text("Repeat every month")
+                        Text(stringResource(R.string.home_repeat_monthly))
                     }
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -454,12 +496,12 @@ private fun TransactionDialog(
             TextButton(onClick = {
                 val accountId = accounts.firstOrNull { it.name == accountName }?.id
                 if (!onSave(type, amount, category, party, note, paymentMethod, halal, riba, recurring, accountId, receiptName)) {
-                    error = "Fill in the amount (above zero), category, who, what for, and payment method."
+                    error = stringResource(R.string.home_error_transaction)
                 }
-            }) { Text("Save") }
+            }) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

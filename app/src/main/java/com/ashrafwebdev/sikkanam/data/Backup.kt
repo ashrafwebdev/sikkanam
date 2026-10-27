@@ -17,6 +17,9 @@ data class BackupData(
     val tripSettledMonths: List<TripSettledMonth> = emptyList(),
     val accounts: List<Account> = emptyList(),
     val transfers: List<Transfer> = emptyList(),
+    val meetings: List<Meeting> = emptyList(),
+    val dutyAssignments: List<DutyAssignment> = emptyList(),
+    val dutyTypes: List<DutyType> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -99,6 +102,11 @@ fun BackupData.toJson(): String {
                 put("groupId", m.groupId)
                 put("name", m.name)
                 put("incomeCents", m.incomeCents)
+                put("phone", m.phone)
+                put("address", m.address)
+                put("days", m.days)
+                put("advanceCents", m.advanceCents)
+                put("confirmed", m.confirmed)
             })
         }
     })
@@ -146,6 +154,36 @@ fun BackupData.toJson(): String {
                 put("amountCents", t.amountCents)
                 put("dateMillis", t.dateMillis)
                 put("note", t.note)
+            })
+        }
+    })
+    root.put("meetings", JSONArray().apply {
+        meetings.forEach { m ->
+            put(JSONObject().apply {
+                put("id", m.id)
+                put("dateMillis", m.dateMillis)
+                put("topic", m.topic)
+                put("attendees", m.attendees)
+                put("notes", m.notes)
+            })
+        }
+    })
+    root.put("dutyAssignments", JSONArray().apply {
+        dutyAssignments.forEach { d ->
+            put(JSONObject().apply {
+                put("id", d.id)
+                put("dayMillis", d.dayMillis)
+                put("duty", d.duty)
+                put("personName", d.personName)
+                put("done", d.done)
+            })
+        }
+    })
+    root.put("dutyTypes", JSONArray().apply {
+        dutyTypes.forEach { d ->
+            put(JSONObject().apply {
+                put("name", d.name)
+                put("sortOrder", d.sortOrder)
             })
         }
     })
@@ -240,6 +278,11 @@ fun parseBackup(text: String): BackupData {
                 groupId = o.getLong("groupId"),
                 name = o.getString("name"),
                 incomeCents = o.optLong("incomeCents", 0),
+                phone = o.optString("phone"),
+                address = o.optString("address"),
+                days = o.optInt("days", 0),
+                advanceCents = o.optLong("advanceCents", 0),
+                confirmed = o.optBoolean("confirmed", true),
             )
         }
     } ?: emptyList()
@@ -299,9 +342,42 @@ fun parseBackup(text: String): BackupData {
         }
     } ?: emptyList()
 
+    val meetings = root.optJSONArray("meetings")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Meeting(
+                id = o.optLong("id", 0),
+                dateMillis = o.getLong("dateMillis"),
+                topic = o.getString("topic"),
+                attendees = o.optString("attendees"),
+                notes = o.optString("notes"),
+            )
+        }
+    } ?: emptyList()
+
+    val dutyAssignments = root.optJSONArray("dutyAssignments")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            DutyAssignment(
+                id = o.optLong("id", 0),
+                dayMillis = o.getLong("dayMillis"),
+                duty = o.getString("duty"),
+                personName = o.getString("personName"),
+                done = o.optBoolean("done", false),
+            )
+        }
+    } ?: emptyList()
+
+    val dutyTypes = root.optJSONArray("dutyTypes")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            DutyType(name = o.getString("name"), sortOrder = o.optInt("sortOrder", i))
+        }
+    } ?: emptyList()
+
     return BackupData(
         transactions, budgets, donations, categories, goals,
         tripGroups, tripMembers, tripContributions, tripExpenses, tripSettledMonths,
-        accounts, transfers,
+        accounts, transfers, meetings, dutyAssignments, dutyTypes,
     )
 }

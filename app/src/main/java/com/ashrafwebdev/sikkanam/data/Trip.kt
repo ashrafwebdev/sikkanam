@@ -24,6 +24,15 @@ data class TripMember(
     val name: String,
     // Monthly income in cents, used only when the group splits by income.
     @ColumnInfo(defaultValue = "0") val incomeCents: Long = 0,
+    // Registration details for a trip. All optional.
+    @ColumnInfo(defaultValue = "''") val phone: String = "",
+    @ColumnInfo(defaultValue = "''") val address: String = "",
+    // Number of days this member is going on the trip.
+    @ColumnInfo(defaultValue = "0") val days: Int = 0,
+    // Advance paid when registering, in cents.
+    @ColumnInfo(defaultValue = "0") val advanceCents: Long = 0,
+    // Going members share costs. Members who only showed interest are listed but don't.
+    @ColumnInfo(defaultValue = "1") val confirmed: Boolean = true,
 )
 
 /** A month of a family group that everyone has settled up. Balances carry forward only from after it. */

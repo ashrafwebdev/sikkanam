@@ -1,6 +1,7 @@
 package com.ashrafwebdev.sikkanam.data
 
 import androidx.room.Dao
+import androidx.room.OnConflictStrategy
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -52,6 +53,58 @@ interface TransferDao {
     suspend fun update(transfer: Transfer)
 
     @Query("DELETE FROM transfers WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
+interface DutyDao {
+    @Query("SELECT * FROM duty_assignments ORDER BY dayMillis, id")
+    fun observeAll(): Flow<List<DutyAssignment>>
+
+    @Insert
+    suspend fun insertAll(assignments: List<DutyAssignment>)
+
+    @Update
+    suspend fun update(assignment: DutyAssignment)
+
+    @Query("DELETE FROM duty_assignments")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM duty_assignments WHERE dayMillis = :day AND duty = :duty")
+    suspend fun deleteForDuty(day: Long, duty: String)
+
+    /** Renames a duty on every past assignment, so the history follows the new name. */
+    @Query("UPDATE duty_assignments SET duty = :newName WHERE duty = :oldName")
+    suspend fun renameOnAssignments(oldName: String, newName: String)
+
+    @Insert
+    suspend fun insert(assignment: DutyAssignment)
+}
+
+@Dao
+interface DutyTypeDao {
+    @Query("SELECT * FROM duty_types ORDER BY sortOrder, name")
+    fun observeAll(): Flow<List<DutyType>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(duty: DutyType)
+
+    @Query("DELETE FROM duty_types WHERE name = :name")
+    suspend fun delete(name: String)
+}
+
+@Dao
+interface MeetingDao {
+    @Query("SELECT * FROM meetings ORDER BY dateMillis DESC")
+    fun observeAll(): Flow<List<Meeting>>
+
+    @Insert
+    suspend fun insert(meeting: Meeting)
+
+    @Update
+    suspend fun update(meeting: Meeting)
+
+    @Query("DELETE FROM meetings WHERE id = :id")
     suspend fun delete(id: Long)
 }
 

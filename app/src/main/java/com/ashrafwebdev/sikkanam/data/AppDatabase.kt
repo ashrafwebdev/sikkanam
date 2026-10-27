@@ -12,9 +12,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         Transaction::class, Budget::class, Donation::class, Category::class, SavingsGoal::class,
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
-        TripSettledMonth::class, Account::class, Transfer::class,
+        TripSettledMonth::class, Account::class, Transfer::class, Meeting::class, DutyAssignment::class, DutyType::class,
     ],
-    version = 15,
+    version = 20,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -29,6 +29,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun transferDao(): TransferDao
     abstract fun categoryRenameDao(): CategoryRenameDao
+    abstract fun meetingDao(): MeetingDao
+    abstract fun dutyDao(): DutyDao
+    abstract fun dutyTypeDao(): DutyTypeDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -160,6 +163,51 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds registration details (phone, address, days, advance) to trip members. */
+        private val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN phone TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN address TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN days INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN advanceCents INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** Adds the going/interested status. Existing members count as going, as before. */
+        private val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
+        /** Adds the daily meetings (mashwara) table. */
+        private val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS meetings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "dateMillis INTEGER NOT NULL, topic TEXT NOT NULL, attendees TEXT NOT NULL, notes TEXT NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the duty rotation table. */
+        private val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS duty_assignments (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "dayMillis INTEGER NOT NULL, duty TEXT NOT NULL, personName TEXT NOT NULL, done INTEGER NOT NULL)"
+                )
+            }
+        }
+
+        /** Adds the editable duty list, seeded with the default duties. */
+        private val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS duty_types (name TEXT NOT NULL PRIMARY KEY, sortOrder INTEGER NOT NULL)")
+                Duties.insertDefaults { sql, args -> db.execSQL(sql, args) }
+            }
+        }
+
         /** Adds the default Cash and Bank accounts to existing installs. */
         private val MIGRATION_14_15 = object : Migration(14, 15) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -179,6 +227,7 @@ abstract class AppDatabase : RoomDatabase() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
                 DefaultCategories.insertAccountsInto { sql, args -> db.execSQL(sql, args) }
+                Duties.insertDefaults { sql, args -> db.execSQL(sql, args) }
             }
         }
 
@@ -188,7 +237,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                     MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                    MIGRATION_14_15,
+                    MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

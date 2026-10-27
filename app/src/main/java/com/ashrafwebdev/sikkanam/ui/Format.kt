@@ -31,6 +31,18 @@ fun startOfMonth(millis: Long): Long {
     return cal.timeInMillis
 }
 
+/** Midnight, local time, of the day containing [millis]. */
+fun startOfDay(millis: Long): Long {
+    val cal = Calendar.getInstance().apply {
+        timeInMillis = millis
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+    return cal.timeInMillis
+}
+
 /** Moves a month-start value forward or back by [months]. */
 fun addMonths(monthStart: Long, months: Int): Long {
     val cal = Calendar.getInstance().apply { timeInMillis = monthStart }

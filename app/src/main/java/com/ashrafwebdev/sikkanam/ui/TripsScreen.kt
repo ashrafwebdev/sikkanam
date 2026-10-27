@@ -89,6 +89,13 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
                 },
             )
         }
+        item { MeetingsSection(vm) }
+        item { DutiesSection(vm) }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LearnSection()
+            }
+        }
         if (groups.isEmpty()) {
             item { EmptyState("No trips yet. Create one for a tour and invite everyone to share the costs.") }
         }
@@ -138,6 +145,8 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     fun inView(dateMillis: Long) = !isFamily || (dateMillis >= monthStart && dateMillis < monthEnd)
 
     val members = allMembers.filter { it.groupId == group.id }
+    // Only members who are going share costs. Others are listed, but they don't pay or owe.
+    val going = members.filter { it.confirmed }
     val contributions = allContributions.filter { it.groupId == group.id && inView(it.dateMillis) }
     val expenses = allExpenses.filter { it.groupId == group.id && inView(it.dateMillis) }
 
@@ -156,11 +165,11 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         val earlierExpenses = allExpenses.filter {
             it.groupId == group.id && it.dateMillis >= from && it.dateMillis < monthStart
         }
-        TripSettlement.balances(members, earlierContributions, earlierExpenses, byIncome = group.splitByIncome)
+        TripSettlement.balances(going, earlierContributions, earlierExpenses, byIncome = group.splitByIncome)
             .associate { it.memberId to it.net }
     }
     val balances = TripSettlement.balances(
-        members, contributions, expenses, byIncome = group.splitByIncome, carriedIn = carriedIn,
+        going, contributions, expenses, byIncome = group.splitByIncome, carriedIn = carriedIn,
     )
     val payments = TripSettlement.settlements(balances)
 
@@ -168,8 +177,7 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     val totalSpent = expenses.sumOf { it.amountCents }
     val poolLeft = totalContributed - expenses.filter { it.paidByMemberId == null }.sumOf { it.amountCents }
 
-    var newMember by remember { mutableStateOf("") }
-    var memberError by remember { mutableStateOf<String?>(null) }
+    var showAddMember by remember { mutableStateOf(false) }
     var showContribution by remember { mutableStateOf(false) }
     var showExpense by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
@@ -243,7 +251,8 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
-                    "Collected ${formatMoney(totalContributed)} · spent ${formatMoney(totalSpent)}",
+                    "Going ${going.size} · interested ${members.size - going.size} · " +
+                        "collected ${formatMoney(totalContributed)} · spent ${formatMoney(totalSpent)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -263,35 +272,29 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
 
         item { SectionHeader(title = "Members") }
         item {
-            SectionCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = newMember,
-                        onValueChange = {
-                            newMember = it
-                            memberError = null
-                        },
-                        label = { Text("Name") },
-                        singleLine = true,
-                        isError = memberError != null,
-                        modifier = Modifier.weight(1f),
-                    )
-                    FilledTonalButton(onClick = {
-                        if (vm.addTripMember(group.id, newMember)) {
-                            newMember = ""
-                        } else {
-                            memberError = "Enter a unique name."
-                        }
-                    }) { Text("Add") }
-                }
-                memberError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            FilledTonalButton(onClick = { showAddMember = true }) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text("Add member")
             }
         }
         items(members, key = { "m${it.id}" }) { member ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(member.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(member.name, style = MaterialTheme.typography.bodyMedium)
+                    val details = buildList {
+                        if (!member.confirmed) add("interested")
+                        if (member.phone.isNotBlank()) add(member.phone)
+                        if (member.days > 0) add("${member.days} days")
+                        if (member.advanceCents > 0) add("advance ${formatMoney(member.advanceCents)}")
+                        if (member.address.isNotBlank()) add(member.address)
+                    }
+                    if (details.isNotEmpty()) {
+                        Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 IconButton(onClick = { renamingMember = member }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Rename member")
+                    Icon(Icons.Default.Edit, contentDescription = "Edit member")
                 }
                 if (isFamily) {
                     TextButton(onClick = { incomeEditing = member }) {
@@ -400,7 +403,7 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
 
     if (showExpense) {
         ExpenseDialog(
-            members = members,
+            members = going,
             onDismiss = { showExpense = false },
             isFamily = isFamily,
             onSave = { paidBy, description, amount, sharers, recurring ->
@@ -429,14 +432,27 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         )
     }
 
+    if (showAddMember) {
+        MemberDialog(
+            existing = null,
+            onDismiss = { showAddMember = false },
+            onSave = { name, phone, address, days, advance, going ->
+                if (vm.addTripMember(group.id, name, phone, address, days, advance, going)) {
+                    showAddMember = false
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
     renamingMember?.let { member ->
-        NameDialog(
-            title = "Rename member",
-            label = "Name",
-            initial = member.name,
+        MemberDialog(
+            existing = member,
             onDismiss = { renamingMember = null },
-            onSave = { name ->
-                if (vm.renameTripMember(member, name)) {
+            onSave = { name, phone, address, days, advance, going ->
+                if (vm.updateTripMember(member, name, phone, address, days, advance, going)) {
                     renamingMember = null
                     true
                 } else {
@@ -481,7 +497,7 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
 
     editingExpense?.let { expense ->
         ExpenseDialog(
-            members = members,
+            members = going,
             isFamily = isFamily,
             existing = expense,
             onDismiss = { editingExpense = null },
@@ -661,6 +677,76 @@ private fun ExpenseDialog(
                 val chosen = members.map { it.id }.filter { it in sharers }
                 if (!onSave(paidBy, description, amount, chosen, recurring && isFamily)) {
                     error = "Enter what for, an amount above zero, and at least one person sharing it."
+                }
+            }) { Text("Save") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+/** Form for a member's name, contact number, address, days, and optional advance. */
+@Composable
+private fun MemberDialog(
+    existing: TripMember?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String, String, String, Boolean) -> Boolean,
+) {
+    var name by remember { mutableStateOf(existing?.name ?: "") }
+    var going by remember { mutableStateOf(existing?.confirmed ?: false) }
+    var phone by remember { mutableStateOf(existing?.phone ?: "") }
+    var address by remember { mutableStateOf(existing?.address ?: "") }
+    var days by remember { mutableStateOf(if (existing == null || existing.days == 0) "" else existing.days.toString()) }
+    var advance by remember {
+        mutableStateOf(
+            if (existing == null || existing.advanceCents == 0L) "" else String.format(java.util.Locale.US, "%.2f", existing.advanceCents / 100.0),
+        )
+    }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (existing == null) "Add member" else "Edit member") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, singleLine = true)
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Contact number") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("Address") },
+                    maxLines = 3,
+                )
+                OutlinedTextField(
+                    value = days,
+                    onValueChange = { days = it },
+                    label = { Text("Number of days (optional)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = advance,
+                    onValueChange = { advance = it },
+                    label = { Text("Advance paid (optional)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = going, onCheckedChange = { going = it })
+                    Text("Going on the trip (shares costs)")
+                }
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (!onSave(name, phone, address, days, advance, going)) {
+                    error = "Enter a unique name. Days must be a whole number and advance must be zero or more."
                 }
             }) { Text("Save") }
         },

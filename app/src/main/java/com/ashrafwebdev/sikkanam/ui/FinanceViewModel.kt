@@ -4,6 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ashrafwebdev.sikkanam.data.Account
+import com.ashrafwebdev.sikkanam.data.DutyAssignment
+import com.ashrafwebdev.sikkanam.data.DutyType
+import com.ashrafwebdev.sikkanam.data.Duties
+import com.ashrafwebdev.sikkanam.data.Meeting
 import com.ashrafwebdev.sikkanam.data.AppDatabase
 import com.ashrafwebdev.sikkanam.data.Transfer
 import com.ashrafwebdev.sikkanam.data.BackupData
@@ -375,6 +379,81 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         return true
     }
 
+    val meetings: StateFlow<List<Meeting>> = db.meetingDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Adds a meeting, or updates [existing]. The topic is required. The date is kept when editing. */
+    fun saveMeeting(existing: Meeting?, topic: String, attendees: String, notes: String): Boolean {
+        val clean = topic.trim()
+        if (clean.isBlank()) return false
+        val entry = Meeting(
+            id = existing?.id ?: 0,
+            dateMillis = existing?.dateMillis ?: System.currentTimeMillis(),
+            topic = clean,
+            attendees = attendees.trim(),
+            notes = notes.trim(),
+        )
+        viewModelScope.launch {
+            if (existing == null) db.meetingDao().insert(entry) else db.meetingDao().update(entry)
+        }
+        return true
+    }
+
+    fun deleteMeeting(id: Long) {
+        viewModelScope.launch { db.meetingDao().delete(id) }
+    }
+
+    val dutyAssignments: StateFlow<List<DutyAssignment>> = db.dutyDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val dutyTypes: StateFlow<List<DutyType>> = db.dutyTypeDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Adds a duty to the end of the list. Returns false if the name is blank, too long, or already listed. */
+    fun addDutyType(name: String): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank() || clean.length > 60) return false
+        if (dutyTypes.value.any { it.name.equals(clean, ignoreCase = true) }) return false
+        viewModelScope.launch { db.dutyTypeDao().insert(DutyType(clean, dutyTypes.value.size)) }
+        return true
+    }
+
+    /** Renames a duty in the list and on every past assignment. */
+    fun renameDutyType(oldName: String, newName: String): Boolean {
+        val clean = newName.trim()
+        if (clean.isBlank() || clean.length > 60) return false
+        if (clean != oldName && dutyTypes.value.any { it.name.equals(clean, ignoreCase = true) }) return false
+        val order = dutyTypes.value.firstOrNull { it.name == oldName }?.sortOrder ?: dutyTypes.value.size
+        viewModelScope.launch {
+            db.dutyTypeDao().delete(oldName)
+            db.dutyTypeDao().insert(DutyType(clean, order))
+            db.dutyDao().renameOnAssignments(oldName, clean)
+        }
+        return true
+    }
+
+    /** Removes a duty from the list. Past assignments of it are kept as history. */
+    fun deleteDutyType(name: String) {
+        viewModelScope.launch { db.dutyTypeDao().delete(name) }
+    }
+
+    /** Gives [duty] on [day] to [person], as decided in the mashwara. Replaces any earlier choice for that duty. */
+    fun assignDuty(day: Long, duty: String, person: String) {
+        viewModelScope.launch {
+            db.dutyDao().deleteForDuty(day, duty)
+            db.dutyDao().insert(DutyAssignment(dayMillis = day, duty = duty, personName = person))
+        }
+    }
+
+    /** Removes the person given to [duty] on [day]. */
+    fun clearDuty(day: Long, duty: String) {
+        viewModelScope.launch { db.dutyDao().deleteForDuty(day, duty) }
+    }
+
+    fun setDutyDone(assignment: DutyAssignment, done: Boolean) {
+        viewModelScope.launch { db.dutyDao().update(assignment.copy(done = done)) }
+    }
+
     /** Edits a transfer. Same rules as adding one: two different accounts and an amount above zero. */
     fun updateTransfer(transfer: Transfer, fromId: Long, toId: Long, amountText: String, note: String): Boolean {
         val cents = parseCents(amountText) ?: return false
@@ -448,6 +527,80 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         if (name.isBlank()) return false
         viewModelScope.launch { db.tripDao().updateGroup(group.copy(name = name.trim())) }
         return true
+    }
+
+    /**
+     * Adds a member with registration details. Only the name is required.
+     * [daysText] is the number of days, and [advanceText] is the advance paid. Both may be blank.
+     */
+    fun addTripMember(
+        groupId: Long,
+        name: String,
+        phone: String,
+        address: String,
+        daysText: String,
+        advanceText: String,
+        confirmed: Boolean,
+    ): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank()) return false
+        if (tripMembers.value.any { it.groupId == groupId && it.name.equals(clean, ignoreCase = true) }) return false
+        val (days, advance) = parseMemberFields(daysText, advanceText) ?: return false
+        viewModelScope.launch {
+            db.tripDao().insertMember(
+                TripMember(
+                    groupId = groupId,
+                    name = clean,
+                    phone = phone.trim(),
+                    address = address.trim(),
+                    days = days,
+                    advanceCents = advance,
+                    confirmed = confirmed,
+                )
+            )
+        }
+        return true
+    }
+
+    /** Updates a member's name, going status, and registration details. */
+    fun updateTripMember(
+        member: TripMember,
+        name: String,
+        phone: String,
+        address: String,
+        daysText: String,
+        advanceText: String,
+        confirmed: Boolean,
+    ): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank()) return false
+        if (tripMembers.value.any { it.groupId == member.groupId && it.id != member.id && it.name.equals(clean, ignoreCase = true) }) {
+            return false
+        }
+        val (days, advance) = parseMemberFields(daysText, advanceText) ?: return false
+        viewModelScope.launch {
+            db.tripDao().updateMember(
+                member.copy(
+                    name = clean,
+                    phone = phone.trim(),
+                    address = address.trim(),
+                    days = days,
+                    advanceCents = advance,
+                    confirmed = confirmed,
+                )
+            )
+        }
+        return true
+    }
+
+    /** Days must be zero or more. The advance may be blank (zero), but not negative. */
+    private fun parseMemberFields(daysText: String, advanceText: String): Pair<Int, Long>? {
+        val days = if (daysText.isBlank()) 0 else daysText.trim().toIntOrNull()?.takeIf { it >= 0 } ?: return null
+        val advance = if (advanceText.isBlank()) 0L else {
+            val amount = advanceText.trim().toDoubleOrNull()?.takeIf { it >= 0 } ?: return null
+            Math.round(amount * 100)
+        }
+        return days to advance
     }
 
     fun renameTripMember(member: TripMember, name: String): Boolean {
@@ -569,6 +722,9 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         tripSettledMonths = tripSettledMonths.value,
         accounts = accounts.value,
         transfers = transfers.value,
+        meetings = meetings.value,
+        dutyAssignments = dutyAssignments.value,
+        dutyTypes = dutyTypes.value,
     ).toJson()
 
 
@@ -596,6 +752,14 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.tripSettledMonths.forEach { db.tripDao().insertSettledMonth(it) }
             data.accounts.forEach { db.accountDao().insert(it) }
             data.transfers.forEach { db.transferDao().insert(it) }
+            data.meetings.forEach { db.meetingDao().insert(it) }
+            if (data.dutyAssignments.isNotEmpty()) db.dutyDao().insertAll(data.dutyAssignments)
+            // Older backups have no duty list, so restore the defaults in that case.
+            if (data.dutyTypes.isEmpty()) {
+                Duties.defaults.forEachIndexed { index, name -> db.dutyTypeDao().insert(DutyType(name, index)) }
+            } else {
+                data.dutyTypes.forEach { db.dutyTypeDao().insert(it) }
+            }
         }
         return true
     }

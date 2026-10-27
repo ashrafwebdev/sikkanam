@@ -1,12 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">சிக்கனம்</string>
+    <string name="brand_name">சிக்கனம்</string>
+    <string name="brand_tamil">சிக்கனம்</string>
+
+    <!-- Navigation -->
     <string name="tab_home">முகப்பு</string>
     <string name="tab_budgets">வரவுசெலவு</string>
     <string name="tab_charity">தர்மம்</string>
     <string name="tab_trips">பயணம்</string>
     <string name="tab_zakat">ஸகாத்</string>
     <string name="tab_settings">அமைப்புகள்</string>
-    <string name="brand_name">சிக்கனம்</string>
-    <string name="brand_tamil">சிக்கனம்</string>
+
+    <!-- Common actions and labels -->
+    <string name="action_add">சேர்</string>
+    <string name="action_save">சேமி</string>
+    <string name="action_cancel">ரத்து செய்</string>
+    <string name="action_delete">நீக்கு</string>
+    <string name="action_edit">திருத்து</string>
+    <string name="type_income">வரவு</string>
+    <string name="type_expense">செலவு</string>
+    <string name="filter_all">அனைத்தும்</string>
+    <string name="label_amount">தொகை</string>
+
+    <!-- Home -->
+    <string name="home_hijri_date">ஹிஜ்ரி தேதி: %1$s</string>
+    <string name="home_previous_month">முந்தைய மாதம்</string>
+    <string name="home_next_month">அடுத்த மாதம்</string>
+    <string name="home_balance">இருப்பு (முந்தைய மாதங்களிலிருந்து)</string>
+    <string name="home_money_in">வரவு  %1$s</string>
+    <string name="home_money_out">செலவு  %1$s</string>
+    <string name="home_interest_paid">செலுத்திய வட்டி (ரிபா): %1$s</string>
+    <string name="home_export_csv">CSV ஏற்றுமதி</string>
+    <string name="home_search">வகை அல்லது குறிப்பைத் தேடு</string>
+    <string name="home_spending_by_category">வகைவாரியான செலவு</string>
+    <string name="home_year">%1$d ஆண்டு</string>
+    <string name="home_no_entries_year">இந்த ஆண்டு பதிவுகள் இல்லை.</string>
+    <string name="home_show_fewer">குறைவாகக் காட்டு</string>
+    <string name="home_show_all_months">அனைத்து %1$d மாதங்களையும் காட்டு</string>
+    <string name="home_from">%1$s இடமிருந்து</string>
+    <string name="home_to">%1$s க்கு</string>
+    <string name="home_interest_tag">வட்டி (ரிபா)</string>
+    <string name="home_no_account">கணக்கு இல்லை</string>
+    <string name="home_add_transaction">பதிவு சேர்</string>
+    <string name="home_edit_transaction">பதிவைத் திருத்து</string>
+    <string name="home_label_category">எதற்காக (வகை)</string>
+    <string name="home_label_from_whom">யாரிடமிருந்து</string>
+    <string name="home_label_to_whom">யாருக்கு</string>
+    <string name="home_label_for_what">எதற்காக</string>
+    <string name="home_label_payment_method">எப்படி (பணம் செலுத்தும் முறை)</string>
+    <string name="home_label_account">கணக்கு</string>
+    <string name="home_label_islamic_status">மூலம் (இஸ்லாமிய நிலை)</string>
+    <string name="home_attach_receipt">ரசீது இணை</string>
+    <string name="home_replace_receipt">ரசீதை மாற்று</string>
+    <string name="home_remove_receipt">நீக்கு</string>
+    <string name="home_receipt">ரசீது</string>
+    <string name="home_repeat_monthly">ஒவ்வொரு மாதமும் மீண்டும்</string>
+    <string name="home_riba_label">இது வட்டி (ரிபா)</string>
+    <string name="home_error_transaction">தொகை (பூஜ்ஜியத்திற்கு மேல்), வகை, யார், எதற்காக, மற்றும் பணம் செலுத்தும் முறையை நிரப்பவும்.</string>
+    <string name="home_halal_not_set">அமைக்கவில்லை</string>
+    <string name="halal_halal">ஹலால்</string>
+    <string name="halal_doubtful">சந்தேகம்</string>
+    <string name="halal_haram">ஹராம்</string>
+    <string name="home_previous">முந்தைய</string>
+    <string name="home_delete">நீக்கு</string>
+    <string name="home_export_file">sikkanam-transactions.csv</string>
+
+    <!-- Reminders -->
+    <string name="reminder_channel">கட்டண மற்றும் ஸகாத் நினைவூட்டல்கள்</string>
+    <string name="reminder_bill_title">நாளை கட்டணம் செலுத்த வேண்டும்</string>
+    <string name="reminder_zakat_title">நாளை ஸகாத் செலுத்த வேண்டும்</string>
+    <string name="reminder_zakat_body">உங்கள் ஸகாத்தைச் சரிபார்த்து நேரத்தில் செலுத்துங்கள்.</string>
 </resources>
