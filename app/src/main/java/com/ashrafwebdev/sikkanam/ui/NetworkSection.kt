@@ -1,19 +1,24 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -29,8 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.data.Place
+import com.ashrafwebdev.sikkanam.data.PlaceLevel
 import com.ashrafwebdev.sikkanam.network.lastNetworkUpdate
 import kotlinx.coroutines.launch
 
@@ -52,13 +59,14 @@ fun NetworkSection(vm: FinanceViewModel) {
     val states = places.filter { it.parentId == null }
 
     SectionCard {
-        SectionHeader(title = "Network (India)")
+        SectionHeader(title = "Network")
         Text(
-            if (updatedAt == 0L) "The list has not been downloaded yet. Tap Update list (needs internet)."
-            else "Last updated ${dateLabel(updatedAt)}",
+            if (updatedAt == 0L) "Not downloaded yet. Tap Update list when you are online."
+            else "Updated ${dateLabel(updatedAt)}",
             style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             FilledTonalButton(
                 enabled = !updating,
                 onClick = {
@@ -79,6 +87,7 @@ fun NetworkSection(vm: FinanceViewModel) {
             Text("The downloaded list is empty.", style = MaterialTheme.typography.bodySmall)
         }
         states.forEach { state ->
+            HorizontalDivider()
             PlaceNode(
                 place = state,
                 all = places,
@@ -94,7 +103,7 @@ fun NetworkSection(vm: FinanceViewModel) {
     }
 }
 
-/** One place in the tree, with its children shown below it when open. Read-only. */
+/** One place in the tree. Places with children open and close when tapped. */
 @Composable
 private fun PlaceNode(
     place: Place,
@@ -105,24 +114,46 @@ private fun PlaceNode(
 ) {
     val children = all.filter { it.parentId == place.id }
     val isOpen = place.id in expanded
+    val isMasjid = place.level == PlaceLevel.MASJID
+    val isTopLevel = depth == 0
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = (depth * 16).dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = (depth * 12).dp)
+            .clickable(enabled = children.isNotEmpty()) { onToggle(place.id) }
+            .padding(vertical = 10.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (children.isNotEmpty()) {
-            IconButton(onClick = { onToggle(place.id) }) {
-                Icon(
-                    if (isOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isOpen) "Close" else "Open",
-                )
-            }
-        } else {
-            Spacer(Modifier.width(48.dp))
+        when {
+            isMasjid -> Icon(
+                Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+            children.isNotEmpty() -> Icon(
+                if (isOpen) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight,
+                contentDescription = if (isOpen) "Close" else "Open",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
+            else -> Spacer(Modifier.width(20.dp))
         }
+        Spacer(Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(place.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text(place.level.label, style = MaterialTheme.typography.bodySmall)
+            Text(
+                place.name,
+                style = if (isTopLevel) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isMasjid) FontWeight.Normal else FontWeight.SemiBold,
+            )
+            val info = if (children.isEmpty()) place.level.label
+            else "${place.level.label} · ${children.size} ${place.level.childLabel?.lowercase().orEmpty()}${if (children.size == 1) "" else "s"}"
+            Text(
+                info,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 
