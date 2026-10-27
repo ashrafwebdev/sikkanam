@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Help: what each part of the app does and how to use it -->
+    <string name="tab_help">Help</string>
+    <string name="help_title">How to use Sikkanam</string>
+    <string name="help_intro">Sikkanam keeps your money, prayer, and jamaat records on this phone. Nothing is sent anywhere, except when you tap Update list or Update directory (internet), or open an email to send a message yourself.</string>
+
+    <string name="help_money_title">Money (Home)</string>
+    <string name="help_money_text">Add income or spending with the + Add button. Choose a category, who or what it is for, and the account it came from. Use the arrows to move between months. Search by category or note, filter by income or spending, and export everything to CSV.</string>
+
+    <string name="help_accounts_title">Accounts and transfers</string>
+    <string name="help_accounts_text">Add your cash, bank, and card accounts with the amount you had at the start. Use Transfer to move money between two accounts. Each account balance follows the entries made to it.</string>
+
+    <string name="help_budgets_title">Budgets</string>
+    <string name="help_budgets_text">Set a monthly limit for a category. The bar shows how much is spent. It turns red when you go over.</string>
+
+    <string name="help_goals_title">Savings goals and debts</string>
+    <string name="help_goals_text">Create a savings goal with a target and add money to it. Tap History to see every amount, and edit or delete a wrong one. Money lent and borrowed is recorded under Debts with an optional due date. Record each repayment as it is paid.</string>
+
+    <string name="help_summary_title">Monthly summary and reminders</string>
+    <string name="help_summary_text">During the first week of each month, Home shows last month: money in and out, savings, and any budget that went over. Reminders come the day before a monthly bill is due, a day before your zakat date, 10 minutes before each prayer, and on a debt due date. Turn prayer reminders off in Settings if you do not want them.</string>
+
+    <string name="help_islamic_title">Islamic: prayer, Qibla, dates, dhikr</string>
+    <string name="help_islamic_text">Prayer shows today's five prayers and sunrise for the city you choose in Settings. You can pick standard or Hanafi Asr. Qibla turns with the phone and tells you which way to turn. Islamic dates lists Ramadan, Eid, Arafah and other key days. The daily personal amaal checklist has Quran tilawat, morning and evening tasbeehat, the five prayers in jamaat, nawafil, and finding halal rizq; tick each one as you do it. The dhikr and Quran tracker counts dhikr and pages read each day.</string>
+
+    <string name="help_zakat_title">Zakat and inheritance</string>
+    <string name="help_zakat_text">Zakat works out 2.5% on the wealth above nisab, using silver or gold. Inheritance (faraid) shows each share for the spouse, parents, sons and daughters, after debts. Check every case with a scholar, because brothers, sisters, grandchildren and wills are not included.</string>
+
+    <string name="help_charity_title">Charity and purification</string>
+    <string name="help_charity_text">Record sadaqah and purification here. Mark income as halal, doubtful, or haram, and expenses as riba when they are interest. The page shows how much purification is still due.</string>
+
+    <string name="help_learn_title">Learn</string>
+    <string name="help_learn_text">Surahs, duas, adhan, prayer steps, funeral prayer, and halal and haram, each with Arabic, transliteration and meaning in Tamil and English. Tap a title to open it, and tick it when you have learned it. Check the content with a teacher before teaching it.</string>
+
+    <string name="help_jamaat_title">Jamaat</string>
+    <string name="help_jamaat_text">Create a jamaat for a khurooj and add its members. Record each member's expenses, money in, and advance. Under each jamaat you can keep the daily mashwara, duties, the daily muqami amaal checklist, the weekly programmes (halqa mashwara, city mashwara, shabgujari), and khurooj records with dates and places.</string>
+
+    <string name="help_dawat_title">Dawat, taskeel, and locality</string>
+    <string name="help_dawat_text">Dawat and taskeel records the people you meet, their status, and follow-up dates. Once someone agrees to khurooj, form a new jamaat from them. The locality register lists people in the area, the khurooj they have done, and which khurooj they are available for. Tap Met today to record a meeting and the taskeel given, and the monthly list shows who was given taskeel for each khurooj.</string>
+
+    <string name="help_directory_title">Directory</string>
+    <string name="help_directory_text">Services lists electricians, plumbers, housekeepers and businesses with their phone numbers. Tap Call to open the dialer. The network lists the states, districts, zones, halqas and masjids. Tap Update to download the latest lists (internet needed). Use Add my listing or Suggest a place to send details by email.</string>
+
+    <string name="help_settings_title">Settings</string>
+    <string name="help_settings_text">Choose the language (system, English, or Tamil) and the text size. Switch the Islamic and Jamaat pages on or off. Pick the prayer city and Asr method, set the zakat date, lock the app with fingerprint or screen lock, save or restore a backup, check for updates, and send feedback.</string>
+
+    <string name="help_backup_title">Backup</string>
+    <string name="help_backup_text">Save a backup from Settings every month, and before you change phones. A backup includes all your money, jamaat, dawat, and locality records. Restoring a backup replaces the data on the phone.</string>
+</resources>

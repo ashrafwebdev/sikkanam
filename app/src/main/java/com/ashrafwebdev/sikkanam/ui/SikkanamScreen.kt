@@ -17,8 +17,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,12 +25,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ashrafwebdev.sikkanam.BuildConfig
@@ -46,6 +53,7 @@ private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
     DIRECTORY(R.string.tab_directory, Icons.Default.LocationOn),
+    HELP(R.string.tab_help, Icons.Default.Star),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings),
 }
 
@@ -64,16 +72,7 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                tabs.forEach { tab ->
-                    NavigationBarItem(
-                        selected = current == tab,
-                        onClick = { selected = tab },
-                        icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
-                        label = { Text(stringResource(tab.labelRes)) },
-                    )
-                }
-            }
+            TabBar(tabs = tabs, current = current, onSelect = { selected = it })
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
@@ -88,7 +87,49 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
                 Tab.JAMAAT -> TripsScreen(viewModel, contentModifier)
                 // Back from the directory goes to Money, since it is a tab now.
                 Tab.DIRECTORY -> DirectoryPage(viewModel, onBack = { selected = Tab.MONEY }, modifier = contentModifier)
+                Tab.HELP -> HelpScreen(contentModifier)
                 Tab.SETTINGS -> SettingsScreen(viewModel, contentModifier)
+            }
+        }
+    }
+}
+
+/** Bottom bar that scrolls sideways, so new pages can be added without squeezing the existing ones. */
+@Composable
+private fun TabBar(tabs: List<Tab>, current: Tab, onSelect: (Tab) -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 3.dp,
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+    ) {
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+        ) {
+            tabs.forEach { tab ->
+                val selected = current == tab
+                val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(84.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                        .clickable { onSelect(tab) }
+                        .padding(vertical = 8.dp),
+                ) {
+                    Icon(tab.icon, contentDescription = null, tint = color)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        stringResource(tab.labelRes),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = color,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

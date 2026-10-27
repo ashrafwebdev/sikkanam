@@ -103,10 +103,12 @@ fun LocalitySection(vm: FinanceViewModel) {
                     Text((listOf(status) + history).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                     val available = parseTypes(person.availableTypes)
                     if (available.isNotEmpty()) {
+                        // Look the labels up first: a composable call is not allowed inside joinToString's lambda.
+                        val availableNames = available.map { stringResource(khuroojLabelRes(it)) }
                         Text(
                             stringResource(
                                 R.string.locality_available,
-                                available.joinToString(", ") { stringResource(khuroojLabelRes(it)) },
+                                availableNames.joinToString(", "),
                             ),
                             style = MaterialTheme.typography.bodySmall,
                         )

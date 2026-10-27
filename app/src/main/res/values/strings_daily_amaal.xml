@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Personal daily amaal checklist -->
+    <string name="infiradi_title">Daily personal amaal</string>
+    <string name="infiradi_quran">Quran tilawat</string>
+    <string name="infiradi_third_kalimah">Third kalimah, 100 times morning and evening</string>
+    <string name="infiradi_salwaat">Salwaat, 100 times morning and evening</string>
+    <string name="infiradi_istighfar">Istighfar, 100 times morning and evening</string>
+    <string name="infiradi_jamaat_prayers">Five prayers in jamaat</string>
+    <string name="infiradi_tahajjud">Tahajjud</string>
+    <string name="infiradi_ishraq">Ishraq</string>
+    <string name="infiradi_luha">Luha</string>
+    <string name="infiradi_awwabeen">Awwabeen</string>
+    <string name="infiradi_halal_rizq">Finding halal rizq</string>
+</resources>

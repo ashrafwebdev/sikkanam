@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Personal daily amaal checklist -->
+    <string name="infiradi_title">தினசரி தனிப்பட்ட அமல்கள்</string>
+    <string name="infiradi_quran">குர்ஆன் திலாவத்</string>
+    <string name="infiradi_third_kalimah">மூன்றாம் கலிமா, காலை மாலை தலா 100 முறை</string>
+    <string name="infiradi_salwaat">ஸலவாத், காலை மாலை தலா 100 முறை</string>
+    <string name="infiradi_istighfar">இஸ்திஃபார், காலை மாலை தலா 100 முறை</string>
+    <string name="infiradi_jamaat_prayers">ஐந்து வேளைத் தொழுகை ஜமாஅத்துடன்</string>
+    <string name="infiradi_tahajjud">தஹஜ்ஜுத்</string>
+    <string name="infiradi_ishraq">இஷ்ராக்</string>
+    <string name="infiradi_luha">லுஹா</string>
+    <string name="infiradi_awwabeen">அவ்வாபீன்</string>
+    <string name="infiradi_halal_rizq">ஹலாலான ரிஸ்க் தேடுதல்</string>
+</resources>
