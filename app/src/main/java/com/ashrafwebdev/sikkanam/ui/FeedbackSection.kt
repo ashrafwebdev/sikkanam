@@ -70,7 +70,8 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
         title = { Text("Send feedback") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Stacked, so each label has the full width and does not wrap letter by letter.
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     FeedbackType.entries.forEach { option ->
                         FilterChip(
                             selected = type == option,
