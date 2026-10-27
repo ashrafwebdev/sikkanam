@@ -41,7 +41,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         scheduleReminders(this)
         // Look for a newer build on launch, if the user has turned that on.
-        if (isAutoUpdateCheckOn(this)) {
+        if (BuildConfig.SELF_UPDATE && isAutoUpdateCheckOn(this)) {
             lifecycleScope.launch { UpdateStatus.set(checkForUpdate(this@MainActivity)) }
         }
         // FragmentActivity only accepts small request codes, so this uses the older API with a small code.

@@ -2,6 +2,10 @@
 
 A free, offline income and expense tracker for Android. The logo is the Tamil word சிக்கனம் (sikkanam), which means thrift.
 
+## Developer
+
+Developed by Mohammed Ashraf. Website: [smatechsolution.com](https://smatechsolution.com)
+
 ## License
 
 Sikkanam is free software, released under the [GNU General Public License v3.0](LICENSE).
@@ -26,7 +30,7 @@ Sikkanam is free software, released under the [GNU General Public License v3.0](
 - Zakat calculator with silver or gold nisab, using the 2.5% rate
 - Today's date in the Hijri calendar
 
-Data stays on the device. There's no account, no ads, and no internet permission.
+Data stays on the device. There's no account and no ads. The internet is used only for the optional check for a newer version (GitHub builds only).
 
 ## Not yet built
 

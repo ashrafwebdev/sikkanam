@@ -4,6 +4,9 @@
     <!-- Lets bill and zakat reminders show as notifications on Android 13 and later. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Only used when the user ticks "save to phone contacts" while adding a trip member. -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
     <!-- Only used to check GitHub for a newer version, and only when the user turns that on. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Lets the app open Android's install prompt for a downloaded update. -->
@@ -26,6 +29,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Optional. Off until the user turns on payment alerts and allows notification access in phone settings. -->
+        <service
+            android:name=".payments.PaymentNotificationService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".widget.BalanceWidgetReceiver"

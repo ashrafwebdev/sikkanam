@@ -55,7 +55,14 @@ import com.ashrafwebdev.sikkanam.reminders.zakatDueDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.data.TransactionType
+import com.ashrafwebdev.sikkanam.payments.isNotificationAccessGranted
+import com.ashrafwebdev.sikkanam.payments.isPaymentCaptureOn
+import com.ashrafwebdev.sikkanam.payments.setPaymentCaptureOn
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 
 @Composable
 fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -138,9 +145,11 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
 
         item { SecuritySection() }
+        if (BuildConfig.PAYMENT_ALERTS) item { PaymentSection() }
         item { ReminderSection() }
-        item { UpdateSection() }
+        if (BuildConfig.SELF_UPDATE) item { UpdateSection() }
         item { BackupSection(vm) }
+        item { AboutSection() }
         item { Spacer(Modifier.height(16.dp)) }
     }
 }
@@ -307,6 +316,69 @@ private fun SecuritySection() {
                 },
             )
         }
+    }
+}
+
+/** Who made the app, and where to find them. */
+@Composable
+private fun AboutSection() {
+    val context = LocalContext.current
+    SectionCard {
+        SectionHeader(title = "About")
+        Text("Sikkanam is developed by Mohammed Ashraf.", style = MaterialTheme.typography.bodyMedium)
+        Text("Free and open source under GPL-3.0.", style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://smatechsolution.com")))
+        }) { Text("Visit smatechsolution.com") }
+    }
+}
+
+/**
+ * Optional: suggests payments from Google Pay and PhonePe notifications. Off by default. The user
+ * must turn it on here and allow notification access in phone settings. Nothing is added without a tap.
+ */
+@Composable
+private fun PaymentSection() {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(isPaymentCaptureOn(context)) }
+    var access by remember { mutableStateOf(isNotificationAccessGranted(context)) }
+
+    SectionCard {
+        SectionHeader(title = "Payment alerts (optional)")
+        Text(
+            "Finds payments from Google Pay and PhonePe notifications and lets you add them with one tap. " +
+                "Nothing is sent off the phone. Leave this off if you prefer to add entries yourself.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Find payments in notifications", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    when {
+                        !on -> "Off"
+                        access -> "On. Access is allowed."
+                        else -> "On, but notification access is not allowed yet."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Switch(
+                checked = on,
+                onCheckedChange = {
+                    on = it
+                    setPaymentCaptureOn(context, it)
+                    if (it && !isNotificationAccessGranted(context)) {
+                        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                    }
+                },
+            )
+        }
+        OutlinedButton(onClick = {
+            access = isNotificationAccessGranted(context)
+        }) { Text("Check access") }
+        OutlinedButton(onClick = {
+            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }) { Text("Open notification access") }
     }
 }
 

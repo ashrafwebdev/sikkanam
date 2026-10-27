@@ -46,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Account
 import com.ashrafwebdev.sikkanam.data.Category
@@ -108,6 +109,8 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
+
+        if (BuildConfig.PAYMENT_ALERTS) item { PendingPaymentsCard(vm) }
 
         item {
             Card(

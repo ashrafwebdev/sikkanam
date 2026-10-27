@@ -8,3 +8,5 @@ Track what comes in and what goes out:
 Your data stays on your phone. Sikkanam needs no account, shows no ads, and doesn't connect to the internet.
 
 Sikkanam is free and open source under the GPL-3.0 license.
+
+Developed by Mohammed Ashraf. Website: smatechsolution.com

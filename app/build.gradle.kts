@@ -41,6 +41,23 @@ android {
         }
     }
 
+    // Two builds from one codebase. "github" keeps every feature, including the in-app updater
+    // and payment alerts. "play" leaves out what Google Play policy restricts: installing other
+    // APKs, self-updating, and reading other apps' notifications.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("github") {
+            dimension = "distribution"
+            buildConfigField("boolean", "SELF_UPDATE", "true")
+            buildConfigField("boolean", "PAYMENT_ALERTS", "true")
+        }
+        create("play") {
+            dimension = "distribution"
+            buildConfigField("boolean", "SELF_UPDATE", "false")
+            buildConfigField("boolean", "PAYMENT_ALERTS", "false")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -48,6 +65,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

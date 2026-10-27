@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google Play build. Removes what Play policy restricts: installing other APKs (self-update) and
+     reading other apps' notifications (payment alerts). Merged over the main manifest. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+    <!-- The Play build makes no network calls, so it needs no internet permission. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+
+    <application>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            tools:node="remove" />
+
+        <service
+            android:name=".payments.PaymentNotificationService"
+            tools:node="remove" />
+    </application>
+
+</manifest>

@@ -39,6 +39,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.ashrafwebdev.sikkanam.contacts.hasContactsPermission
+import com.ashrafwebdev.sikkanam.contacts.saveToPhoneContacts
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.TripContribution
 import com.ashrafwebdev.sikkanam.data.TripExpense
@@ -701,7 +708,28 @@ private fun MemberDialog(
             if (existing == null || existing.advanceCents == 0L) "" else String.format(java.util.Locale.US, "%.2f", existing.advanceCents / 100.0),
         )
     }
+    var saveToContacts by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    // Saves the member, then the phone contact if the user asked for it. Contacts are only
+    // written after the trip member is saved, so a failed save never leaves a stray contact.
+    fun submit(writeContact: Boolean) {
+        if (!onSave(name, phone, address, days, advance, going)) {
+            error = "Enter a unique name. Days must be a whole number and advance must be zero or more."
+            return
+        }
+        if (writeContact && !saveToPhoneContacts(context, name.trim(), phone.trim())) {
+            Toast.makeText(context, "Member saved, but could not add to phone contacts.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    val contactsPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) {
+            Toast.makeText(context, "Contacts permission not given. Member saved without a phone contact.", Toast.LENGTH_LONG).show()
+        }
+        submit(writeContact = granted)
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -740,13 +768,26 @@ private fun MemberDialog(
                     Checkbox(checked = going, onCheckedChange = { going = it })
                     Text("Going on the trip (shares costs)")
                 }
+                if (existing == null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = saveToContacts,
+                            onCheckedChange = { saveToContacts = it },
+                            enabled = phone.isNotBlank(),
+                        )
+                        Text("Also save to my phone contacts")
+                    }
+                }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                if (!onSave(name, phone, address, days, advance, going)) {
-                    error = "Enter a unique name. Days must be a whole number and advance must be zero or more."
+                val wantContact = existing == null && saveToContacts && phone.isNotBlank()
+                if (wantContact && !hasContactsPermission(context)) {
+                    contactsPermission.launch(Manifest.permission.WRITE_CONTACTS)
+                } else {
+                    submit(writeContact = wantContact)
                 }
             }) { Text("Save") }
         },

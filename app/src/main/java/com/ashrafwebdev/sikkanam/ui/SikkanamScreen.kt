@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.ashrafwebdev.sikkanam.update.UpdateBanner
+import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -67,7 +68,7 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             BrandHeader(title = stringResource(Tab.entries[selected].labelRes))
-            UpdateBanner(LocalContext.current)
+            if (BuildConfig.SELF_UPDATE) UpdateBanner(LocalContext.current)
 
             val contentModifier = Modifier.weight(1f).padding(top = 12.dp)
             when (Tab.entries[selected]) {
