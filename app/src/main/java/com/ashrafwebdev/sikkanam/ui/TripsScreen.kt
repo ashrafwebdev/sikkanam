@@ -59,18 +59,31 @@ import com.ashrafwebdev.sikkanam.trip.TripSettlement
 @Composable
 fun TripsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     var openGroupId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showDirectory by rememberSaveable { mutableStateOf(false) }
     val groups by vm.tripGroups.collectAsState()
 
     val openGroup = groups.firstOrNull { it.id == openGroupId }
-    if (openGroup != null) {
-        TripDetail(vm, openGroup, onBack = { openGroupId = null }, modifier = modifier)
-    } else {
-        TripList(vm, groups, onOpen = { openGroupId = it.id }, modifier = modifier)
+    when {
+        showDirectory -> DirectoryPage(vm, onBack = { showDirectory = false }, modifier = modifier)
+        openGroup != null -> TripDetail(vm, openGroup, onBack = { openGroupId = null }, modifier = modifier)
+        else -> TripList(
+            vm,
+            groups,
+            onOpen = { openGroupId = it.id },
+            onOpenDirectory = { showDirectory = true },
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
-private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (TripGroup) -> Unit, modifier: Modifier) {
+private fun TripList(
+    vm: FinanceViewModel,
+    groups: List<TripGroup>,
+    onOpen: (TripGroup) -> Unit,
+    onOpenDirectory: () -> Unit,
+    modifier: Modifier,
+) {
     val members by vm.tripMembers.collectAsState()
     val expenses by vm.tripExpenses.collectAsState()
     var newKind by remember { mutableStateOf<GroupKind?>(null) }
@@ -100,8 +113,17 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
         }
         item { MeetingsSection(vm) }
         item { DutiesSection(vm) }
-        item { NetworkSection(vm) }
-        item { DirectorySection() }
+        item {
+            SectionCard {
+                SectionHeader(title = "Directory")
+                Text(
+                    "Masjids in the network, and local services such as electricians, plumbers and housekeepers.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FilledTonalButton(onClick = onOpenDirectory) { Text("Open directory") }
+            }
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 LearnSection()

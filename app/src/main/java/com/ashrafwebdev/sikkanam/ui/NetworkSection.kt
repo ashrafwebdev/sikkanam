@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
  * app downloads it, so every user sees the same places. Users can suggest additions by email.
  */
 @Composable
-fun NetworkSection(vm: FinanceViewModel) {
+fun NetworkSection(vm: FinanceViewModel, query: String = "") {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val places by vm.places.collectAsState()
@@ -86,21 +86,53 @@ fun NetworkSection(vm: FinanceViewModel) {
         if (states.isEmpty() && updatedAt != 0L) {
             Text("The downloaded list is empty.", style = MaterialTheme.typography.bodySmall)
         }
-        states.forEach { state ->
-            HorizontalDivider()
-            PlaceNode(
-                place = state,
-                all = places,
-                depth = 0,
-                expanded = expanded,
-                onToggle = { id -> expanded = if (id in expanded) expanded - id else expanded + id },
-            )
+        val needle = query.trim()
+        if (needle.isNotEmpty()) {
+            // Searching shows every matching place as a flat list, with its path, instead of the tree.
+            val matches = places.filter { it.name.contains(needle, ignoreCase = true) }
+            if (matches.isEmpty()) {
+                Text("No places match your search.", style = MaterialTheme.typography.bodySmall)
+            }
+            matches.forEach { place ->
+                HorizontalDivider()
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Text(place.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "${place.level.label} · ${pathOf(place, places)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        } else {
+            states.forEach { state ->
+                HorizontalDivider()
+                PlaceNode(
+                    place = state,
+                    all = places,
+                    depth = 0,
+                    expanded = expanded,
+                    onToggle = { id -> expanded = if (id in expanded) expanded - id else expanded + id },
+                )
+            }
         }
     }
 
     if (showSuggest) {
         SuggestPlaceDialog(onDismiss = { showSuggest = false })
     }
+}
+
+/** The chain of names above a place, for example "Tamil Nadu › Chennai › Chennai › Guduvancheri". */
+private fun pathOf(place: Place, all: List<Place>): String {
+    val names = mutableListOf<String>()
+    var current: Place? = place.parentId?.let { id -> all.firstOrNull { it.id == id } }
+    while (current != null) {
+        names.add(0, current.name)
+        val parentId = current.parentId
+        current = parentId?.let { id -> all.firstOrNull { it.id == id } }
+    }
+    return if (names.isEmpty()) "India" else names.joinToString(" › ")
 }
 
 /** One place in the tree. Places with children open and close when tapped. */

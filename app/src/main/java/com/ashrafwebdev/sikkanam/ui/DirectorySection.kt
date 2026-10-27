@@ -36,24 +36,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.network.DirectoryCategory
 import com.ashrafwebdev.sikkanam.network.DirectoryEntry
-import com.ashrafwebdev.sikkanam.network.loadDirectory
 import com.ashrafwebdev.sikkanam.network.refreshDirectory
 import kotlinx.coroutines.launch
 
 /**
  * Services directory: electricians, plumbers, housekeepers, businesses. The developer publishes the
  * list and the app downloads it. Tapping Call opens the dialer; nothing is called automatically.
- * People can send their own details, or a change to a listing, by email.
+ * [query] and [categoryFilter] narrow the listings. A null filter shows every category.
  */
 @Composable
-fun DirectorySection() {
+fun DirectorySection(
+    categories: List<DirectoryCategory>,
+    query: String,
+    categoryFilter: String?,
+    onReload: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var categories by remember { mutableStateOf(loadDirectory(context)) }
     var status by remember { mutableStateOf<String?>(null) }
     var updating by remember { mutableStateOf(false) }
     var showForm by remember { mutableStateOf(false) }
     var changeOf by remember { mutableStateOf<DirectoryEntry?>(null) }
+
+    val needle = query.trim()
+    val visible = categories
+        .filter { categoryFilter == null || it.name == categoryFilter }
+        .map { category ->
+            category.copy(entries = category.entries.filter { entry -> needle.isEmpty() || matches(entry, category, needle) })
+        }
+        .filter { it.entries.isNotEmpty() }
 
     SectionCard {
         SectionHeader(title = "Services")
@@ -70,7 +81,7 @@ fun DirectorySection() {
                     status = null
                     scope.launch {
                         status = refreshDirectory(context)
-                        categories = loadDirectory(context)
+                        onReload()
                         updating = false
                     }
                 },
@@ -85,8 +96,10 @@ fun DirectorySection() {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        } else if (visible.isEmpty()) {
+            Text("No services match your search.", style = MaterialTheme.typography.bodySmall)
         }
-        categories.filter { it.entries.isNotEmpty() }.forEach { category ->
+        visible.forEach { category ->
             CategoryHeader(category)
             category.entries.forEach { entry ->
                 DirectoryCard(entry, onReportChange = { changeOf = entry })
@@ -101,6 +114,11 @@ fun DirectorySection() {
         DirectoryFormDialog(prefill = entry, onDismiss = { changeOf = null })
     }
 }
+
+/** A listing matches when the search text appears in its category, name, area, description or languages. */
+private fun matches(entry: DirectoryEntry, category: DirectoryCategory, needle: String): Boolean =
+    listOf(category.name, entry.name, entry.area, entry.description, entry.languages.joinToString(" "))
+        .any { it.contains(needle, ignoreCase = true) }
 
 @Composable
 private fun CategoryHeader(category: DirectoryCategory) {
