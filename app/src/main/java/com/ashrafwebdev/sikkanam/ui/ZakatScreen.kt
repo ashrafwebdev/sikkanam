@@ -113,6 +113,8 @@ fun ZakatScreen(modifier: Modifier = Modifier) {
             MoneyField(stringResource(R.string.zakat_debts_now), debts) { debts = it }
         }
 
+        FaraidSection()
+
         Text(
             stringResource(R.string.zakat_note),
             style = MaterialTheme.typography.bodySmall,

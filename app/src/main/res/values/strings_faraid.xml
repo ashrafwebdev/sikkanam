@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Inheritance (faraid) -->
+    <string name="faraid_title">Inheritance (faraid)</string>
+    <string name="faraid_desc">Enter the estate and who is inheriting. The shares follow Islamic law for these heirs.</string>
+    <string name="faraid_estate">Estate (total money and property)</string>
+    <string name="faraid_debts">Debts to pay first</string>
+    <string name="faraid_husband">Husband is alive</string>
+    <string name="faraid_wives">Wives</string>
+    <string name="faraid_sons">Sons</string>
+    <string name="faraid_daughters">Daughters</string>
+    <string name="faraid_father">Father is alive</string>
+    <string name="faraid_mother">Mother is alive</string>
+    <string name="faraid_net">Estate after debts: %1$s</string>
+    <string name="faraid_warning">This covers the spouse, parents, sons and daughters only. Brothers, sisters, grandchildren, grandparents and wills are not included. Check every case with a qualified scholar before dividing an estate.</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Inheritance (faraid) -->
+    <string name="faraid_title">சொத்துப் பங்கீடு (ஃபராயித்)</string>
+    <string name="faraid_desc">சொத்தையும் வாரிசுகளையும் உள்ளிடுங்கள். இவர்களுக்கான பங்குகள் இஸ்லாமிய சட்டப்படி காட்டப்படும்.</string>
+    <string name="faraid_estate">மொத்த சொத்து (பணம் மற்றும் சொத்து)</string>
+    <string name="faraid_debts">முதலில் செலுத்த வேண்டிய கடன்கள்</string>
+    <string name="faraid_husband">கணவர் உயிருடன் உள்ளார்</string>
+    <string name="faraid_wives">மனைவிகள்</string>
+    <string name="faraid_sons">மகன்கள்</string>
+    <string name="faraid_daughters">மகள்கள்</string>
+    <string name="faraid_father">தந்தை உயிருடன் உள்ளார்</string>
+    <string name="faraid_mother">தாய் உயிருடன் உள்ளார்</string>
+    <string name="faraid_net">கடன் கழித்த பிறகு சொத்து: %1$s</string>
+    <string name="faraid_warning">இது மனைவி, பெற்றோர், மகன்கள், மகள்கள் ஆகியோருக்கு மட்டுமே. சகோதரர்கள், சகோதரிகள், பேரக்குழந்தைகள், தாத்தா-பாட்டி, உயில் சேர்க்கப்படவில்லை. சொத்தைப் பிரிக்கும் முன் ஒவ்வொரு நிலையையும் ஓர் ஆலிமிடம் சரிபாருங்கள்.</string>
+</resources>
