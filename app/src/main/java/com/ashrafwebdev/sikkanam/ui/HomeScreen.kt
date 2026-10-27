@@ -328,7 +328,11 @@ private fun TransactionDialog(
     onSave: (TransactionType, String, String, String, String, String, HalalStatus, Boolean, Boolean, Long?, String?) -> Boolean,
 ) {
     var accountName by remember {
-        mutableStateOf(accounts.firstOrNull { it.id == existing?.accountId }?.name ?: "")
+        // New entries go to Cash by default. Existing entries keep their own account.
+        mutableStateOf(
+            accounts.firstOrNull { it.id == existing?.accountId }?.name
+                ?: (if (existing == null) accounts.firstOrNull { it.name == "Cash" }?.name else null) ?: ""
+        )
     }
     val context = LocalContext.current
     var receiptName by remember { mutableStateOf(existing?.receiptPath) }

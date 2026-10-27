@@ -14,6 +14,14 @@ object DefaultCategories {
         "Salary", "Business", "Halal business", "Freelance", "Rental income", "Gifts", "Other",
     )
 
+    /** Accounts every new install starts with, with a zero opening balance. */
+    val accounts = listOf("Cash", "Bank account")
+
+    /** Adds the default accounts. Used on a fresh install and once on upgrade. */
+    fun insertAccountsInto(execSql: (String, Array<Any>) -> Unit) {
+        accounts.forEach { execSql("INSERT INTO accounts (name, openingCents) VALUES (?, ?)", arrayOf(it, 0L)) }
+    }
+
     /** Inserts every default category that isn't already present. */
     fun insertInto(execSql: (String, Array<Any>) -> Unit) {
         expense.forEach { execSql("INSERT OR IGNORE INTO categories (name, type) VALUES (?, ?)", arrayOf(it, "EXPENSE")) }

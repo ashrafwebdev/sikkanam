@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
         TripSettledMonth::class, Account::class, Transfer::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -159,6 +159,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the default Cash and Bank accounts to existing installs. */
+        private val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                DefaultCategories.insertAccountsInto { sql, args -> db.execSQL(sql, args) }
+            }
+        }
+
         /** Adds the receipt file name to each transaction. */
         private val MIGRATION_12_13 = object : Migration(12, 13) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -170,6 +177,7 @@ abstract class AppDatabase : RoomDatabase() {
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
+                DefaultCategories.insertAccountsInto { sql, args -> db.execSQL(sql, args) }
             }
         }
 
@@ -179,6 +187,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
                     MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
+                    MIGRATION_14_15,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()
