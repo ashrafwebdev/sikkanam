@@ -1,5 +1,9 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,15 +18,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,16 +40,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import android.Manifest
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.contacts.hasContactsPermission
 import com.ashrafwebdev.sikkanam.contacts.saveToPhoneContacts
 import com.ashrafwebdev.sikkanam.data.GroupKind
@@ -52,8 +54,6 @@ import com.ashrafwebdev.sikkanam.data.TripExpense
 import com.ashrafwebdev.sikkanam.data.TripGroup
 import com.ashrafwebdev.sikkanam.data.TripMember
 import com.ashrafwebdev.sikkanam.trip.TripSettlement
-
-private const val POOL_LABEL = "Shared pool"
 
 /** Group trips: members pay in, costs are split equally, and the app shows who settles with whom. */
 @Composable
@@ -74,6 +74,8 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
     val members by vm.tripMembers.collectAsState()
     val expenses by vm.tripExpenses.collectAsState()
     var newKind by remember { mutableStateOf<GroupKind?>(null) }
+    val familyLabel = stringResource(R.string.trip_kind_family)
+    val tripLabel = stringResource(R.string.trip_kind_trip)
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -81,16 +83,16 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
     ) {
         item {
             SectionHeader(
-                title = "Trips and family",
+                title = stringResource(R.string.trip_list_title),
                 action = {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledTonalButton(onClick = { newKind = GroupKind.TRIP }) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
-                            Text("Trip")
+                            Text(stringResource(R.string.trip_btn_trip))
                         }
                         FilledTonalButton(onClick = { newKind = GroupKind.FAMILY }) {
-                            Text("Family")
+                            Text(stringResource(R.string.trip_btn_family))
                         }
                     }
                 },
@@ -104,7 +106,7 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
             }
         }
         if (groups.isEmpty()) {
-            item { EmptyState("No trips yet. Create one for a tour and invite everyone to share the costs.") }
+            item { EmptyState(stringResource(R.string.trip_empty)) }
         }
         items(groups, key = { it.id }) { group ->
             val spent = expenses.filter { it.groupId == group.id }.sumOf { it.amountCents }
@@ -113,10 +115,13 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(group.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                        val label = if (group.kind == GroupKind.FAMILY) "Family" else "Trip"
-                        Text("$label · $count members · spent ${formatMoney(spent)}", style = MaterialTheme.typography.bodySmall)
+                        val label = if (group.kind == GroupKind.FAMILY) familyLabel else tripLabel
+                        Text(
+                            stringResource(R.string.trip_summary, label, count, formatMoney(spent)),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
-                    OutlinedButton(onClick = { onOpen(group) }) { Text("Open") }
+                    OutlinedButton(onClick = { onOpen(group) }) { Text(stringResource(R.string.trip_open)) }
                 }
             }
         }
@@ -124,8 +129,8 @@ private fun TripList(vm: FinanceViewModel, groups: List<TripGroup>, onOpen: (Tri
 
     newKind?.let { kind ->
         NameDialog(
-            title = if (kind == GroupKind.FAMILY) "New family group" else "New trip",
-            label = if (kind == GroupKind.FAMILY) "Family name, for example Joint family" else "Trip name, for example Ooty tour",
+            title = if (kind == GroupKind.FAMILY) stringResource(R.string.trip_new_family) else stringResource(R.string.trip_new_trip),
+            label = if (kind == GroupKind.FAMILY) stringResource(R.string.trip_family_name_hint) else stringResource(R.string.trip_name_hint),
             onDismiss = { newKind = null },
             onSave = { name ->
                 if (vm.addTripGroup(name, kind)) {
@@ -194,19 +199,24 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     var editingContribution by remember { mutableStateOf<TripContribution?>(null) }
     var editingExpense by remember { mutableStateOf<TripExpense?>(null) }
 
+    val interestedText = stringResource(R.string.trip_interested)
+    val everyoneText = stringResource(R.string.trip_everyone)
+    val unknownText = stringResource(R.string.trip_unknown)
+    val poolLabel = stringResource(R.string.trip_pool_label)
+
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack) { Text("Back") }
+                TextButton(onClick = onBack) { Text(stringResource(R.string.trip_back)) }
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { renamingGroup = true }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Rename trip")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_rename_desc))
                 }
                 IconButton(onClick = { confirmDelete = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete trip")
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_desc))
                 }
             }
             Text(group.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -214,21 +224,27 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            if (isSettled) "Settled for this month" else "Not settled yet",
+                            if (isSettled) stringResource(R.string.trip_settled_this_month) else stringResource(R.string.trip_not_settled_yet),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         if (carriedIn.values.any { it != 0L }) {
-                            Text("Includes balances brought forward", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.trip_carried_note), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     if (isSettled) {
-                        TextButton(onClick = { vm.reopenMonth(group.id, monthStart) }) { Text("Reopen") }
+                        TextButton(onClick = { vm.reopenMonth(group.id, monthStart) }) { Text(stringResource(R.string.trip_reopen)) }
                     } else {
-                        FilledTonalButton(onClick = { vm.markMonthSettled(group.id, monthStart) }) { Text("Mark settled") }
+                        FilledTonalButton(onClick = { vm.markMonthSettled(group.id, monthStart) }) {
+                            Text(stringResource(R.string.trip_mark_settled))
+                        }
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Split by income", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    Text(
+                        stringResource(R.string.trip_split_by_income),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
                     Switch(
                         checked = group.splitByIncome,
                         onCheckedChange = { vm.setSplitByIncome(group, it) },
@@ -236,15 +252,15 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { monthStart = addMonths(monthStart, -1) }) {
-                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous month")
+                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = stringResource(R.string.home_previous_month))
                     }
                     Text(
-                        "Settle-up for ${monthLabel(monthStart)}",
+                        stringResource(R.string.trip_settle_for_month, monthLabel(monthStart)),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = { monthStart = addMonths(monthStart, 1) }) {
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next month")
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = stringResource(R.string.home_next_month))
                     }
                 }
             }
@@ -253,13 +269,18 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         item {
             SectionCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                 Text(
-                    "Pool left ${formatMoney(poolLeft)}",
+                    stringResource(R.string.trip_pool_left, formatMoney(poolLeft)),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
-                    "Going ${going.size} · interested ${members.size - going.size} · " +
-                        "collected ${formatMoney(totalContributed)} · spent ${formatMoney(totalSpent)}",
+                    stringResource(
+                        R.string.trip_counts,
+                        going.size,
+                        members.size - going.size,
+                        formatMoney(totalContributed),
+                        formatMoney(totalSpent),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -269,20 +290,20 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilledTonalButton(onClick = { showContribution = true }, enabled = members.isNotEmpty()) {
-                    Text("Add money in")
+                    Text(stringResource(R.string.trip_add_money_in))
                 }
                 FilledTonalButton(onClick = { showExpense = true }, enabled = members.isNotEmpty()) {
-                    Text("Add expense")
+                    Text(stringResource(R.string.trip_add_expense))
                 }
             }
         }
 
-        item { SectionHeader(title = "Members") }
+        item { SectionHeader(title = stringResource(R.string.trip_members)) }
         item {
             FilledTonalButton(onClick = { showAddMember = true }) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(4.dp))
-                Text("Add member")
+                Text(stringResource(R.string.trip_add_member))
             }
         }
         items(members, key = { "m${it.id}" }) { member ->
@@ -290,10 +311,12 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                 Column(modifier = Modifier.weight(1f)) {
                     Text(member.name, style = MaterialTheme.typography.bodyMedium)
                     val details = buildList {
-                        if (!member.confirmed) add("interested")
+                        if (!member.confirmed) add(interestedText)
                         if (member.phone.isNotBlank()) add(member.phone)
-                        if (member.days > 0) add("${member.days} days")
-                        if (member.advanceCents > 0) add("advance ${formatMoney(member.advanceCents)}")
+                        if (member.days > 0) add(stringResource(R.string.trip_days, member.days))
+                        if (member.advanceCents > 0) {
+                            add(stringResource(R.string.trip_advance, formatMoney(member.advanceCents)))
+                        }
                         if (member.address.isNotBlank()) add(member.address)
                     }
                     if (details.isNotEmpty()) {
@@ -301,34 +324,45 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                     }
                 }
                 IconButton(onClick = { renamingMember = member }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit member")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_member_desc))
                 }
                 if (isFamily) {
                     TextButton(onClick = { incomeEditing = member }) {
-                        Text("Income ${formatMoney(member.incomeCents)}")
+                        Text(stringResource(R.string.trip_income_button, formatMoney(member.incomeCents)))
                     }
                 }
                 IconButton(onClick = { vm.deleteTripMember(member) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remove member")
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_remove_member_desc))
                 }
             }
         }
 
         if (balances.isNotEmpty()) {
-            item { SectionHeader(title = "Balances") }
+            item { SectionHeader(title = stringResource(R.string.trip_balances)) }
             items(balances, key = { "b${it.memberId}" }) { b ->
                 SectionCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(b.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                         Text(
-                            if (b.net >= 0) "gets ${formatMoney(b.net)}" else "owes ${formatMoney(-b.net)}",
+                            b.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            if (b.net >= 0) stringResource(R.string.trip_gets, formatMoney(b.net))
+                            else stringResource(R.string.trip_owes, formatMoney(-b.net)),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (b.net >= 0) IncomeColor else ExpenseColor,
                         )
                     }
                     Text(
-                        "Paid in ${formatMoney(b.contributed)} · paid out ${formatMoney(b.paidDirectly)} · share ${formatMoney(b.share)}",
+                        stringResource(
+                            R.string.trip_paid_share,
+                            formatMoney(b.contributed),
+                            formatMoney(b.paidDirectly),
+                            formatMoney(b.share),
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -336,13 +370,13 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         }
 
         if (payments.isNotEmpty()) {
-            item { SectionHeader(title = "Settle up") }
+            item { SectionHeader(title = stringResource(R.string.trip_settle_up)) }
             items(payments, key = { "p${it.from}-${it.to}-${it.amountCents}" }) { p ->
                 SectionCard {
                     Text(
-                        if (p.to == "Pool") "${p.from} pays the pool ${formatMoney(p.amountCents)}"
-                        else if (p.from == "Pool") "Refund ${formatMoney(p.amountCents)} to ${p.to} from the pool"
-                        else "${p.from} pays ${p.to} ${formatMoney(p.amountCents)}",
+                        if (p.to == "Pool") stringResource(R.string.trip_pays_pool, p.from, formatMoney(p.amountCents))
+                        else if (p.from == "Pool") stringResource(R.string.trip_refund_from_pool, formatMoney(p.amountCents), p.to)
+                        else stringResource(R.string.trip_pays, p.from, p.to, formatMoney(p.amountCents)),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -350,43 +384,52 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         }
 
         if (expenses.isNotEmpty()) {
-            item { SectionHeader(title = "Expenses") }
+            item { SectionHeader(title = stringResource(R.string.trip_expenses)) }
             items(expenses, key = { "e${it.id}" }) { e ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                         Text(e.description, style = MaterialTheme.typography.bodyMedium)
-                        val payer = members.firstOrNull { it.id == e.paidByMemberId }?.name ?: POOL_LABEL
-                        val sharedBy = if (e.participants().isEmpty()) "everyone" else "${e.participants().size} people"
+                        val payer = members.firstOrNull { it.id == e.paidByMemberId }?.name ?: poolLabel
+                        val sharedBy = if (e.participants().isEmpty()) everyoneText
+                        else stringResource(R.string.trip_people, e.participants().size)
                         Text(
-                            "${dateLabel(e.dateMillis)} · paid by $payer · shared by $sharedBy",
+                            stringResource(R.string.trip_expense_line, dateLabel(e.dateMillis), payer, sharedBy),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
                     Text(formatMoney(e.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                     IconButton(onClick = { editingExpense = e }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit expense")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_expense_desc))
                     }
                     IconButton(onClick = { vm.deleteTripExpense(e.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete expense")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_expense_desc))
                     }
                 }
             }
         }
 
         if (contributions.isNotEmpty()) {
-            item { SectionHeader(title = "Money in") }
+            item { SectionHeader(title = stringResource(R.string.trip_money_in)) }
             items(contributions, key = { "c${it.id}" }) { c ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(members.firstOrNull { it.id == c.memberId }?.name ?: "Unknown", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            members.firstOrNull { it.id == c.memberId }?.name ?: unknownText,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                         Text(dateLabel(c.dateMillis), style = MaterialTheme.typography.bodySmall)
                     }
-                    Text(formatMoney(c.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = IncomeColor)
+                    Text(
+                        formatMoney(c.amountCents),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = IncomeColor,
+                    )
                     IconButton(onClick = { editingContribution = c }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit payment in")
-                }
-                IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete payment in")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_payment_desc))
+                    }
+                    IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_payment_desc))
                     }
                 }
             }
@@ -471,8 +514,8 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
 
     if (renamingGroup) {
         NameDialog(
-            title = "Rename trip",
-            label = "Trip name",
+            title = stringResource(R.string.trip_rename_desc),
+            label = stringResource(R.string.trip_name_label),
             initial = group.name,
             onDismiss = { renamingGroup = false },
             onSave = { name ->
@@ -522,16 +565,16 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete ${group.name}?") },
-            text = { Text("This removes the trip, its members, and all its money records.") },
+            title = { Text(stringResource(R.string.trip_delete_title, group.name)) },
+            text = { Text(stringResource(R.string.trip_delete_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     vm.deleteTripGroup(group.id)
                     confirmDelete = false
                     onBack()
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.action_delete)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -548,17 +591,23 @@ private fun ContributionDialog(
         mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.amountCents / 100.0) } ?: "")
     }
     var error by remember { mutableStateOf<String?>(null) }
+    val chooseError = stringResource(R.string.trip_choose_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Money in") },
+        title = { Text(stringResource(R.string.trip_money_in)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                CategorySelector(label = "Who", options = members.map { it.name }, selected = name, onSelect = { name = it })
+                CategorySelector(
+                    label = stringResource(R.string.trip_who),
+                    options = members.map { it.name },
+                    selected = name,
+                    onSelect = { name = it },
+                )
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Amount") },
+                    label = { Text(stringResource(R.string.label_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
@@ -569,10 +618,10 @@ private fun ContributionDialog(
             TextButton(onClick = {
                 val memberId = members.firstOrNull { it.name == name }?.id
                 val saved = memberId != null && onSave(memberId, amount)
-                if (!saved) error = "Choose a member and enter an amount above zero."
-            }) { Text("Save") }
+                if (!saved) error = chooseError
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -582,30 +631,31 @@ private fun IncomeDialog(member: TripMember, onDismiss: () -> Unit, onSave: (Str
         mutableStateOf(String.format(java.util.Locale.US, "%.2f", member.incomeCents / 100.0))
     }
     var error by remember { mutableStateOf<String?>(null) }
+    val incomeError = stringResource(R.string.trip_income_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Monthly income of ${member.name}") },
+        title = { Text(stringResource(R.string.trip_income_title, member.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Income per month") },
+                    label = { Text(stringResource(R.string.trip_income_per_month)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
                 Text(
-                    "Used only when the family splits costs by income.",
+                    stringResource(R.string.trip_income_hint),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(amount)) error = "Enter an amount, zero or more." }) { Text("Save") }
+            TextButton(onClick = { if (!onSave(amount)) error = incomeError }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -617,7 +667,8 @@ private fun ExpenseDialog(
     onDismiss: () -> Unit,
     onSave: (Long?, String, String, List<Long>, Boolean) -> Boolean,
 ) {
-    var payer by remember { mutableStateOf(members.firstOrNull { it.id == existing?.paidByMemberId }?.name ?: POOL_LABEL) }
+    val poolLabel = stringResource(R.string.trip_pool_label)
+    var payer by remember { mutableStateOf(members.firstOrNull { it.id == existing?.paidByMemberId }?.name ?: poolLabel) }
     var description by remember { mutableStateOf(existing?.description ?: "") }
     var amount by remember {
         mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.amountCents / 100.0) } ?: "")
@@ -628,32 +679,35 @@ private fun ExpenseDialog(
         mutableStateOf(existing?.participants()?.takeIf { it.isNotEmpty() }?.toSet() ?: members.map { it.id }.toSet())
     }
     var error by remember { mutableStateOf<String?>(null) }
+    val expenseError = stringResource(R.string.trip_expense_error)
+    val equalText = stringResource(R.string.trip_split_equal)
+    val incomeSplitText = stringResource(R.string.trip_split_by_income_option)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Trip expense") },
+        title = { Text(stringResource(R.string.trip_expense_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("For what") },
+                    label = { Text(stringResource(R.string.trip_for_what)) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Amount") },
+                    label = { Text(stringResource(R.string.label_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
                 CategorySelector(
-                    label = "Paid by",
-                    options = listOf(POOL_LABEL) + members.map { it.name },
+                    label = stringResource(R.string.trip_paid_by),
+                    options = listOf(poolLabel) + members.map { it.name },
                     selected = payer,
                     onSelect = { payer = it },
                 )
-                Text("Shared by", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.trip_shared_by), style = MaterialTheme.typography.labelMedium)
                 members.forEach { member ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
@@ -666,13 +720,17 @@ private fun ExpenseDialog(
                     }
                 }
                 Text(
-                    "Split ${if (isFamily) "equally, or by income if the family chose that" else "equally"} among the ${sharers.size} people ticked.",
+                    stringResource(
+                        R.string.trip_split_line,
+                        if (isFamily) incomeSplitText else equalText,
+                        sharers.size,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 if (isFamily) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = recurring, onCheckedChange = { recurring = it })
-                        Text("Repeats every month")
+                        Text(stringResource(R.string.trip_repeats_monthly))
                     }
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -680,14 +738,14 @@ private fun ExpenseDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val paidBy = if (payer == POOL_LABEL) null else members.firstOrNull { it.name == payer }?.id
+                val paidBy = if (payer == poolLabel) null else members.firstOrNull { it.name == payer }?.id
                 val chosen = members.map { it.id }.filter { it in sharers }
                 if (!onSave(paidBy, description, amount, chosen, recurring && isFamily)) {
-                    error = "Enter what for, an amount above zero, and at least one person sharing it."
+                    error = expenseError
                 }
-            }) { Text("Save") }
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -711,62 +769,75 @@ private fun MemberDialog(
     var saveToContacts by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val memberError = stringResource(R.string.trip_member_error)
+    val contactFailed = stringResource(R.string.trip_toast_contact_failed)
+    val contactDenied = stringResource(R.string.trip_toast_contact_denied)
 
     // Saves the member, then the phone contact if the user asked for it. Contacts are only
     // written after the trip member is saved, so a failed save never leaves a stray contact.
     fun submit(writeContact: Boolean) {
         if (!onSave(name, phone, address, days, advance, going)) {
-            error = "Enter a unique name. Days must be a whole number and advance must be zero or more."
+            error = memberError
             return
         }
         if (writeContact && !saveToPhoneContacts(context, name.trim(), phone.trim())) {
-            Toast.makeText(context, "Member saved, but could not add to phone contacts.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, contactFailed, Toast.LENGTH_LONG).show()
         }
     }
 
     val contactsPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) {
-            Toast.makeText(context, "Contacts permission not given. Member saved without a phone contact.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, contactDenied, Toast.LENGTH_LONG).show()
         }
         submit(writeContact = granted)
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Add member" else "Edit member") },
+        title = {
+            Text(
+                if (existing == null) stringResource(R.string.trip_add_member_title)
+                else stringResource(R.string.trip_edit_member_title),
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, singleLine = true)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.trip_member_name)) },
+                    singleLine = true,
+                )
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Contact number") },
+                    label = { Text(stringResource(R.string.trip_contact_number)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
-                    label = { Text("Address") },
+                    label = { Text(stringResource(R.string.trip_address)) },
                     maxLines = 3,
                 )
                 OutlinedTextField(
                     value = days,
                     onValueChange = { days = it },
-                    label = { Text("Number of days (optional)") },
+                    label = { Text(stringResource(R.string.trip_days_optional)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = advance,
                     onValueChange = { advance = it },
-                    label = { Text("Advance paid (optional)") },
+                    label = { Text(stringResource(R.string.trip_advance_optional)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = going, onCheckedChange = { going = it })
-                    Text("Going on the trip (shares costs)")
+                    Text(stringResource(R.string.trip_going_label))
                 }
                 if (existing == null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -775,7 +846,7 @@ private fun MemberDialog(
                             onCheckedChange = { saveToContacts = it },
                             enabled = phone.isNotBlank(),
                         )
-                        Text("Also save to my phone contacts")
+                        Text(stringResource(R.string.trip_save_to_contacts))
                     }
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -789,9 +860,9 @@ private fun MemberDialog(
                 } else {
                     submit(writeContact = wantContact)
                 }
-            }) { Text("Save") }
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -805,6 +876,7 @@ private fun NameDialog(
 ) {
     var name by remember { mutableStateOf(initial) }
     var error by remember { mutableStateOf<String?>(null) }
+    val nameError = stringResource(R.string.trip_name_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -816,8 +888,8 @@ private fun NameDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(name)) error = "Enter a name." }) { Text("Save") }
+            TextButton(onClick = { if (!onSave(name)) error = nameError }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

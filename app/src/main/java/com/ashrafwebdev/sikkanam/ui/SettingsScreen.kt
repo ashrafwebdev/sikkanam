@@ -60,6 +60,7 @@ import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.payments.isNotificationAccessGranted
 import com.ashrafwebdev.sikkanam.payments.isPaymentCaptureOn
 import com.ashrafwebdev.sikkanam.payments.setPaymentCaptureOn
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -295,20 +296,24 @@ private fun CategoryTypeSection(
 @Composable
 private fun TextSizeSection() {
     val context = LocalContext.current
-    remember { TextSizeSetting.load(context) }
-    val textSize by TextSizeSetting.size.collectAsState()
+    var textSize by remember { mutableStateOf(TextSizeSetting.read(context)) }
 
     SectionCard {
         SectionHeader(title = "Text size")
         Text(
-            "Changes the size of the text in the app. This adds to your phone's own font size setting.",
+            "Changes the size of the text in the whole app, including menus. This adds to your phone's own font size setting.",
             style = MaterialTheme.typography.bodySmall,
         )
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             TextSize.entries.forEach { option ->
                 FilterChip(
                     selected = textSize == option,
-                    onClick = { TextSizeSetting.set(context, option) },
+                    onClick = {
+                        textSize = option
+                        TextSizeSetting.save(context, option)
+                        // The size is read when the activity starts, so restart it to apply the change.
+                        (context as? Activity)?.recreate()
+                    },
                     label = { Text(option.label) },
                 )
             }

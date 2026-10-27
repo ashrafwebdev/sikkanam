@@ -1,12 +1,15 @@
 package com.ashrafwebdev.sikkanam
 
 import android.Manifest
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.ashrafwebdev.sikkanam.reminders.canNotify
+import com.ashrafwebdev.sikkanam.ui.TextSizeSetting
 import com.ashrafwebdev.sikkanam.update.UpdateStatus
 import com.ashrafwebdev.sikkanam.update.checkForUpdate
 import com.ashrafwebdev.sikkanam.update.isAutoUpdateCheckOn
@@ -31,6 +34,14 @@ private const val NOTIFICATION_PERMISSION_REQUEST = 1001
 
 // FragmentActivity (instead of ComponentActivity) is needed for the biometric prompt.
 class MainActivity : FragmentActivity() {
+    // Applies the chosen text size to the whole activity, so menus and dialogs scale too, not only the content.
+    override fun attachBaseContext(newBase: Context) {
+        val size = TextSizeSetting.read(newBase)
+        val config = Configuration(newBase.resources.configuration)
+        config.fontScale = config.fontScale * size.factor
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     override fun onPause() {
         super.onPause()
         // Refresh the home-screen widget so it shows the latest balance when the user leaves the app.

@@ -1,9 +1,6 @@
 package com.ashrafwebdev.sikkanam.ui
 
 import android.content.Context
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 private const val PREFS = "display"
 private const val KEY_TEXT_SIZE = "text_size"
@@ -16,23 +13,17 @@ enum class TextSize(val label: String, val factor: Float) {
     EXTRA_LARGE("Extra large", 1.3f),
 }
 
-/** The chosen text size. Saved on the device, and applied as soon as it changes. */
+/**
+ * The chosen text size, saved on the device. It is applied when the activity starts (see
+ * MainActivity.attachBaseContext), so it reaches every view, including menus and dialogs.
+ */
 object TextSizeSetting {
-    private val _size = MutableStateFlow(TextSize.NORMAL)
-    val size: StateFlow<TextSize> = _size.asStateFlow()
-    private var loaded = false
-
-    @Synchronized
-    fun load(context: Context) {
-        if (loaded) return
-        loaded = true
+    fun read(context: Context): TextSize {
         val saved = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TEXT_SIZE, null)
-        _size.value = saved?.let { runCatching { TextSize.valueOf(it) }.getOrNull() } ?: TextSize.NORMAL
+        return saved?.let { runCatching { TextSize.valueOf(it) }.getOrNull() } ?: TextSize.NORMAL
     }
 
-    @Synchronized
-    fun set(context: Context, size: TextSize) {
-        _size.value = size
+    fun save(context: Context, size: TextSize) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_TEXT_SIZE, size.name).apply()
     }
 }
