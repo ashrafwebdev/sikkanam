@@ -376,6 +376,7 @@ private fun TransactionDialog(
                     options = categoryOptions(type, categories, allTransactions),
                     selected = category,
                     onSelect = { category = it },
+                    type = type,
                 )
                 OutlinedTextField(
                     value = party,

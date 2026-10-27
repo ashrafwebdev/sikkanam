@@ -159,6 +159,7 @@ private fun BudgetDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 CategorySelector(
                     label = "Category",
+                    type = TransactionType.EXPENSE,
                     options = categories.filter { it.type == TransactionType.EXPENSE }.map { it.name },
                     selected = category,
                     onSelect = { category = it },

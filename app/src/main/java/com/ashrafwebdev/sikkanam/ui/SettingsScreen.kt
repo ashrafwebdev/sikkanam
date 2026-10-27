@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -114,8 +117,22 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             }
         }
 
-        section("Expense categories", categories.filter { it.type == TransactionType.EXPENSE }, vm)
-        section("Income categories", categories.filter { it.type == TransactionType.INCOME }, vm)
+        item {
+            CategoryTypeSection(
+                title = "Expense categories",
+                type = TransactionType.EXPENSE,
+                list = categories.filter { it.type == TransactionType.EXPENSE },
+                vm = vm,
+            )
+        }
+        item {
+            CategoryTypeSection(
+                title = "Income categories",
+                type = TransactionType.INCOME,
+                list = categories.filter { it.type == TransactionType.INCOME },
+                vm = vm,
+            )
+        }
 
         item { SecuritySection() }
         item { ReminderSection() }
@@ -145,6 +162,79 @@ private fun LazyListScope.section(
             Text(category.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             IconButton(onClick = { vm.deleteCategory(category.name, category.type) }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete category")
+            }
+        }
+    }
+}
+
+/**
+ * One category type (expense or income), with a count, a search box, and theme groups that
+ * open and close. Groups start closed, so a long list stays short on screen.
+ */
+@Composable
+private fun CategoryTypeSection(
+    title: String,
+    type: TransactionType,
+    list: List<Category>,
+    vm: FinanceViewModel,
+) {
+    var open by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    var openGroups by remember { mutableStateOf(setOf<String>()) }
+    val names = list.map { it.name }.filter { it.contains(query.trim(), ignoreCase = true) }
+    val groups = groupCategories(names, type)
+
+    SectionCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "$title (${list.size})",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f).clickable { open = !open },
+            )
+            IconButton(onClick = { open = !open }) {
+                Icon(
+                    if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (open) "Collapse" else "Expand",
+                )
+            }
+        }
+        if (open) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Search") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (groups.isEmpty()) {
+                Text("No matches.", style = MaterialTheme.typography.bodySmall)
+            }
+            groups.forEach { (group, groupNames) ->
+                val expanded = group in openGroups || query.isNotBlank()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "$group (${groupNames.size})",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f).clickable {
+                            openGroups = if (group in openGroups) openGroups - group else openGroups + group
+                        },
+                    )
+                }
+                if (expanded) {
+                    groupNames.forEach { name ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(start = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { vm.deleteCategory(name, type) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete category")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
