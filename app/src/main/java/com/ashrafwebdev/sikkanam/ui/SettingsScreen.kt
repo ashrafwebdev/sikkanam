@@ -1,7 +1,13 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,16 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.foundation.clickable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -28,42 +31,40 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ashrafwebdev.sikkanam.data.Category
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.ashrafwebdev.sikkanam.reminders.canNotify
-import com.ashrafwebdev.sikkanam.update.UpdateStatus
-import com.ashrafwebdev.sikkanam.update.checkForUpdate
-import com.ashrafwebdev.sikkanam.update.isAutoUpdateCheckOn
-import com.ashrafwebdev.sikkanam.update.setAutoUpdateCheck
-import com.ashrafwebdev.sikkanam.reminders.setZakatDueDate
-import com.ashrafwebdev.sikkanam.reminders.zakatDueDate
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.ashrafwebdev.sikkanam.BuildConfig
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.payments.isNotificationAccessGranted
 import com.ashrafwebdev.sikkanam.payments.isPaymentCaptureOn
 import com.ashrafwebdev.sikkanam.payments.setPaymentCaptureOn
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
+import com.ashrafwebdev.sikkanam.reminders.canNotify
+import com.ashrafwebdev.sikkanam.reminders.setZakatDueDate
+import com.ashrafwebdev.sikkanam.reminders.zakatDueDate
+import com.ashrafwebdev.sikkanam.update.UpdateStatus
+import com.ashrafwebdev.sikkanam.update.checkForUpdate
+import com.ashrafwebdev.sikkanam.update.isAutoUpdateCheckOn
+import com.ashrafwebdev.sikkanam.update.setAutoUpdateCheck
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -71,32 +72,37 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     var newName by remember { mutableStateOf("") }
     var newType by remember { mutableStateOf(TransactionType.EXPENSE) }
     var error by remember { mutableStateOf<String?>(null) }
+    val categoryError = stringResource(R.string.settings_category_error)
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            SectionHeader(title = "Categories")
+            SectionHeader(title = stringResource(R.string.settings_categories_title))
             Text(
-                "The master list used in transactions and budgets. Deleting a category keeps existing entries.",
+                stringResource(R.string.settings_categories_desc),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
 
         item {
             SectionCard {
-                Text("Add a category", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(R.string.settings_add_category_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = newType == TransactionType.EXPENSE,
                         onClick = { newType = TransactionType.EXPENSE },
-                        label = { Text("Expense") },
+                        label = { Text(stringResource(R.string.type_expense)) },
                     )
                     FilterChip(
                         selected = newType == TransactionType.INCOME,
                         onClick = { newType = TransactionType.INCOME },
-                        label = { Text("Income") },
+                        label = { Text(stringResource(R.string.type_income)) },
                     )
                 }
                 OutlinedTextField(
@@ -105,7 +111,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                         newName = it
                         error = null
                     },
-                    label = { Text("Category name") },
+                    label = { Text(stringResource(R.string.settings_category_name)) },
                     singleLine = true,
                     isError = error != null,
                     modifier = Modifier.fillMaxWidth(),
@@ -117,20 +123,20 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                             newName = ""
                             error = null
                         } else {
-                            error = "Enter a name up to 30 characters that isn't already in this list."
+                            error = categoryError
                         }
                     },
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Add")
+                    Text(stringResource(R.string.action_add))
                 }
             }
         }
 
         item {
             CategoryTypeSection(
-                title = "Expense categories",
+                title = stringResource(R.string.settings_expense_categories),
                 type = TransactionType.EXPENSE,
                 list = categories.filter { it.type == TransactionType.EXPENSE },
                 vm = vm,
@@ -138,7 +144,7 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
         item {
             CategoryTypeSection(
-                title = "Income categories",
+                title = stringResource(R.string.settings_income_categories),
                 type = TransactionType.INCOME,
                 list = categories.filter { it.type == TransactionType.INCOME },
                 vm = vm,
@@ -152,33 +158,9 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         if (BuildConfig.SELF_UPDATE) item { UpdateSection() }
         item { BackupSection(vm) }
         item { FeedbackSection() }
+        if (BuildConfig.SUPPORT_CARD) item { SupportSection() }
         item { AboutSection() }
         item { Spacer(Modifier.height(16.dp)) }
-    }
-}
-
-private fun LazyListScope.section(
-    title: String,
-    list: List<Category>,
-    vm: FinanceViewModel,
-) {
-    item {
-        SectionHeader(title = title)
-    }
-    if (list.isEmpty()) {
-        item { EmptyState("None yet.") }
-    }
-    // Compact rows: a long category list stays short on screen.
-    items(list, key = { "${it.type}-${it.name}" }) { category ->
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 2.dp, bottom = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(category.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            IconButton(onClick = { vm.deleteCategory(category.name, category.type) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete category")
-            }
-        }
     }
 }
 
@@ -190,7 +172,7 @@ private fun LazyListScope.section(
 private fun CategoryTypeSection(
     title: String,
     type: TransactionType,
-    list: List<Category>,
+    list: List<com.ashrafwebdev.sikkanam.data.Category>,
     vm: FinanceViewModel,
 ) {
     var open by remember { mutableStateOf(false) }
@@ -199,23 +181,24 @@ private fun CategoryTypeSection(
     var renaming by remember { mutableStateOf<String?>(null) }
     val names = list.map { it.name }.filter { it.contains(query.trim(), ignoreCase = true) }
     val groups = groupCategories(names, type)
+    val renameError = stringResource(R.string.settings_rename_error)
 
     renaming?.let { oldName ->
         var newName by remember(oldName) { mutableStateOf(oldName) }
         var error by remember(oldName) { mutableStateOf<String?>(null) }
         AlertDialog(
             onDismissRequest = { renaming = null },
-            title = { Text("Rename category") },
+            title = { Text(stringResource(R.string.settings_rename_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text("New name") },
+                        label = { Text(stringResource(R.string.settings_new_name)) },
                         singleLine = true,
                     )
                     Text(
-                        "Existing entries and budgets with this category are updated too.",
+                        stringResource(R.string.settings_rename_info),
                         style = MaterialTheme.typography.bodySmall,
                     )
                     error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -226,11 +209,11 @@ private fun CategoryTypeSection(
                     if (vm.renameCategory(oldName, newName, type)) {
                         renaming = null
                     } else {
-                        error = "Enter a unique name up to 30 characters."
+                        error = renameError
                     }
-                }) { Text("Save") }
+                }) { Text(stringResource(R.string.action_save)) }
             },
-            dismissButton = { TextButton(onClick = { renaming = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
@@ -245,7 +228,7 @@ private fun CategoryTypeSection(
             IconButton(onClick = { open = !open }) {
                 Icon(
                     if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (open) "Collapse" else "Expand",
+                    contentDescription = if (open) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand),
                 )
             }
         }
@@ -253,12 +236,12 @@ private fun CategoryTypeSection(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("Search") },
+                label = { Text(stringResource(R.string.settings_search)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             if (groups.isEmpty()) {
-                Text("No matches.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_no_matches), style = MaterialTheme.typography.bodySmall)
             }
             groups.forEach { (group, groupNames) ->
                 val expanded = group in openGroups || query.isNotBlank()
@@ -280,10 +263,10 @@ private fun CategoryTypeSection(
                         ) {
                             Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             IconButton(onClick = { renaming = name }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Rename category")
+                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.settings_rename_title))
                             }
                             IconButton(onClick = { vm.deleteCategory(name, type) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete category")
+                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.settings_delete_category))
                             }
                         }
                     }
@@ -300,9 +283,9 @@ private fun TextSizeSection() {
     var textSize by remember { mutableStateOf(TextSizeSetting.read(context)) }
 
     SectionCard {
-        SectionHeader(title = "Text size")
+        SectionHeader(title = stringResource(R.string.settings_text_size_title))
         Text(
-            "Changes the size of the text in the whole app, including menus. This adds to your phone's own font size setting.",
+            stringResource(R.string.settings_text_size_desc),
             style = MaterialTheme.typography.bodySmall,
         )
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -329,13 +312,13 @@ private fun SecuritySection() {
     val available = canUseLock(context)
 
     SectionCard {
-        SectionHeader(title = "Security")
+        SectionHeader(title = stringResource(R.string.settings_security_title))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Lock app", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_lock_app), style = MaterialTheme.typography.bodyLarge)
                 Text(
-                    if (available) "Ask for your fingerprint or screen lock when opening the app."
-                    else "Set up a fingerprint or screen lock on this phone to use this.",
+                    if (available) stringResource(R.string.settings_lock_on)
+                    else stringResource(R.string.settings_lock_unavailable),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -351,17 +334,40 @@ private fun SecuritySection() {
     }
 }
 
+/**
+ * Asks users to support development, with the UPI code. Shown in the GitHub build only. The QR image
+ * lives in the GitHub build's resources, so it is looked up by name and skipped if it is missing.
+ */
+@Composable
+private fun SupportSection() {
+    val context = LocalContext.current
+    val qrId = context.resources.getIdentifier("upi_qr", "drawable", context.packageName)
+    SectionCard {
+        SectionHeader(title = stringResource(R.string.support_title))
+        Text(stringResource(R.string.support_message_en), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.support_message_ta), style = MaterialTheme.typography.bodySmall)
+        if (qrId != 0) {
+            Image(
+                painter = painterResource(qrId),
+                contentDescription = stringResource(R.string.support_qr_desc),
+                modifier = Modifier.fillMaxWidth().height(260.dp),
+            )
+        }
+        Text(stringResource(R.string.support_upi_id), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+    }
+}
+
 /** Who made the app, and where to find them. */
 @Composable
 private fun AboutSection() {
     val context = LocalContext.current
     SectionCard {
-        SectionHeader(title = "About")
-        Text("Sikkanam is developed by Mohammed Ashraf.", style = MaterialTheme.typography.bodyMedium)
-        Text("Free and open source under GPL-3.0.", style = MaterialTheme.typography.bodySmall)
+        SectionHeader(title = stringResource(R.string.settings_about_title))
+        Text(stringResource(R.string.settings_developed_by), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.settings_license), style = MaterialTheme.typography.bodySmall)
         OutlinedButton(onClick = {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://smatechsolution.com")))
-        }) { Text("Visit smatechsolution.com") }
+        }) { Text(stringResource(R.string.settings_visit_site)) }
     }
 }
 
@@ -376,20 +382,19 @@ private fun PaymentSection() {
     var access by remember { mutableStateOf(isNotificationAccessGranted(context)) }
 
     SectionCard {
-        SectionHeader(title = "Payment alerts (optional)")
+        SectionHeader(title = stringResource(R.string.settings_payment_title))
         Text(
-            "Finds payments from Google Pay and PhonePe notifications and lets you add them with one tap. " +
-                "Nothing is sent off the phone. Leave this off if you prefer to add entries yourself.",
+            stringResource(R.string.settings_payment_desc),
             style = MaterialTheme.typography.bodySmall,
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Find payments in notifications", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_payment_toggle), style = MaterialTheme.typography.bodyLarge)
                 Text(
                     when {
-                        !on -> "Off"
-                        access -> "On. Access is allowed."
-                        else -> "On, but notification access is not allowed yet."
+                        !on -> stringResource(R.string.settings_payment_off)
+                        access -> stringResource(R.string.settings_payment_access_on)
+                        else -> stringResource(R.string.settings_payment_access_off)
                     },
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -407,10 +412,10 @@ private fun PaymentSection() {
         }
         OutlinedButton(onClick = {
             access = isNotificationAccessGranted(context)
-        }) { Text("Check access") }
+        }) { Text(stringResource(R.string.settings_check_access)) }
         OutlinedButton(onClick = {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        }) { Text("Open notification access") }
+        }) { Text(stringResource(R.string.settings_open_access)) }
     }
 }
 
@@ -422,13 +427,14 @@ private fun UpdateSection() {
     var autoCheck by remember { mutableStateOf(isAutoUpdateCheckOn(context)) }
     val update by UpdateStatus.available.collectAsState()
     var message by remember { mutableStateOf<String?>(null) }
+    val latestText = stringResource(R.string.settings_latest_build)
 
     SectionCard {
-        SectionHeader(title = "Updates")
+        SectionHeader(title = stringResource(R.string.settings_updates_title))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Check for updates automatically", style = MaterialTheme.typography.bodyLarge)
-                Text("Uses the internet only to look for a newer build when the app opens.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_auto_update), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_auto_update_desc), style = MaterialTheme.typography.bodySmall)
             }
             Switch(
                 checked = autoCheck,
@@ -443,14 +449,14 @@ private fun UpdateSection() {
                 scope.launch {
                     val found = checkForUpdate(context)
                     UpdateStatus.set(found)
-                    message = if (found != null) "Build ${found.versionCode} is available. Use the Install button at the top."
-                    else "You have the latest build, or the check could not reach GitHub."
+                    message = if (found != null) context.getString(R.string.settings_update_found, found.versionCode)
+                    else latestText
                 }
-            }) { Text("Check now") }
+            }) { Text(stringResource(R.string.settings_check_now)) }
         }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         if (update != null) {
-            Text("An update is available. Use the Install button at the top.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.settings_update_available), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -464,11 +470,15 @@ private fun ReminderSection() {
         mutableStateOf(if (saved == 0L) "" else SimpleDateFormat("dd/MM/yyyy", Locale.US).format(Date(saved)))
     }
     var message by remember { mutableStateOf<String?>(null) }
+    val dateError = stringResource(R.string.settings_date_error)
+    val savedReminder = stringResource(R.string.settings_saved_reminder)
+    val savedNoNotify = stringResource(R.string.settings_saved_no_notify)
+    val removed = stringResource(R.string.settings_zakat_removed)
 
     SectionCard {
-        SectionHeader(title = "Reminders")
+        SectionHeader(title = stringResource(R.string.settings_reminders_title))
         Text(
-            "Bills are reminded the day before their due day. Set your zakat date to be reminded too.",
+            stringResource(R.string.settings_reminders_desc),
             style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(
@@ -477,7 +487,7 @@ private fun ReminderSection() {
                 text = it
                 message = null
             },
-            label = { Text("Zakat due date (dd/mm/yyyy)") },
+            label = { Text(stringResource(R.string.settings_zakat_date)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -489,19 +499,19 @@ private fun ReminderSection() {
                     null
                 }
                 if (parsed == null) {
-                    message = "Enter a date like 25/03/2027."
+                    message = dateError
                 } else {
                     // The parser reads a date only, so its time is already midnight local time.
                     setZakatDueDate(context, parsed.time)
-                    message = if (canNotify(context)) "Saved. You'll be reminded the day before." else "Saved, but notifications are off."
+                    message = if (canNotify(context)) savedReminder else savedNoNotify
                 }
-            }) { Text("Save") }
+            }) { Text(stringResource(R.string.action_save)) }
             if (saved != 0L) {
                 OutlinedButton(onClick = {
                     setZakatDueDate(context, 0L)
                     text = ""
-                    message = "Zakat reminder removed."
-                }) { Text("Clear") }
+                    message = removed
+                }) { Text(stringResource(R.string.settings_clear)) }
             }
         }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
@@ -512,37 +522,35 @@ private fun ReminderSection() {
 private fun BackupSection(vm: FinanceViewModel) {
     val context = LocalContext.current
     var status by remember { mutableStateOf<String?>(null) }
+    val savedText = stringResource(R.string.settings_backup_saved)
+    val startedText = stringResource(R.string.settings_restore_started)
+    val invalidText = stringResource(R.string.settings_restore_invalid)
 
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(vm.backupText()) }
-            status = "Backup saved."
+            status = savedText
         }
     }
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-            status = if (text != null && vm.restoreBackup(text)) {
-                "Restore started. Your data is replaced with the backup."
-            } else {
-                "That file is not a Sikkanam backup."
-            }
+            status = if (text != null && vm.restoreBackup(text)) startedText else invalidText
         }
     }
 
     SectionCard {
-        SectionHeader(title = "Backup and restore")
+        SectionHeader(title = stringResource(R.string.settings_backup_title))
         Text(
-            "A backup holds all transactions, budgets, payments, goals, and categories. " +
-                "Restoring replaces the data on this phone.",
+            stringResource(R.string.settings_backup_desc),
             style = MaterialTheme.typography.bodySmall,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilledTonalButton(onClick = { saveLauncher.launch("sikkanam-backup.json") }) {
-                Text("Save backup")
+                Text(stringResource(R.string.settings_save_backup))
             }
             OutlinedButton(onClick = { restoreLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) }) {
-                Text("Restore")
+                Text(stringResource(R.string.settings_restore))
             }
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }

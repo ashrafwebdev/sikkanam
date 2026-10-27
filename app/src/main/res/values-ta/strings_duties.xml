@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Duties -->
+    <string name="duty_title">பொறுப்புகள் (கித்மத்)</string>
+    <string name="duty_people">குழுவில் உள்ளவர்கள்</string>
+    <string name="duty_remove_person">நபரை நீக்கு</string>
+    <string name="duty_name">பெயர்</string>
+    <string name="duty_list_title">பொறுப்புகள்</string>
+    <string name="duty_new">புதிய பொறுப்பு</string>
+    <string name="duty_name_error">60 எழுத்துகளுக்குள் ஒரு புதிய பெயரை உள்ளிடுங்கள்.</string>
+    <string name="duty_add_people_first">முதலில் குழுவில் உள்ளவர்களைச் சேர்க்கவும்.</string>
+    <string name="duty_today">இன்றைய பொறுப்புகள்</string>
+    <string name="duty_decide">மஷ்வராவில் ஒவ்வொரு பொறுப்பையும் யார் ஏற்பார்கள் என்று முடிவு செய்யுங்கள்; முடிந்ததும் டிக் செய்யுங்கள்.</string>
+    <string name="duty_rename_desc">பொறுப்பின் பெயரை மாற்று</string>
+    <string name="duty_remove_desc">பொறுப்பை நீக்கு</string>
+    <string name="duty_so_far">இதுவரை</string>
+    <string name="duty_count">%1$s: %3$d இல் %2$d பொறுப்புகள்</string>
+    <string name="duty_not_yet">. இன்னும் இல்லை: %1$s</string>
+    <string name="duty_rename_title">பொறுப்பின் பெயரை மாற்று</string>
+    <string name="duty_name_label">பொறுப்பின் பெயர்</string>
+    <string name="duty_rename_info">இந்தப் பொறுப்பின் பழைய பதிவுகளும் புதிய பெயருக்கு மாற்றப்படும்.</string>
+    <string name="duty_rename_error">60 எழுத்துகளுக்குள் தனிப்பட்ட பெயரை உள்ளிடுங்கள்.</string>
+
+    <!-- Daily meetings -->
+    <string name="meeting_title">தினசரி கூட்டங்கள்</string>
+    <string name="meeting_empty">இன்னும் கூட்டங்கள் பதிவு செய்யப்படவில்லை.</string>
+    <string name="meeting_edit_desc">கூட்டத்தைத் திருத்து</string>
+    <string name="meeting_delete_desc">கூட்டத்தை நீக்கு</string>
+    <string name="meeting_latest">%1$d இல் கடைசி 5 கூட்டங்கள் காட்டப்படுகின்றன.</string>
+    <string name="meeting_add_title">தினசரி கூட்டம் சேர்</string>
+    <string name="meeting_edit_title">தினசரி கூட்டத்தைத் திருத்து</string>
+    <string name="meeting_topic">தலைப்பு</string>
+    <string name="meeting_attendees">கலந்துகொண்டவர்கள் (பெயர்கள், காற்புள்ளியால் பிரிக்கவும்)</string>
+    <string name="meeting_notes">குறிப்புகளும் முடிவுகளும்</string>
+    <string name="meeting_topic_error">தலைப்பை உள்ளிடுங்கள்.</string>
+</resources>

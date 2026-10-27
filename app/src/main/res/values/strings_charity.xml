@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Charity -->
+    <string name="charity_purification_due">Purification due</string>
+    <string name="charity_haram_summary">Haram income %1$s · purified %2$s</string>
+    <string name="charity_doubtful">Doubtful income to review: %1$s</string>
+    <string name="charity_sadaqah_given">Sadaqah given</string>
+    <string name="charity_purification_paid">Purification paid</string>
+    <string name="charity_payments">Payments</string>
+    <string name="charity_record">Record</string>
+    <string name="charity_empty">No payments yet. Record sadaqah or purification here.</string>
+    <string name="charity_sadaqah">Sadaqah</string>
+    <string name="charity_purification">Purification</string>
+    <string name="charity_edit_desc">Edit payment</string>
+    <string name="charity_delete_desc">Delete payment</string>
+    <string name="charity_record_title">Record payment</string>
+    <string name="charity_edit_title">Edit payment</string>
+</resources>

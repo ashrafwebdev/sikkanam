@@ -20,9 +20,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.zakat.ZakatCalculator
 import com.ashrafwebdev.sikkanam.zakat.ZakatInput
 
@@ -65,7 +67,7 @@ fun ZakatScreen(modifier: Modifier = Modifier) {
             else MaterialTheme.colorScheme.surfaceVariant,
         ) {
             Text(
-                if (result.isDue) "Zakat due" else "No zakat due",
+                if (result.isDue) stringResource(R.string.zakat_due) else stringResource(R.string.zakat_none),
                 style = MaterialTheme.typography.labelLarge,
             )
             Text(
@@ -74,38 +76,45 @@ fun ZakatScreen(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                "Net wealth ${formatMoney(toCents(result.wealth))} · nisab ${formatMoney(toCents(result.nisab))}",
+                stringResource(R.string.zakat_net, formatMoney(toCents(result.wealth)), formatMoney(toCents(result.nisab))),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
 
         SectionCard {
-            SectionHeader(title = "Nisab threshold")
+            SectionHeader(title = stringResource(R.string.zakat_nisab_title))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = useSilver, onClick = { useSilver = true }, label = { Text("Silver (595 g)") })
-                FilterChip(selected = !useSilver, onClick = { useSilver = false }, label = { Text("Gold (85 g)") })
+                FilterChip(
+                    selected = useSilver,
+                    onClick = { useSilver = true },
+                    label = { Text(stringResource(R.string.zakat_silver)) },
+                )
+                FilterChip(
+                    selected = !useSilver,
+                    onClick = { useSilver = false },
+                    label = { Text(stringResource(R.string.zakat_gold)) },
+                )
             }
         }
 
         SectionCard {
-            SectionHeader(title = "Assets")
-            MoneyField("Cash and bank balance", cash) { cash = it }
-            MoneyField("Gold (grams)", goldGrams) { goldGrams = it }
-            MoneyField("Gold price per gram", goldPrice) { goldPrice = it }
-            MoneyField("Silver (grams)", silverGrams) { silverGrams = it }
-            MoneyField("Silver price per gram", silverPrice) { silverPrice = it }
-            MoneyField("Trade goods (stock for sale)", tradeGoods) { tradeGoods = it }
-            MoneyField("Money owed to you", owed) { owed = it }
+            SectionHeader(title = stringResource(R.string.zakat_assets_title))
+            MoneyField(stringResource(R.string.zakat_cash), cash) { cash = it }
+            MoneyField(stringResource(R.string.zakat_gold_grams), goldGrams) { goldGrams = it }
+            MoneyField(stringResource(R.string.zakat_gold_price), goldPrice) { goldPrice = it }
+            MoneyField(stringResource(R.string.zakat_silver_grams), silverGrams) { silverGrams = it }
+            MoneyField(stringResource(R.string.zakat_silver_price), silverPrice) { silverPrice = it }
+            MoneyField(stringResource(R.string.zakat_trade), tradeGoods) { tradeGoods = it }
+            MoneyField(stringResource(R.string.zakat_owed), owed) { owed = it }
         }
 
         SectionCard {
-            SectionHeader(title = "Debts")
-            MoneyField("Debts due now", debts) { debts = it }
+            SectionHeader(title = stringResource(R.string.zakat_debts_title))
+            MoneyField(stringResource(R.string.zakat_debts_now), debts) { debts = it }
         }
 
         Text(
-            "Zakat is 2.5% of wealth above the nisab, held for one lunar year. " +
-                "The app doesn't check the lunar year for you. Check your situation with a scholar.",
+            stringResource(R.string.zakat_note),
             style = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(16.dp))

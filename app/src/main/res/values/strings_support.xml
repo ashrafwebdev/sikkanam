@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Support the developer (GitHub build only) -->
+    <string name="support_title">Support Sikkanam</string>
+    <string name="support_message_en">Sikkanam is free, with no ads and no account, and it will stay that way. If it has helped you or your family manage money, please consider supporting its development with a small contribution. Scan the UPI code below, and any amount is appreciated. Jazakallahu khairan.</string>
+    <string name="support_message_ta">சிக்கனம் இலவசம்; விளம்பரங்களும் கணக்கும் இல்லை, எப்போதும் இப்படியே இருக்கும். இது உங்களுக்கோ உங்கள் குடும்பத்துக்கோ பயனளித்திருந்தால், வளர்ச்சிக்கு ஒரு சிறிய உதவி செய்யுங்கள். கீழே உள்ள UPI குறியீட்டை ஸ்கேன் செய்யுங்கள்; எந்தத் தொகையும் வரவேற்கப்படும். ஜஸாக்கல்லாஹு க்ஹைரன்.</string>
+    <string name="support_upi_id">UPI ID: ashrafbaarab@okhdfcbank</string>
+    <string name="support_qr_desc">UPI payment code</string>
+</resources>

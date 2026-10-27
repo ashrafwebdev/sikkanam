@@ -22,9 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.learn.LearnCategory
 import com.ashrafwebdev.sikkanam.learn.LearnContent
 import com.ashrafwebdev.sikkanam.learn.LearnItem
@@ -53,10 +55,9 @@ fun LearnSection() {
     val surahsLearned = surahs.items.count { it.id in learned }
 
     SectionCard {
-        SectionHeader(title = "Learn for the trip")
+        SectionHeader(title = stringResource(R.string.learn_title))
         Text(
-            "Surahs learned: $surahsLearned of ${surahs.items.size}. " +
-                "Check the content with a teacher before teaching it.",
+            stringResource(R.string.learn_progress, surahsLearned, surahs.items.size),
             style = MaterialTheme.typography.bodySmall,
         )
     }
@@ -78,11 +79,14 @@ private fun LearnCategoryCard(category: LearnCategory, learned: Set<String>, onT
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.weight(1f).clickable { open = !open }) {
                 Text(category.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("$done of ${category.items.size} learned", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    stringResource(R.string.learn_done, done, category.items.size),
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
             Icon(
                 if (open) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (open) "Collapse" else "Expand",
+                contentDescription = if (open) stringResource(R.string.learn_collapse) else stringResource(R.string.learn_expand),
                 modifier = Modifier.clickable { open = !open },
             )
         }
@@ -116,14 +120,14 @@ private fun LearnItemRow(item: LearnItem, isLearned: Boolean, onLearned: (Boolea
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("Tamil: ${item.tamilTransliteration}", style = MaterialTheme.typography.bodyMedium)
-                Text("English: ${item.englishTransliteration}", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.learn_tamil_label, item.tamilTransliteration), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.learn_english_label, item.englishTransliteration), style = MaterialTheme.typography.bodyMedium)
             }
             if (item.meaningTamil.isNotBlank()) {
-                Text("Meaning (Tamil): ${item.meaningTamil}", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.learn_meaning_tamil, item.meaningTamil), style = MaterialTheme.typography.bodySmall)
             }
             if (item.meaningEnglish.isNotBlank()) {
-                Text("Meaning (English): ${item.meaningEnglish}", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.learn_meaning_english, item.meaningEnglish), style = MaterialTheme.typography.bodySmall)
             }
         }
     }

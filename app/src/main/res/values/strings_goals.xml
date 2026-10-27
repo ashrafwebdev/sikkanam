@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Savings goals -->
+    <string name="goal_title">Savings goals</string>
+    <string name="goal_add">Add goal</string>
+    <string name="goal_empty">No goals yet. Add a target to track money you\'re setting aside.</string>
+    <string name="goal_edit_desc">Edit goal</string>
+    <string name="goal_delete_desc">Delete goal</string>
+    <string name="goal_saved_of">%1$s of %2$s</string>
+    <string name="goal_add_money">Add money</string>
+    <string name="goal_hide_history">Hide history</string>
+    <string name="goal_history">History (%1$d)</string>
+    <string name="goal_no_history">No amounts added yet.</string>
+    <string name="goal_edit_amount_desc">Edit amount</string>
+    <string name="goal_delete_amount_desc">Delete amount</string>
+    <string name="goal_new_title">New savings goal</string>
+    <string name="goal_name_hint">Goal, for example House deposit</string>
+    <string name="goal_target">Target amount</string>
+    <string name="goal_name_error">Enter a name and a target above zero.</string>
+    <string name="goal_edit_title">Edit savings goal</string>
+    <string name="goal_name_label">Goal</string>
+    <string name="goal_add_money_title">Add money to %1$s</string>
+    <string name="goal_correct_title">Correct this amount</string>
+    <string name="goal_note_optional">Note (optional)</string>
+    <string name="goal_amount_error">Enter an amount above zero.</string>
+    <string name="goal_added_sign">+ %1$s</string>
+</resources>

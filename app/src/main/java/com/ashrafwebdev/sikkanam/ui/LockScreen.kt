@@ -1,5 +1,8 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.compose.ui.res.stringResource
+import com.ashrafwebdev.sikkanam.R
+
 import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -50,13 +53,13 @@ fun LockScreen(onUnlock: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Sikkanam is locked", style = MaterialTheme.typography.titleLarge)
-        Text("Use your fingerprint or screen lock to continue.", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.lock_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.lock_hint), style = MaterialTheme.typography.bodyMedium)
         Button(
             onClick = { authenticate(activity, onUnlock) },
             modifier = Modifier.padding(top = 16.dp),
         ) {
-            Text("Unlock")
+            Text(stringResource(R.string.lock_unlock))
         }
     }
 }
@@ -72,7 +75,7 @@ private fun authenticate(activity: FragmentActivity, onSuccess: () -> Unit) {
         },
     )
     val info = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Unlock Sikkanam")
+        .setTitle(activity.getString(R.string.lock_prompt_title))
         .setAllowedAuthenticators(
             BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )

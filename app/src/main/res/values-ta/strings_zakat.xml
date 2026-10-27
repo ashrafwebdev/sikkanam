@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Zakat -->
+    <string name="zakat_due">செலுத்த வேண்டிய ஜகாத்</string>
+    <string name="zakat_none">ஜகாத் செலுத்த வேண்டியதில்லை</string>
+    <string name="zakat_net">நிகர செல்வம் %1$s · நிஸாப் %2$s</string>
+    <string name="zakat_nisab_title">நிஸாப் வரம்பு</string>
+    <string name="zakat_silver">வெள்ளி (595 கி)</string>
+    <string name="zakat_gold">தங்கம் (85 கி)</string>
+    <string name="zakat_assets_title">சொத்துகள்</string>
+    <string name="zakat_cash">ரொக்கம் மற்றும் வங்கி இருப்பு</string>
+    <string name="zakat_gold_grams">தங்கம் (கிராம்)</string>
+    <string name="zakat_gold_price">ஒரு கிராம் தங்க விலை</string>
+    <string name="zakat_silver_grams">வெள்ளி (கிராம்)</string>
+    <string name="zakat_silver_price">ஒரு கிராம் வெள்ளி விலை</string>
+    <string name="zakat_trade">வணிகப் பொருட்கள் (விற்பனைக்கான இருப்பு)</string>
+    <string name="zakat_owed">உங்களுக்குத் தர வேண்டியவை</string>
+    <string name="zakat_debts_title">கடன்கள்</string>
+    <string name="zakat_debts_now">இப்போது செலுத்த வேண்டிய கடன்கள்</string>
+    <string name="zakat_note">ஜகாத் என்பது நிஸாப்புக்கு மேல் உள்ள செல்வத்தில் 2.5%; ஒரு சந்திர ஆண்டு வைத்திருக்க வேண்டும். சந்திர ஆண்டை செயலி சரிபார்க்காது. உங்கள் நிலையை ஓர் ஆலிமிடம் சரிபாருங்கள்.</string>
+</resources>

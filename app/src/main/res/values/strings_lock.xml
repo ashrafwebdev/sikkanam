@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lock screen -->
+    <string name="lock_title">Sikkanam is locked</string>
+    <string name="lock_hint">Use your fingerprint or screen lock to continue.</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_prompt_title">Unlock Sikkanam</string>
+</resources>

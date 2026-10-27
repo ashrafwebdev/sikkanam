@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Savings goals -->
+    <string name="goal_title">சேமிப்பு இலக்குகள்</string>
+    <string name="goal_add">இலக்கைச் சேர்</string>
+    <string name="goal_empty">இன்னும் இலக்குகள் இல்லை. ஒதுக்கி வைக்கும் பணத்தைக் கண்காணிக்க ஓர் இலக்கை உள்ளிடுங்கள்.</string>
+    <string name="goal_edit_desc">இலக்கைத் திருத்து</string>
+    <string name="goal_delete_desc">இலக்கை நீக்கு</string>
+    <string name="goal_saved_of">%2$s இல் %1$s</string>
+    <string name="goal_add_money">பணம் சேர்</string>
+    <string name="goal_hide_history">வரலாற்றை மறை</string>
+    <string name="goal_history">வரலாறு (%1$d)</string>
+    <string name="goal_no_history">இன்னும் தொகைகள் சேர்க்கப்படவில்லை.</string>
+    <string name="goal_edit_amount_desc">தொகையைத் திருத்து</string>
+    <string name="goal_delete_amount_desc">தொகையை நீக்கு</string>
+    <string name="goal_new_title">புதிய சேமிப்பு இலக்கு</string>
+    <string name="goal_name_hint">இலக்கு, எ.கா. வீட்டுக் கடன் முன்பணம்</string>
+    <string name="goal_target">இலக்குத் தொகை</string>
+    <string name="goal_name_error">பெயரையும், பூஜ்யத்துக்கு மேல் இலக்குத் தொகையையும் உள்ளிடுங்கள்.</string>
+    <string name="goal_edit_title">சேமிப்பு இலக்கைத் திருத்து</string>
+    <string name="goal_name_label">இலக்கு</string>
+    <string name="goal_add_money_title">%1$s க்கு பணம் சேர்</string>
+    <string name="goal_correct_title">இந்தத் தொகையைத் திருத்து</string>
+    <string name="goal_note_optional">குறிப்பு (விருப்பம்)</string>
+    <string name="goal_amount_error">பூஜ்யத்துக்கு மேல் தொகையை உள்ளிடுங்கள்.</string>
+    <string name="goal_added_sign">+ %1$s</string>
+</resources>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Settings -->
+    <string name="settings_categories_title">வகைகள்</string>
+    <string name="settings_categories_desc">பரிவர்த்தனைகளிலும் வரவுசெலவுத் திட்டங்களிலும் பயன்படும் முதன்மைப் பட்டியல். வகையை நீக்கினாலும் ஏற்கனவே உள்ள பதிவுகள் இருக்கும்.</string>
+    <string name="settings_add_category_title">புதிய வகை சேர்</string>
+    <string name="settings_category_name">வகையின் பெயர்</string>
+    <string name="settings_category_error">30 எழுத்துகளுக்குள் ஒரு பெயரை உள்ளிடுங்கள்; இது ஏற்கனவே பட்டியலில் இருக்கக்கூடாது.</string>
+    <string name="settings_expense_categories">செலவு வகைகள்</string>
+    <string name="settings_income_categories">வரவு வகைகள்</string>
+    <string name="settings_rename_title">வகையின் பெயரை மாற்று</string>
+    <string name="settings_rename_info">இந்த வகையைப் பயன்படுத்தும் பதிவுகளும் வரவுசெலவுத் திட்டங்களும் புதுப்பிக்கப்படும்.</string>
+    <string name="settings_new_name">புதிய பெயர்</string>
+    <string name="settings_rename_error">30 எழுத்துகளுக்குள் தனிப்பட்ட பெயரை உள்ளிடுங்கள்.</string>
+    <string name="settings_search">தேடு</string>
+    <string name="settings_no_matches">பொருந்தும் எதுவும் இல்லை.</string>
+    <string name="settings_collapse">மூடு</string>
+    <string name="settings_expand">திற</string>
+    <string name="settings_delete_category">வகையை நீக்கு</string>
+    <string name="settings_none_yet">இன்னும் எதுவும் இல்லை.</string>
+    <string name="settings_text_size_title">எழுத்தின் அளவு</string>
+    <string name="settings_text_size_desc">முழு செயலியிலும் உள்ள எழுத்தின் அளவை மாற்றும், பட்டிகளும் சேர்த்து. இது உங்கள் தொலைபேசியின் எழுத்து அளவு அமைப்புடன் சேரும்.</string>
+    <string name="settings_security_title">பாதுகாப்பு</string>
+    <string name="settings_lock_app">செயலியைப் பூட்டு</string>
+    <string name="settings_lock_on">செயலியைத் திறக்கும்போது கைரேகை அல்லது திரைப் பூட்டைக் கேள்.</string>
+    <string name="settings_lock_unavailable">இதைப் பயன்படுத்த, இந்தத் தொலைபேசியில் கைரேகை அல்லது திரைப் பூட்டை அமையுங்கள்.</string>
+    <string name="settings_about_title">பற்றி</string>
+    <string name="settings_developed_by">சிக்கனம் செயலியை முகம்மது அஷ்ரஃப் உருவாக்கியுள்ளார்.</string>
+    <string name="settings_license">GPL-3.0 கீழ் இலவசமாகவும் திறந்த மூலமாகவும் உள்ளது.</string>
+    <string name="settings_visit_site">smatechsolution.com ஐப் பார்</string>
+    <string name="settings_payment_title">பணம் செலுத்தல் எச்சரிக்கைகள் (விருப்பம்)</string>
+    <string name="settings_payment_desc">கூகிள் பே மற்றும் ஃபோன்பே அறிவிப்புகளிலிருந்து பணம் செலுத்தல்களைக் கண்டறிந்து ஒரே தட்டில் சேர்க்க உதவும். எதுவும் தொலைபேசியிலிருந்து அனுப்பப்படாது. நீங்களே பதிவுகளைச் சேர்க்க விரும்பினால் இதை அணைத்து வையுங்கள்.</string>
+    <string name="settings_payment_toggle">அறிவிப்புகளில் பணம் செலுத்தல்களைக் கண்டறி</string>
+    <string name="settings_payment_off">அணைக்கப்பட்டது</string>
+    <string name="settings_payment_access_on">இயக்கத்தில் உள்ளது. அனுமதி வழங்கப்பட்டுள்ளது.</string>
+    <string name="settings_payment_access_off">இயக்கத்தில் உள்ளது, ஆனால் அறிவிப்பு அனுமதி இன்னும் வழங்கப்படவில்லை.</string>
+    <string name="settings_check_access">அனுமதியைச் சரிபார்</string>
+    <string name="settings_open_access">அறிவிப்பு அனுமதியைத் திற</string>
+    <string name="settings_updates_title">புதுப்பிப்புகள்</string>
+    <string name="settings_auto_update">புதுப்பிப்புகளைத் தானாகச் சரிபார்</string>
+    <string name="settings_auto_update_desc">செயலி திறக்கும்போது புதிய பதிப்பைத் தேட மட்டும் இணையம் பயன்படுத்தப்படும்.</string>
+    <string name="settings_check_now">இப்போது சரிபார்</string>
+    <string name="settings_update_found">பதிப்பு %1$d கிடைக்கிறது. மேலே உள்ள நிறுவு பொத்தானைப் பயன்படுத்துங்கள்.</string>
+    <string name="settings_latest_build">நீங்கள் சமீபத்திய பதிப்பில் உள்ளீர்கள், அல்லது GitHub ஐ அடைய முடியவில்லை.</string>
+    <string name="settings_update_available">ஒரு புதுப்பிப்பு கிடைக்கிறது. மேலே உள்ள நிறுவு பொத்தானைப் பயன்படுத்துங்கள்.</string>
+    <string name="settings_reminders_title">நினைவூட்டல்கள்</string>
+    <string name="settings_reminders_desc">கட்டணங்கள் செலுத்த வேண்டிய நாளுக்கு முந்தைய நாள் நினைவூட்டப்படும். ஜகாத் தேதியையும் அமைத்தால் அதற்கும் நினைவூட்டப்படும்.</string>
+    <string name="settings_zakat_date">ஜகாத் செலுத்த வேண்டிய தேதி (dd/mm/yyyy)</string>
+    <string name="settings_date_error">25/03/2027 போன்ற தேதியை உள்ளிடுங்கள்.</string>
+    <string name="settings_saved_reminder">சேமிக்கப்பட்டது. முந்தைய நாள் நினைவூட்டப்படும்.</string>
+    <string name="settings_saved_no_notify">சேமிக்கப்பட்டது, ஆனால் அறிவிப்புகள் அணைக்கப்பட்டுள்ளன.</string>
+    <string name="settings_clear">நீக்கு</string>
+    <string name="settings_zakat_removed">ஜகாத் நினைவூட்டல் நீக்கப்பட்டது.</string>
+    <string name="settings_backup_title">காப்புப்பிரதி மற்றும் மீட்பு</string>
+    <string name="settings_backup_desc">காப்புப்பிரதியில் அனைத்துப் பதிவுகள், வரவுசெலவுத் திட்டங்கள், கட்டணங்கள், இலக்குகள், வகைகள் இருக்கும். மீட்டமைத்தால் இந்தத் தொலைபேசியின் தரவு மாற்றப்படும்.</string>
+    <string name="settings_save_backup">காப்புப்பிரதி சேமி</string>
+    <string name="settings_restore">மீட்டமை</string>
+    <string name="settings_backup_saved">காப்புப்பிரதி சேமிக்கப்பட்டது.</string>
+    <string name="settings_restore_started">மீட்டமைப்பு தொடங்கியது. உங்கள் தரவு காப்புப்பிரதியால் மாற்றப்படும்.</string>
+    <string name="settings_restore_invalid">இது சிக்கனம் காப்புப்பிரதி கோப்பு அல்ல.</string>
+</resources>

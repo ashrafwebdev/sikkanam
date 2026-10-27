@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Lock screen -->
+    <string name="lock_title">சிக்கனம் பூட்டப்பட்டுள்ளது</string>
+    <string name="lock_hint">தொடர கைரேகை அல்லது திரைப் பூட்டைப் பயன்படுத்துங்கள்.</string>
+    <string name="lock_unlock">திற</string>
+    <string name="lock_prompt_title">சிக்கனத்தைத் திற</string>
+</resources>

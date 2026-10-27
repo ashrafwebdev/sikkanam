@@ -26,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Meeting
 
 /** Daily meetings (mashwara): a short log of each consultation, with who attended and what was decided. */
@@ -39,17 +41,17 @@ fun MeetingsSection(vm: FinanceViewModel) {
 
     SectionCard {
         SectionHeader(
-            title = "Daily meetings",
+            title = stringResource(R.string.meeting_title),
             action = {
                 FilledTonalButton(onClick = { showNew = true }) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Add")
+                    Text(stringResource(R.string.action_add))
                 }
             },
         )
         if (meetings.isEmpty()) {
-            Text("No meetings recorded yet.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.meeting_empty), style = MaterialTheme.typography.bodySmall)
         }
         // Show the latest few, so the list stays short as data grows.
         meetings.take(5).forEach { meeting ->
@@ -60,15 +62,15 @@ fun MeetingsSection(vm: FinanceViewModel) {
                     Text(line.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                 }
                 IconButton(onClick = { editing = meeting }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit meeting")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.meeting_edit_desc))
                 }
                 IconButton(onClick = { vm.deleteMeeting(meeting.id) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete meeting")
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.meeting_delete_desc))
                 }
             }
         }
         if (meetings.size > 5) {
-            Text("Showing the latest 5 of ${meetings.size}.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.meeting_latest, meetings.size), style = MaterialTheme.typography.bodySmall)
         }
     }
 
@@ -113,31 +115,44 @@ private fun MeetingDialog(
     var attendees by remember { mutableStateOf(existing?.attendees ?: "") }
     var notes by remember { mutableStateOf(existing?.notes ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
+    val topicError = stringResource(R.string.meeting_topic_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Add daily meeting" else "Edit daily meeting") },
+        title = {
+            Text(
+                if (existing == null) stringResource(R.string.meeting_add_title)
+                else stringResource(R.string.meeting_edit_title),
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = topic, onValueChange = { topic = it }, label = { Text("Topic") }, singleLine = true)
+                OutlinedTextField(
+                    value = topic,
+                    onValueChange = { topic = it },
+                    label = { Text(stringResource(R.string.meeting_topic)) },
+                    singleLine = true,
+                )
                 OutlinedTextField(
                     value = attendees,
                     onValueChange = { attendees = it },
-                    label = { Text("Who attended (names, separated by commas)") },
+                    label = { Text(stringResource(R.string.meeting_attendees)) },
                     maxLines = 3,
                 )
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes and decisions") },
+                    label = { Text(stringResource(R.string.meeting_notes)) },
                     maxLines = 6,
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(topic, attendees, notes)) error = "Enter a topic." }) { Text("Save") }
+            TextButton(onClick = { if (!onSave(topic, attendees, notes)) error = topicError }) {
+                Text(stringResource(R.string.action_save))
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

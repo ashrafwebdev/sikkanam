@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Budgets -->
+    <string name="budget_monthly_title">Monthly budgets</string>
+    <string name="budget_empty">No budgets yet. Set a monthly limit for a category to see how you\'re doing.</string>
+    <string name="budget_change_limit_desc">Change limit</string>
+    <string name="budget_delete_desc">Delete budget</string>
+    <string name="budget_spent">Spent %1$s of %2$s</string>
+    <string name="budget_over">Over by %1$s</string>
+    <string name="budget_left">Left %1$s</string>
+    <string name="budget_add_title">Add budget</string>
+    <string name="budget_change_title">Change budget</string>
+    <string name="budget_category">Category</string>
+    <string name="budget_monthly_limit">Monthly limit</string>
+</resources>

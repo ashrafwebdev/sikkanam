@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Budgets -->
+    <string name="budget_monthly_title">மாதாந்திர வரவுசெலவுத் திட்டங்கள்</string>
+    <string name="budget_empty">இன்னும் வரவுசெலவுத் திட்டங்கள் இல்லை. ஒரு வகைக்கு மாதாந்திர வரம்பை அமைத்தால் நிலையைப் பார்க்கலாம்.</string>
+    <string name="budget_change_limit_desc">வரம்பை மாற்று</string>
+    <string name="budget_delete_desc">வரவுசெலவுத் திட்டத்தை நீக்கு</string>
+    <string name="budget_spent">%1$s செலவு, வரம்பு %2$s</string>
+    <string name="budget_over">%1$s அதிகம்</string>
+    <string name="budget_left">%1$s மீதம்</string>
+    <string name="budget_add_title">வரவுசெலவுத் திட்டம் சேர்</string>
+    <string name="budget_change_title">வரவுசெலவுத் திட்டத்தை மாற்று</string>
+    <string name="budget_category">வகை</string>
+    <string name="budget_monthly_limit">மாதாந்திர வரம்பு</string>
+</resources>

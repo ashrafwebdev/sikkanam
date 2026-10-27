@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Learn -->
+    <string name="learn_title">Learn for the trip</string>
+    <string name="learn_progress">Surahs learned: %1$d of %2$d. Check the content with a teacher before teaching it.</string>
+    <string name="learn_done">%1$d of %2$d learned</string>
+    <string name="learn_collapse">Collapse</string>
+    <string name="learn_expand">Expand</string>
+    <string name="learn_tamil_label">Tamil: %1$s</string>
+    <string name="learn_english_label">English: %1$s</string>
+    <string name="learn_meaning_tamil">Meaning (Tamil): %1$s</string>
+    <string name="learn_meaning_english">Meaning (English): %1$s</string>
+</resources>

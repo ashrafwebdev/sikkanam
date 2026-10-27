@@ -24,9 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Account
 import com.ashrafwebdev.sikkanam.data.Transfer
 
@@ -40,11 +42,12 @@ fun AccountsCard(vm: FinanceViewModel) {
     var showTransfer by remember { mutableStateOf(false) }
     var editingAccount by remember { mutableStateOf<Account?>(null) }
     var editingTransfer by remember { mutableStateOf<Transfer?>(null) }
+    val unknown = stringResource(R.string.account_unknown)
 
     SectionCard {
-        SectionHeader(title = "Accounts")
+        SectionHeader(title = stringResource(R.string.account_title))
         if (accounts.isEmpty()) {
-            Text("Add cash, bank, or card accounts to see where your money is.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.account_empty), style = MaterialTheme.typography.bodySmall)
         }
         accounts.forEach { account ->
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -55,32 +58,32 @@ fun AccountsCard(vm: FinanceViewModel) {
                     fontWeight = FontWeight.SemiBold,
                 )
                 IconButton(onClick = { editingAccount = account }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit account")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.account_edit_desc))
                 }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(onClick = { showAdd = true }) { Text("Add account") }
+            FilledTonalButton(onClick = { showAdd = true }) { Text(stringResource(R.string.account_add)) }
             if (accounts.size >= 2) {
-                FilledTonalButton(onClick = { showTransfer = true }) { Text("Transfer") }
+                FilledTonalButton(onClick = { showTransfer = true }) { Text(stringResource(R.string.account_transfer)) }
             }
         }
 
         if (transfers.isNotEmpty()) {
-            Text("Recent transfers", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.account_recent), style = MaterialTheme.typography.labelLarge)
             transfers.take(5).forEach { t ->
-                val from = accounts.firstOrNull { it.id == t.fromAccountId }?.name ?: "Unknown"
-                val to = accounts.firstOrNull { it.id == t.toAccountId }?.name ?: "Unknown"
+                val from = accounts.firstOrNull { it.id == t.fromAccountId }?.name ?: unknown
+                val to = accounts.firstOrNull { it.id == t.toAccountId }?.name ?: unknown
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("$from to $to", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.account_from_to, from, to), style = MaterialTheme.typography.bodyMedium)
                         Text("${formatMoney(t.amountCents)} · ${dateLabel(t.dateMillis)}", style = MaterialTheme.typography.bodySmall)
                     }
                     IconButton(onClick = { editingTransfer = t }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit transfer")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.account_edit_transfer_desc))
                     }
                     IconButton(onClick = { vm.deleteTransfer(t.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete transfer")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.account_delete_transfer_desc))
                     }
                 }
             }
@@ -157,17 +160,25 @@ private fun AccountDialog(existing: Account?, onDismiss: () -> Unit, onSave: (St
         mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.openingCents / 100.0) } ?: "0")
     }
     var error by remember { mutableStateOf<String?>(null) }
+    val accountError = stringResource(R.string.account_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "New account" else "Edit account") },
+        title = {
+            Text(if (existing == null) stringResource(R.string.account_new_title) else stringResource(R.string.account_edit_title))
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name, for example Cash or SBI") }, singleLine = true)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.account_name_hint)) },
+                    singleLine = true,
+                )
                 OutlinedTextField(
                     value = opening,
                     onValueChange = { opening = it },
-                    label = { Text("Opening balance") },
+                    label = { Text(stringResource(R.string.account_opening)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
@@ -175,9 +186,9 @@ private fun AccountDialog(existing: Account?, onDismiss: () -> Unit, onSave: (St
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(name, opening)) error = "Enter a name and a balance of zero or more." }) { Text("Save") }
+            TextButton(onClick = { if (!onSave(name, opening)) error = accountError }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -195,22 +206,40 @@ private fun TransferDialog(
     }
     var note by remember { mutableStateOf(existing?.note ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
+    val transferError = stringResource(R.string.account_transfer_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Transfer money" else "Edit transfer") },
+        title = {
+            Text(if (existing == null) stringResource(R.string.account_transfer_title) else stringResource(R.string.account_edit_transfer_title))
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                CategorySelector(label = "From", options = accounts.map { it.name }, selected = from, onSelect = { from = it })
-                CategorySelector(label = "To", options = accounts.map { it.name }, selected = to, onSelect = { to = it })
+                CategorySelector(
+                    label = stringResource(R.string.account_from),
+                    options = accounts.map { it.name },
+                    selected = from,
+                    onSelect = { from = it },
+                )
+                CategorySelector(
+                    label = stringResource(R.string.account_to_label),
+                    options = accounts.map { it.name },
+                    selected = to,
+                    onSelect = { to = it },
+                )
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Amount") },
+                    label = { Text(stringResource(R.string.label_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
-                OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, singleLine = true)
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text(stringResource(R.string.goal_note_optional)) },
+                    singleLine = true,
+                )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
@@ -219,9 +248,9 @@ private fun TransferDialog(
                 val fromId = accounts.firstOrNull { it.name == from }?.id
                 val toId = accounts.firstOrNull { it.name == to }?.id
                 val saved = fromId != null && toId != null && onSave(fromId, toId, amount, note)
-                if (!saved) error = "Choose two different accounts and an amount above zero."
-            }) { Text("Save") }
+                if (!saved) error = transferError
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Duties -->
+    <string name="duty_title">Duties (khidmat)</string>
+    <string name="duty_people">People in the group</string>
+    <string name="duty_remove_person">Remove person</string>
+    <string name="duty_name">Name</string>
+    <string name="duty_list_title">Duties</string>
+    <string name="duty_new">New duty</string>
+    <string name="duty_name_error">Enter a new name up to 60 characters.</string>
+    <string name="duty_add_people_first">Add the people in the group first.</string>
+    <string name="duty_today">Today\'s duties</string>
+    <string name="duty_decide">Decide in the mashwara who takes each duty, then tick it when done.</string>
+    <string name="duty_rename_desc">Rename duty</string>
+    <string name="duty_remove_desc">Remove duty</string>
+    <string name="duty_so_far">So far</string>
+    <string name="duty_count">%1$s: %2$d of %3$d duties</string>
+    <string name="duty_not_yet">. Not yet: %1$s</string>
+    <string name="duty_rename_title">Rename duty</string>
+    <string name="duty_name_label">Duty name</string>
+    <string name="duty_rename_info">Past records of this duty are renamed too.</string>
+    <string name="duty_rename_error">Enter a unique name up to 60 characters.</string>
+
+    <!-- Daily meetings -->
+    <string name="meeting_title">Daily meetings</string>
+    <string name="meeting_empty">No meetings recorded yet.</string>
+    <string name="meeting_edit_desc">Edit meeting</string>
+    <string name="meeting_delete_desc">Delete meeting</string>
+    <string name="meeting_latest">Showing the latest 5 of %1$d.</string>
+    <string name="meeting_add_title">Add daily meeting</string>
+    <string name="meeting_edit_title">Edit daily meeting</string>
+    <string name="meeting_topic">Topic</string>
+    <string name="meeting_attendees">Who attended (names, separated by commas)</string>
+    <string name="meeting_notes">Notes and decisions</string>
+    <string name="meeting_topic_error">Enter a topic.</string>
+</resources>

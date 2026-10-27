@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Learn -->
+    <string name="learn_title">பயணத்துக்காகக் கற்றுக்கொள்</string>
+    <string name="learn_progress">கற்ற சூராக்கள்: %2$d இல் %1$d. கற்பிப்பதற்கு முன் உள்ளடக்கத்தை ஓர் ஆசிரியரிடம் சரிபாருங்கள்.</string>
+    <string name="learn_done">%2$d இல் %1$d கற்றது</string>
+    <string name="learn_collapse">மூடு</string>
+    <string name="learn_expand">திற</string>
+    <string name="learn_tamil_label">தமிழ்: %1$s</string>
+    <string name="learn_english_label">ஆங்கிலம்: %1$s</string>
+    <string name="learn_meaning_tamil">பொருள் (தமிழ்): %1$s</string>
+    <string name="learn_meaning_english">பொருள் (ஆங்கிலம்): %1$s</string>
+</resources>

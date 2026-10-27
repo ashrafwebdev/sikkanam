@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Accounts -->
+    <string name="account_title">Accounts</string>
+    <string name="account_empty">Add cash, bank, or card accounts to see where your money is.</string>
+    <string name="account_edit_desc">Edit account</string>
+    <string name="account_add">Add account</string>
+    <string name="account_transfer">Transfer</string>
+    <string name="account_recent">Recent transfers</string>
+    <string name="account_unknown">Unknown</string>
+    <string name="account_from_to">%1$s to %2$s</string>
+    <string name="account_edit_transfer_desc">Edit transfer</string>
+    <string name="account_delete_transfer_desc">Delete transfer</string>
+    <string name="account_new_title">New account</string>
+    <string name="account_edit_title">Edit account</string>
+    <string name="account_name_hint">Name, for example Cash or SBI</string>
+    <string name="account_opening">Opening balance</string>
+    <string name="account_error">Enter a name and a balance of zero or more.</string>
+    <string name="account_transfer_title">Transfer money</string>
+    <string name="account_edit_transfer_title">Edit transfer</string>
+    <string name="account_from">From</string>
+    <string name="account_to_label">To</string>
+    <string name="account_transfer_error">Choose two different accounts and an amount above zero.</string>
+</resources>

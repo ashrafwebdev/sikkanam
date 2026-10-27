@@ -26,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.GoalEntry
 import com.ashrafwebdev.sikkanam.data.SavingsGoal
 import java.util.Locale
@@ -46,11 +48,11 @@ fun GoalsSection(vm: FinanceViewModel) {
     var openHistory by remember { mutableStateOf(setOf<Long>()) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Savings goals", style = MaterialTheme.typography.titleMedium)
-        FilledTonalButton(onClick = { showNew = true }) { Text("Add goal") }
+        Text(stringResource(R.string.goal_title), style = MaterialTheme.typography.titleMedium)
+        FilledTonalButton(onClick = { showNew = true }) { Text(stringResource(R.string.goal_add)) }
 
         if (goals.isEmpty()) {
-            Text("No goals yet. Add a target to track money you're setting aside.")
+            Text(stringResource(R.string.goal_empty))
         }
 
         goals.forEach { goal ->
@@ -62,31 +64,36 @@ fun GoalsSection(vm: FinanceViewModel) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(goal.name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         IconButton(onClick = { editingGoal = goal }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit goal")
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.goal_edit_desc))
                         }
                         IconButton(onClick = { vm.deleteGoal(goal.id) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete goal")
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.goal_delete_desc))
                         }
                     }
-                    Text("${formatMoney(goal.savedCents)} of ${formatMoney(goal.targetCents)}")
+                    Text(stringResource(R.string.goal_saved_of, formatMoney(goal.savedCents), formatMoney(goal.targetCents)))
                     LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        FilledTonalButton(onClick = { adding = goal }) { Text("Add money") }
+                        FilledTonalButton(onClick = { adding = goal }) { Text(stringResource(R.string.goal_add_money)) }
                         Spacer(Modifier.weight(1f))
                         TextButton(onClick = {
                             openHistory = if (isOpen) openHistory - goal.id else openHistory + goal.id
-                        }) { Text(if (isOpen) "Hide history" else "History (${history.size})") }
+                        }) {
+                            Text(
+                                if (isOpen) stringResource(R.string.goal_hide_history)
+                                else stringResource(R.string.goal_history, history.size),
+                            )
+                        }
                     }
 
                     if (isOpen) {
                         if (history.isEmpty()) {
-                            Text("No amounts added yet.", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.goal_no_history), style = MaterialTheme.typography.bodySmall)
                         }
                         history.forEach { entry ->
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        "+ ${formatMoney(entry.amountCents)}",
+                                        stringResource(R.string.goal_added_sign, formatMoney(entry.amountCents)),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold,
                                     )
@@ -94,10 +101,10 @@ fun GoalsSection(vm: FinanceViewModel) {
                                     Text(line.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 }
                                 IconButton(onClick = { editingEntry = entry }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit amount")
+                                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.goal_edit_amount_desc))
                                 }
                                 IconButton(onClick = { vm.deleteGoalEntry(entry) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete amount")
+                                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.goal_delete_amount_desc))
                                 }
                             }
                         }
@@ -138,7 +145,7 @@ fun GoalsSection(vm: FinanceViewModel) {
 
     adding?.let { goal ->
         GoalEntryDialog(
-            title = "Add money to ${goal.name}",
+            title = stringResource(R.string.goal_add_money_title, goal.name),
             existing = null,
             onDismiss = { adding = null },
             onSave = { amount, note ->
@@ -154,7 +161,7 @@ fun GoalsSection(vm: FinanceViewModel) {
 
     editingEntry?.let { entry ->
         GoalEntryDialog(
-            title = "Correct this amount",
+            title = stringResource(R.string.goal_correct_title),
             existing = entry,
             onDismiss = { editingEntry = null },
             onSave = { amount, note ->
@@ -174,22 +181,23 @@ private fun NewGoalDialog(onDismiss: () -> Unit, onSave: (String, String) -> Boo
     var name by remember { mutableStateOf("") }
     var target by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val nameError = stringResource(R.string.goal_name_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New savings goal") },
+        title = { Text(stringResource(R.string.goal_new_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Goal, for example House deposit") },
+                    label = { Text(stringResource(R.string.goal_name_hint)) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = target,
                     onValueChange = { target = it },
-                    label = { Text("Target amount") },
+                    label = { Text(stringResource(R.string.goal_target)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
@@ -198,10 +206,10 @@ private fun NewGoalDialog(onDismiss: () -> Unit, onSave: (String, String) -> Boo
         },
         confirmButton = {
             TextButton(onClick = {
-                if (!onSave(name, target)) error = "Enter a name and a target above zero."
-            }) { Text("Save") }
+                if (!onSave(name, target)) error = nameError
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -210,17 +218,23 @@ private fun GoalEditDialog(goal: SavingsGoal, onDismiss: () -> Unit, onSave: (St
     var name by remember { mutableStateOf(goal.name) }
     var target by remember { mutableStateOf(String.format(Locale.US, "%.2f", goal.targetCents / 100.0)) }
     var error by remember { mutableStateOf<String?>(null) }
+    val nameError = stringResource(R.string.goal_name_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit savings goal") },
+        title = { Text(stringResource(R.string.goal_edit_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Goal") }, singleLine = true)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.goal_name_label)) },
+                    singleLine = true,
+                )
                 OutlinedTextField(
                     value = target,
                     onValueChange = { target = it },
-                    label = { Text("Target amount") },
+                    label = { Text(stringResource(R.string.goal_target)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
@@ -228,9 +242,9 @@ private fun GoalEditDialog(goal: SavingsGoal, onDismiss: () -> Unit, onSave: (St
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(name, target)) error = "Enter a name and a target above zero." }) { Text("Save") }
+            TextButton(onClick = { if (!onSave(name, target)) error = nameError }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -247,6 +261,7 @@ private fun GoalEntryDialog(
     }
     var note by remember { mutableStateOf(existing?.note ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
+    val amountError = stringResource(R.string.goal_amount_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -256,14 +271,14 @@ private fun GoalEntryDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = { Text("Amount") },
+                    label = { Text(stringResource(R.string.label_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = { Text("Note (optional)") },
+                    label = { Text(stringResource(R.string.goal_note_optional)) },
                     singleLine = true,
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -271,9 +286,9 @@ private fun GoalEntryDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (!onSave(amount, note)) error = "Enter an amount above zero."
-            }) { Text("Save") }
+                if (!onSave(amount, note)) error = amountError
+            }) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

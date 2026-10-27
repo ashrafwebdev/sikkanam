@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Zakat -->
+    <string name="zakat_due">Zakat due</string>
+    <string name="zakat_none">No zakat due</string>
+    <string name="zakat_net">Net wealth %1$s · nisab %2$s</string>
+    <string name="zakat_nisab_title">Nisab threshold</string>
+    <string name="zakat_silver">Silver (595 g)</string>
+    <string name="zakat_gold">Gold (85 g)</string>
+    <string name="zakat_assets_title">Assets</string>
+    <string name="zakat_cash">Cash and bank balance</string>
+    <string name="zakat_gold_grams">Gold (grams)</string>
+    <string name="zakat_gold_price">Gold price per gram</string>
+    <string name="zakat_silver_grams">Silver (grams)</string>
+    <string name="zakat_silver_price">Silver price per gram</string>
+    <string name="zakat_trade">Trade goods (stock for sale)</string>
+    <string name="zakat_owed">Money owed to you</string>
+    <string name="zakat_debts_title">Debts</string>
+    <string name="zakat_debts_now">Debts due now</string>
+    <string name="zakat_note">Zakat is 2.5% of wealth above the nisab, held for one lunar year. The app doesn\'t check the lunar year for you. Check your situation with a scholar.</string>
+</resources>

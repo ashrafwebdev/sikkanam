@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Charity -->
+    <string name="charity_purification_due">சுத்திகரிப்பு செலுத்த வேண்டியது</string>
+    <string name="charity_haram_summary">ஹராம் வரவு %1$s · சுத்திகரித்தது %2$s</string>
+    <string name="charity_doubtful">மறுபரிசீலிக்க வேண்டிய சந்தேக வரவு: %1$s</string>
+    <string name="charity_sadaqah_given">கொடுத்த சதக்கா</string>
+    <string name="charity_purification_paid">செலுத்திய சுத்திகரிப்பு</string>
+    <string name="charity_payments">செலுத்தல்கள்</string>
+    <string name="charity_record">பதிவு</string>
+    <string name="charity_empty">இன்னும் செலுத்தல்கள் இல்லை. இங்கே சதக்கா அல்லது சுத்திகரிப்பைப் பதிவு செய்யுங்கள்.</string>
+    <string name="charity_sadaqah">சதக்கா</string>
+    <string name="charity_purification">சுத்திகரிப்பு</string>
+    <string name="charity_edit_desc">செலுத்தலைத் திருத்து</string>
+    <string name="charity_delete_desc">செலுத்தலை நீக்கு</string>
+    <string name="charity_record_title">செலுத்தலைப் பதிவு செய்</string>
+    <string name="charity_edit_title">செலுத்தலைத் திருத்து</string>
+</resources>

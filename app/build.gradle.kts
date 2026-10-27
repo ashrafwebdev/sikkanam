@@ -50,11 +50,13 @@ android {
             dimension = "distribution"
             buildConfigField("boolean", "SELF_UPDATE", "true")
             buildConfigField("boolean", "PAYMENT_ALERTS", "true")
+            buildConfigField("boolean", "SUPPORT_CARD", "true")
         }
         create("play") {
             dimension = "distribution"
             buildConfigField("boolean", "SELF_UPDATE", "false")
             buildConfigField("boolean", "PAYMENT_ALERTS", "false")
+            buildConfigField("boolean", "SUPPORT_CARD", "false")
         }
     }
 
