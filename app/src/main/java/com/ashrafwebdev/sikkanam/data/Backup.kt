@@ -25,6 +25,7 @@ data class BackupData(
     val debts: List<Debt> = emptyList(),
     val amaalChecks: List<AmaalCheck> = emptyList(),
     val khurooj: List<Khurooj> = emptyList(),
+    val notes: List<Note> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -259,6 +260,16 @@ fun BackupData.toJson(): String {
             put(JSONObject().apply {
                 put("groupId", s.groupId)
                 put("monthMillis", s.monthMillis)
+            })
+        }
+    })
+    root.put("notes", JSONArray().apply {
+        notes.forEach { n ->
+            put(JSONObject().apply {
+                put("id", n.id)
+                put("title", n.title)
+                put("body", n.body)
+                put("updatedMillis", n.updatedMillis)
             })
         }
     })
@@ -513,6 +524,19 @@ fun parseBackup(text: String): BackupData {
         }
     } ?: emptyList()
 
+    // Notes are optional too. Older backups have none.
+    val notes = root.optJSONArray("notes")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Note(
+                id = o.optLong("id", 0),
+                title = o.getString("title"),
+                body = o.optString("body", ""),
+                updatedMillis = o.optLong("updatedMillis", 0),
+            )
+        }
+    } ?: emptyList()
+
     return BackupData(
         transactions, budgets, donations, categories, goals,
         tripGroups, tripMembers, tripContributions, tripExpenses, tripSettledMonths,
@@ -522,5 +546,6 @@ fun parseBackup(text: String): BackupData {
         debts = debts,
         amaalChecks = amaalChecks,
         khurooj = khurooj,
+        notes = notes,
     )
 }

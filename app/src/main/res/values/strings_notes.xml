@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notes: personal notes with a title and text -->
+    <string name="tab_notes">Notes</string>
+    <string name="notes_title">My notes</string>
+    <string name="notes_search">Search notes</string>
+    <string name="notes_empty">No notes yet. Tap Add to write one.</string>
+    <string name="notes_no_match">No notes match your search.</string>
+    <string name="notes_add_title">New note</string>
+    <string name="notes_edit_title">Edit note</string>
+    <string name="notes_field_title">Title</string>
+    <string name="notes_field_body">Note</string>
+    <string name="notes_title_error">Enter a title.</string>
+    <string name="notes_edit_desc">Edit note</string>
+    <string name="notes_delete_desc">Delete note</string>
+    <string name="notes_delete_confirm">Delete this note?</string>
+    <string name="notes_updated">Last saved %1$s</string>
+</resources>

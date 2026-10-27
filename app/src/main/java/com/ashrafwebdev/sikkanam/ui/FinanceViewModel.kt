@@ -8,6 +8,7 @@ import com.ashrafwebdev.sikkanam.data.DutyAssignment
 import com.ashrafwebdev.sikkanam.data.DutyType
 import com.ashrafwebdev.sikkanam.data.Duties
 import com.ashrafwebdev.sikkanam.data.Meeting
+import com.ashrafwebdev.sikkanam.data.Note
 import com.ashrafwebdev.sikkanam.data.AppDatabase
 import com.ashrafwebdev.sikkanam.data.Transfer
 import com.ashrafwebdev.sikkanam.data.BackupData
@@ -421,6 +422,29 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
 
     fun deleteMeeting(id: Long) {
         viewModelScope.launch { db.meetingDao().delete(id) }
+    }
+
+    val notes: StateFlow<List<Note>> = db.noteDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Adds a note, or updates [existing]. The title is required. The text may be empty. */
+    fun saveNote(existing: Note?, title: String, body: String): Boolean {
+        val clean = title.trim()
+        if (clean.isBlank()) return false
+        val entry = Note(
+            id = existing?.id ?: 0,
+            title = clean,
+            body = body.trim(),
+            updatedMillis = System.currentTimeMillis(),
+        )
+        viewModelScope.launch {
+            if (existing == null) db.noteDao().insert(entry) else db.noteDao().update(entry)
+        }
+        return true
+    }
+
+    fun deleteNote(id: Long) {
+        viewModelScope.launch { db.noteDao().delete(id) }
     }
 
     val dutyAssignments: StateFlow<List<DutyAssignment>> = db.dutyDao().observeAll()
@@ -952,6 +976,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         debts = debts.value,
         amaalChecks = amaalChecks.value,
         khurooj = khurooj.value,
+        notes = notes.value,
     ).toJson()
 
 
@@ -977,6 +1002,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.debts.forEach { db.debtDao().insert(it) }
             data.amaalChecks.forEach { db.amaalDao().insert(it) }
             data.khurooj.forEach { db.khuroojDao().insert(it) }
+            data.notes.forEach { db.noteDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

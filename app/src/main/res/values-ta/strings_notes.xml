@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Notes: personal notes with a title and text -->
+    <string name="tab_notes">குறிப்புகள்</string>
+    <string name="notes_title">என் குறிப்புகள்</string>
+    <string name="notes_search">குறிப்புகளில் தேடு</string>
+    <string name="notes_empty">இன்னும் குறிப்புகள் இல்லை. ஒன்றை எழுத சேர் என்பதைத் தட்டுங்கள்.</string>
+    <string name="notes_no_match">தேடலுக்குப் பொருந்தும் குறிப்புகள் இல்லை.</string>
+    <string name="notes_add_title">புதிய குறிப்பு</string>
+    <string name="notes_edit_title">குறிப்பைத் திருத்து</string>
+    <string name="notes_field_title">தலைப்பு</string>
+    <string name="notes_field_body">குறிப்பு</string>
+    <string name="notes_title_error">தலைப்பை உள்ளிடுங்கள்.</string>
+    <string name="notes_edit_desc">குறிப்பைத் திருத்து</string>
+    <string name="notes_delete_desc">குறிப்பை நீக்கு</string>
+    <string name="notes_delete_confirm">இந்தக் குறிப்பை நீக்கவா?</string>
+    <string name="notes_updated">கடைசியாகச் சேமிக்கப்பட்டது %1$s</string>
+</resources>

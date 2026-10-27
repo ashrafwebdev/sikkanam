@@ -108,6 +108,21 @@ interface MeetingDao {
 }
 
 @Dao
+interface NoteDao {
+    @Query("SELECT * FROM notes ORDER BY updatedMillis DESC")
+    fun observeAll(): Flow<List<Note>>
+
+    @Insert
+    suspend fun insert(note: Note)
+
+    @Update
+    suspend fun update(note: Note)
+
+    @Query("DELETE FROM notes WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
 interface CategoryRenameDao {
     /** Renames a category on every transaction and budget that uses it. */
     @Query("UPDATE transactions SET category = :newName WHERE category = :oldName AND type = :type")
