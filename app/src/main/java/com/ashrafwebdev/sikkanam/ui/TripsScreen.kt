@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import com.ashrafwebdev.sikkanam.data.GroupKind
+import com.ashrafwebdev.sikkanam.data.TripContribution
+import com.ashrafwebdev.sikkanam.data.TripExpense
 import com.ashrafwebdev.sikkanam.data.TripGroup
 import com.ashrafwebdev.sikkanam.data.TripMember
 import com.ashrafwebdev.sikkanam.trip.TripSettlement
@@ -171,6 +174,10 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     var showExpense by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     var incomeEditing by remember { mutableStateOf<TripMember?>(null) }
+    var renamingMember by remember { mutableStateOf<TripMember?>(null) }
+    var renamingGroup by remember { mutableStateOf(false) }
+    var editingContribution by remember { mutableStateOf<TripContribution?>(null) }
+    var editingExpense by remember { mutableStateOf<TripExpense?>(null) }
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -180,6 +187,9 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onBack) { Text("Back") }
                 Spacer(Modifier.weight(1f))
+                IconButton(onClick = { renamingGroup = true }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Rename trip")
+                }
                 IconButton(onClick = { confirmDelete = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete trip")
                 }
@@ -280,6 +290,9 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         items(members, key = { "m${it.id}" }) { member ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(member.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                IconButton(onClick = { renamingMember = member }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Rename member")
+                }
                 if (isFamily) {
                     TextButton(onClick = { incomeEditing = member }) {
                         Text("Income ${formatMoney(member.incomeCents)}")
@@ -340,6 +353,9 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                         )
                     }
                     Text(formatMoney(e.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    IconButton(onClick = { editingExpense = e }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit expense")
+                    }
                     IconButton(onClick = { vm.deleteTripExpense(e.id) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete expense")
                     }
@@ -356,7 +372,10 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
                         Text(dateLabel(c.dateMillis), style = MaterialTheme.typography.bodySmall)
                     }
                     Text(formatMoney(c.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = IncomeColor)
-                    IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
+                    IconButton(onClick = { editingContribution = c }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit payment in")
+                }
+                IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete payment in")
                     }
                 }
@@ -410,6 +429,73 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         )
     }
 
+    renamingMember?.let { member ->
+        NameDialog(
+            title = "Rename member",
+            label = "Name",
+            initial = member.name,
+            onDismiss = { renamingMember = null },
+            onSave = { name ->
+                if (vm.renameTripMember(member, name)) {
+                    renamingMember = null
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    if (renamingGroup) {
+        NameDialog(
+            title = "Rename trip",
+            label = "Trip name",
+            initial = group.name,
+            onDismiss = { renamingGroup = false },
+            onSave = { name ->
+                if (vm.renameTripGroup(group, name)) {
+                    renamingGroup = false
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    editingContribution?.let { contribution ->
+        ContributionDialog(
+            members = members,
+            existing = contribution,
+            onDismiss = { editingContribution = null },
+            onSave = { memberId, amount ->
+                if (vm.updateTripContribution(contribution, memberId, amount)) {
+                    editingContribution = null
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    editingExpense?.let { expense ->
+        ExpenseDialog(
+            members = members,
+            isFamily = isFamily,
+            existing = expense,
+            onDismiss = { editingExpense = null },
+            onSave = { paidBy, description, amount, sharers, _ ->
+                if (vm.updateTripExpense(expense, paidBy, description, amount, sharers)) {
+                    editingExpense = null
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -430,11 +516,14 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
 @Composable
 private fun ContributionDialog(
     members: List<TripMember>,
+    existing: TripContribution? = null,
     onDismiss: () -> Unit,
     onSave: (Long, String) -> Boolean,
 ) {
-    var name by remember { mutableStateOf(members.firstOrNull()?.name ?: "") }
-    var amount by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(members.firstOrNull { it.id == existing?.memberId }?.name ?: members.firstOrNull()?.name ?: "") }
+    var amount by remember {
+        mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.amountCents / 100.0) } ?: "")
+    }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -501,15 +590,20 @@ private fun IncomeDialog(member: TripMember, onDismiss: () -> Unit, onSave: (Str
 private fun ExpenseDialog(
     members: List<TripMember>,
     isFamily: Boolean,
+    existing: TripExpense? = null,
     onDismiss: () -> Unit,
     onSave: (Long?, String, String, List<Long>, Boolean) -> Boolean,
 ) {
-    var payer by remember { mutableStateOf(POOL_LABEL) }
-    var description by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
-    var recurring by remember { mutableStateOf(false) }
+    var payer by remember { mutableStateOf(members.firstOrNull { it.id == existing?.paidByMemberId }?.name ?: POOL_LABEL) }
+    var description by remember { mutableStateOf(existing?.description ?: "") }
+    var amount by remember {
+        mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.amountCents / 100.0) } ?: "")
+    }
+    var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
     // Everyone is ticked by default. Untick the people who did not share this cost.
-    var sharers by remember { mutableStateOf(members.map { it.id }.toSet()) }
+    var sharers by remember {
+        mutableStateOf(existing?.participants()?.takeIf { it.isNotEmpty() }?.toSet() ?: members.map { it.id }.toSet())
+    }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -575,8 +669,14 @@ private fun ExpenseDialog(
 }
 
 @Composable
-private fun NameDialog(title: String, label: String, onDismiss: () -> Unit, onSave: (String) -> Boolean) {
-    var name by remember { mutableStateOf("") }
+private fun NameDialog(
+    title: String,
+    label: String,
+    initial: String = "",
+    onDismiss: () -> Unit,
+    onSave: (String) -> Boolean,
+) {
+    var name by remember { mutableStateOf(initial) }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(

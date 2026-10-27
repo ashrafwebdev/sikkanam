@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.foundation.clickable
@@ -26,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -181,8 +184,43 @@ private fun CategoryTypeSection(
     var open by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var openGroups by remember { mutableStateOf(setOf<String>()) }
+    var renaming by remember { mutableStateOf<String?>(null) }
     val names = list.map { it.name }.filter { it.contains(query.trim(), ignoreCase = true) }
     val groups = groupCategories(names, type)
+
+    renaming?.let { oldName ->
+        var newName by remember(oldName) { mutableStateOf(oldName) }
+        var error by remember(oldName) { mutableStateOf<String?>(null) }
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text("Rename category") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text("New name") },
+                        singleLine = true,
+                    )
+                    Text(
+                        "Existing entries and budgets with this category are updated too.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (vm.renameCategory(oldName, newName, type)) {
+                        renaming = null
+                    } else {
+                        error = "Enter a unique name up to 30 characters."
+                    }
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text("Cancel") } },
+        )
+    }
 
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -229,6 +267,9 @@ private fun CategoryTypeSection(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { renaming = name }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Rename category")
+                            }
                             IconButton(onClick = { vm.deleteCategory(name, type) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete category")
                             }

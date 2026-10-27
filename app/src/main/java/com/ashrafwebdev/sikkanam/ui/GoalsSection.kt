@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
@@ -36,6 +37,7 @@ fun GoalsSection(vm: FinanceViewModel) {
     val goals by vm.goals.collectAsState()
     var showNew by remember { mutableStateOf(false) }
     var adding by remember { mutableStateOf<SavingsGoal?>(null) }
+    var editingGoal by remember { mutableStateOf<SavingsGoal?>(null) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Savings goals", style = MaterialTheme.typography.titleMedium)
@@ -51,6 +53,9 @@ fun GoalsSection(vm: FinanceViewModel) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(goal.name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { editingGoal = goal }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit goal")
+                        }
                         IconButton(onClick = { vm.deleteGoal(goal.id) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete goal")
                         }
@@ -69,6 +74,21 @@ fun GoalsSection(vm: FinanceViewModel) {
             onSave = { name, target ->
                 if (vm.saveGoal(name, target)) {
                     showNew = false
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    editingGoal?.let { goal ->
+        GoalEditDialog(
+            goal = goal,
+            onDismiss = { editingGoal = null },
+            onSave = { name, target ->
+                if (vm.updateGoal(goal, name, target)) {
+                    editingGoal = null
                     true
                 } else {
                     false
@@ -124,6 +144,35 @@ private fun NewGoalDialog(onDismiss: () -> Unit, onSave: (String, String) -> Boo
             TextButton(onClick = {
                 if (!onSave(name, target)) error = "Enter a name and a target above zero."
             }) { Text("Save") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun GoalEditDialog(goal: SavingsGoal, onDismiss: () -> Unit, onSave: (String, String) -> Boolean) {
+    var name by remember { mutableStateOf(goal.name) }
+    var target by remember { mutableStateOf(String.format(java.util.Locale.US, "%.2f", goal.targetCents / 100.0)) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit savings goal") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Goal") }, singleLine = true)
+                OutlinedTextField(
+                    value = target,
+                    onValueChange = { target = it },
+                    label = { Text("Target amount") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                )
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { if (!onSave(name, target)) error = "Enter a name and a target above zero." }) { Text("Save") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )

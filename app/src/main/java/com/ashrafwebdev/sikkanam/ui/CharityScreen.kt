@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -44,6 +45,7 @@ fun CharityScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val transactions by vm.transactions.collectAsState()
     val donations by vm.donations.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    var editingDonation by remember { mutableStateOf<Donation?>(null) }
 
     // Haram income must be purified (given away). Doubtful income should be reviewed.
     val haramIncome = transactions.incomeWith(HalalStatus.HARAM)
@@ -135,6 +137,9 @@ fun CharityScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                     )
+                    IconButton(onClick = { editingDonation = donation }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit payment")
+                    }
                     IconButton(onClick = { vm.deleteDonation(donation.id) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete payment")
                     }
@@ -145,9 +150,30 @@ fun CharityScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
     if (showDialog) {
         DonationDialog(
+            existing = null,
             onDismiss = { showDialog = false },
             onSave = { kind, amount, note ->
-                if (vm.saveDonation(kind, amount, note)) showDialog = false
+                if (vm.saveDonation(kind, amount, note)) {
+                    showDialog = false
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    editingDonation?.let { donation ->
+        DonationDialog(
+            existing = donation,
+            onDismiss = { editingDonation = null },
+            onSave = { kind, amount, note ->
+                if (vm.updateDonation(donation, kind, amount, note)) {
+                    editingDonation = null
+                    true
+                } else {
+                    false
+                }
             },
         )
     }
@@ -158,16 +184,19 @@ private fun List<Transaction>.incomeWith(status: HalalStatus): Long =
 
 @Composable
 private fun DonationDialog(
+    existing: Donation?,
     onDismiss: () -> Unit,
-    onSave: (DonationKind, String, String) -> Unit,
+    onSave: (DonationKind, String, String) -> Boolean,
 ) {
-    var kind by remember { mutableStateOf(DonationKind.SADAQAH) }
-    var amount by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
+    var kind by remember { mutableStateOf(existing?.kind ?: DonationKind.SADAQAH) }
+    var amount by remember {
+        mutableStateOf(existing?.let { String.format(java.util.Locale.US, "%.2f", it.amountCents / 100.0) } ?: "")
+    }
+    var note by remember { mutableStateOf(existing?.note ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Record payment") },
+        title = { Text(if (existing == null) "Record payment" else "Edit payment") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -199,6 +228,7 @@ private fun DonationDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSave(kind, amount, note) }) { Text("Save") }
+            // Invalid amounts keep the dialog open, so the user can correct them.
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }

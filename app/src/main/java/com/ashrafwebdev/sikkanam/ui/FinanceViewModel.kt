@@ -375,6 +375,110 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         return true
     }
 
+    /** Edits a transfer. Same rules as adding one: two different accounts and an amount above zero. */
+    fun updateTransfer(transfer: Transfer, fromId: Long, toId: Long, amountText: String, note: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (fromId == toId) return false
+        viewModelScope.launch {
+            db.transferDao().update(
+                transfer.copy(fromAccountId = fromId, toAccountId = toId, amountCents = cents, note = note.trim())
+            )
+        }
+        return true
+    }
+
+    /** Edits an account's name and opening balance. */
+    fun updateAccount(account: Account, name: String, openingText: String): Boolean {
+        if (name.isBlank()) return false
+        val opening = openingText.trim().toDoubleOrNull()?.takeIf { it >= 0 } ?: return false
+        viewModelScope.launch {
+            db.accountDao().update(account.copy(name = name.trim(), openingCents = Math.round(opening * 100)))
+        }
+        return true
+    }
+
+    fun updateGoal(goal: SavingsGoal, name: String, targetText: String): Boolean {
+        val cents = parseCents(targetText) ?: return false
+        if (name.isBlank()) return false
+        viewModelScope.launch {
+            db.savingsGoalDao().update(goal.copy(name = name.trim(), targetCents = cents))
+        }
+        return true
+    }
+
+    fun updateDonation(donation: Donation, kind: DonationKind, amountText: String, note: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        viewModelScope.launch {
+            db.donationDao().update(donation.copy(kind = kind, amountCents = cents, note = note.trim()))
+        }
+        return true
+    }
+
+    fun updateTripContribution(contribution: TripContribution, memberId: Long, amountText: String): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        viewModelScope.launch {
+            db.tripDao().updateContribution(contribution.copy(memberId = memberId, amountCents = cents))
+        }
+        return true
+    }
+
+    fun updateTripExpense(
+        expense: TripExpense,
+        paidByMemberId: Long?,
+        description: String,
+        amountText: String,
+        participantIds: List<Long>,
+    ): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (description.isBlank() || participantIds.isEmpty()) return false
+        viewModelScope.launch {
+            db.tripDao().updateExpense(
+                expense.copy(
+                    paidByMemberId = paidByMemberId,
+                    description = description.trim(),
+                    amountCents = cents,
+                    participantIds = TripExpense.encode(participantIds),
+                )
+            )
+        }
+        return true
+    }
+
+    fun renameTripGroup(group: TripGroup, name: String): Boolean {
+        if (name.isBlank()) return false
+        viewModelScope.launch { db.tripDao().updateGroup(group.copy(name = name.trim())) }
+        return true
+    }
+
+    fun renameTripMember(member: TripMember, name: String): Boolean {
+        val clean = name.trim()
+        if (clean.isBlank()) return false
+        if (tripMembers.value.any { it.groupId == member.groupId && it.id != member.id && it.name.equals(clean, ignoreCase = true) }) {
+            return false
+        }
+        viewModelScope.launch { db.tripDao().updateMember(member.copy(name = clean)) }
+        return true
+    }
+
+    /**
+     * Renames a category everywhere it's used: on transactions, budgets, and the master list.
+     * Returns false if the new name is blank, too long, or already exists for that type.
+     */
+    fun renameCategory(oldName: String, newName: String, type: TransactionType): Boolean {
+        val clean = newName.trim()
+        if (clean.isBlank() || clean.length > 30) return false
+        if (clean.equals(oldName, ignoreCase = false)) return true
+        if (categories.value.any { it.type == type && it.name.equals(clean, ignoreCase = true) }) return false
+        viewModelScope.launch {
+            val renames = db.categoryRenameDao()
+            db.categoryDao().delete(oldName, type)
+            db.categoryDao().insert(Category(clean, type))
+            renames.renameOnTransactions(oldName, clean, type)
+            if (type == TransactionType.EXPENSE) renames.renameOnBudgets(oldName, clean)
+        }
+        return true
+    }
+
     fun deleteTransfer(id: Long) {
         viewModelScope.launch { db.transferDao().delete(id) }
     }

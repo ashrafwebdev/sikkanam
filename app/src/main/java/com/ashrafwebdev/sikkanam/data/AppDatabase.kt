@@ -28,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
     abstract fun accountDao(): AccountDao
     abstract fun transferDao(): TransferDao
+    abstract fun categoryRenameDao(): CategoryRenameDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {

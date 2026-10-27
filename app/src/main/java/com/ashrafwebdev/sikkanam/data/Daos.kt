@@ -33,6 +33,9 @@ interface AccountDao {
     @Insert
     suspend fun insert(account: Account)
 
+    @Update
+    suspend fun update(account: Account)
+
     @Query("DELETE FROM accounts WHERE id = :id")
     suspend fun delete(id: Long)
 }
@@ -45,8 +48,21 @@ interface TransferDao {
     @Insert
     suspend fun insert(transfer: Transfer)
 
+    @Update
+    suspend fun update(transfer: Transfer)
+
     @Query("DELETE FROM transfers WHERE id = :id")
     suspend fun delete(id: Long)
+}
+
+@Dao
+interface CategoryRenameDao {
+    /** Renames a category on every transaction and budget that uses it. */
+    @Query("UPDATE transactions SET category = :newName WHERE category = :oldName AND type = :type")
+    suspend fun renameOnTransactions(oldName: String, newName: String, type: TransactionType)
+
+    @Query("UPDATE budgets SET category = :newName WHERE category = :oldName")
+    suspend fun renameOnBudgets(oldName: String, newName: String)
 }
 
 @Dao
@@ -120,6 +136,12 @@ interface TripDao {
     @Query("DELETE FROM trip_members WHERE id = :id")
     suspend fun deleteMember(id: Long)
 
+    @Update
+    suspend fun updateContribution(contribution: TripContribution)
+
+    @Update
+    suspend fun updateExpense(expense: TripExpense)
+
     @Insert
     suspend fun insertContribution(contribution: TripContribution)
 
@@ -152,6 +174,9 @@ interface DonationDao {
 
     @Insert
     suspend fun insert(donation: Donation)
+
+    @Update
+    suspend fun update(donation: Donation)
 
     @Query("DELETE FROM donations WHERE id = :id")
     suspend fun delete(id: Long)
