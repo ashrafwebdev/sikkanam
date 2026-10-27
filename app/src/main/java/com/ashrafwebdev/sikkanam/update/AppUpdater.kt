@@ -62,31 +62,46 @@ suspend fun checkForUpdate(context: Context): AvailableUpdate? = withContext(Dis
 }
 
 /**
- * Downloads the update and opens Android's install prompt. The user still has to confirm it,
- * because Android doesn't allow apps to install silently. Returns false if the download fails.
+ * Downloads the update, reporting progress from 0 to 1 as it goes, then opens Android's install prompt.
+ * The user still has to confirm it, because Android doesn't allow apps to install silently.
+ * Returns null on success, or a message describing the failure.
  */
-suspend fun downloadAndInstall(context: Context, update: AvailableUpdate): Boolean = withContext(Dispatchers.IO) {
-    try {
-        val dir = File(context.cacheDir, "updates").apply { mkdirs() }
-        val apk = File(dir, "sikkanam-update.apk")
-        val connection = (URL(update.apkUrl).openConnection() as HttpURLConnection).apply {
-            instanceFollowRedirects = true
-            connectTimeout = 15_000
-            readTimeout = 60_000
-        }
-        connection.inputStream.use { input -> apk.outputStream().use { output -> input.copyTo(output) } }
+suspend fun downloadAndInstall(context: Context, update: AvailableUpdate, onProgress: (Float) -> Unit): String? =
+    withContext(Dispatchers.IO) {
+        try {
+            val dir = File(context.cacheDir, "updates").apply { mkdirs() }
+            val apk = File(dir, "sikkanam-update.apk")
+            val connection = (URL(update.apkUrl).openConnection() as HttpURLConnection).apply {
+                instanceFollowRedirects = true
+                connectTimeout = 15_000
+                readTimeout = 60_000
+            }
+            val total = connection.contentLengthLong
+            connection.inputStream.use { input ->
+                apk.outputStream().use { output ->
+                    val buffer = ByteArray(64 * 1024)
+                    var copied = 0L
+                    var read = input.read(buffer)
+                    while (read >= 0) {
+                        output.write(buffer, 0, read)
+                        copied += read
+                        if (total > 0) onProgress((copied.toFloat() / total).coerceIn(0f, 1f))
+                        read = input.read(buffer)
+                    }
+                }
+            }
 
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.updates", apk)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.updates", apk)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            withContext(Dispatchers.Main) { context.startActivity(intent) }
+            null
+        } catch (e: Exception) {
+            "Download failed. Check your internet connection and tap Install again."
         }
-        withContext(Dispatchers.Main) { context.startActivity(intent) }
-        true
-    } catch (e: Exception) {
-        false
     }
-}
 
 /** Whether this app is allowed to start installs. Android asks the user to allow it the first time. */
 fun canInstallUpdates(context: Context): Boolean =
