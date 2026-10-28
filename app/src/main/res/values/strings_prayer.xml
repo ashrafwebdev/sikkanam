@@ -10,8 +10,8 @@
     <string name="prayer_subuh_sadiq">Subuh Sadiq</string>
     <string name="prayer_sunset">Sunset</string>
     <string name="prayer_jumah">Jumah</string>
-    <string name="prayer_override_title">Masjid's own times (optional)</string>
-    <string name="prayer_override_desc">If your masjid's time for a row differs from the calculated one, enter it here. Leave it empty to show the calculated time.</string>
+    <string name="prayer_override_title">Masjid\'s own times (optional)</string>
+    <string name="prayer_override_desc">If your masjid\'s time for a row differs from the calculated one, enter it here. Leave it empty to show the calculated time.</string>
     <string name="prayer_range_title">Dates these times apply (optional)</string>
     <string name="prayer_range_desc">Leave both dates empty to use these times all the time. Outside the dates, the calculated times are shown.</string>
     <string name="prayer_range_from">From (dd/mm/yyyy)</string>
