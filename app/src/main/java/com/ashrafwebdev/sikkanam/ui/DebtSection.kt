@@ -148,7 +148,7 @@ private fun DebtRow(debt: Debt, onRepay: () -> Unit, onDelete: () -> Unit) {
 private fun parseDueDate(text: String): Long? {
     if (text.isBlank()) return 0L
     return try {
-        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(text.trim())?.time
+        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(dateWithSlashes(text).trim())?.time
     } catch (e: Exception) {
         null
     }
@@ -195,7 +195,8 @@ private fun NewDebtDialog(
                 )
                 OutlinedTextField(
                     value = due,
-                    onValueChange = { due = formatDateTyping(it) },
+                    onValueChange = { due = dateDigits(it) },
+                    visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                     label = { Text(stringResource(R.string.debt_due)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

@@ -93,7 +93,7 @@ private fun tashkeelRes(kind: TashkeelKind): Int = when (kind) {
 
 /** Reads a dd/mm/yyyy date typed by the user, at the start of that day. Null when it is not a valid date. */
 private fun parseDay(text: String): Long? = runCatching {
-    SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(text.trim())?.time
+    SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(dateWithSlashes(text).trim())?.time
 }.getOrNull()
 
 /** The limit messages, read once while the form is composed so the click handlers can use them. */
@@ -664,7 +664,8 @@ private fun EffortChips(selected: MastooratEffort, onSelect: (MastooratEffort) -
 private fun DateField(value: String, onChange: (String) -> Unit, labelRes: Int) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onChange(formatDateTyping(it)) },
+        onValueChange = { onChange(dateDigits(it)) },
+        visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
         label = { Text(stringResource(labelRes)) },
         placeholder = { Text(stringResource(R.string.mastoorat_date_hint)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

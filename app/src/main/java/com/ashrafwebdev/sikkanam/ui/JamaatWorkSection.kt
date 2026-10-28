@@ -220,7 +220,7 @@ fun KhuroojSection(vm: FinanceViewModel, groupId: Long) {
 private fun parseDay(text: String): Long? {
     if (text.isBlank()) return 0L
     return try {
-        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(text.trim())?.time
+        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(dateWithSlashes(text).trim())?.time
     } catch (e: Exception) {
         null
     }
@@ -256,14 +256,16 @@ private fun NewKhuroojDialog(
                 }
                 OutlinedTextField(
                     value = start,
-                    onValueChange = { start = formatDateTyping(it) },
+                    onValueChange = { start = dateDigits(it) },
+                    visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                     label = { Text(stringResource(R.string.khurooj_start)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = end,
-                    onValueChange = { end = formatDateTyping(it) },
+                    onValueChange = { end = dateDigits(it) },
+                    visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                     label = { Text(stringResource(R.string.khurooj_end)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

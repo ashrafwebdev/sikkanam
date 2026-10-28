@@ -2,6 +2,10 @@ package com.ashrafwebdev.sikkanam.ui
 
 import android.icu.text.SimpleDateFormat
 import android.icu.util.ULocale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -67,22 +71,46 @@ fun addMonths(monthStart: Long, months: Int): Long {
 fun monthLabel(monthStart: Long): String =
     SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date(monthStart))
 
-/**
- * Keeps a date being typed as dd/mm/yyyy. Only digits are kept, up to eight, and the slashes are added
- * after the day and the month, so a number keyboard can enter the date.
- */
-fun formatDateTyping(input: String): String = buildString {
-    input.filter { it.isDigit() }.take(8).forEachIndexed { index, digit ->
+/** Only the digits of a date being typed, up to eight. [DigitsVisualTransformation] shows the slashes. */
+fun dateDigits(input: String): String = input.filter { it.isDigit() }.take(8)
+
+/** The date as dd/mm/yyyy, from digits or from text that already has its slashes. */
+fun dateWithSlashes(input: String): String = buildString {
+    dateDigits(input).forEachIndexed { index, digit ->
         if (index == 2 || index == 4) append('/')
         append(digit)
     }
 }
 
-/** Keeps a time being typed as hh:mm. Only digits are kept, up to four, and the colon is added after the hour. */
-fun formatTimeTyping(input: String): String = buildString {
-    input.filter { it.isDigit() }.take(4).forEachIndexed { index, digit ->
-        if (index == 2) append(':')
-        append(digit)
+/** Only the digits of a time being typed, up to four. [DigitsVisualTransformation] shows the colon. */
+fun timeDigits(input: String): String = input.filter { it.isDigit() }.take(4)
+
+/** The time as hh:mm, from digits or from text that already has its colon. A time still being typed keeps what is there. */
+fun timeWithColon(input: String): String {
+    val digits = timeDigits(input)
+    return if (digits.length > 2) digits.take(2) + ":" + digits.drop(2) else digits
+}
+
+/**
+ * Shows the digits of a date or time with its separators, as [display] builds them. The text itself stays
+ * digits only, so the cursor keeps its place while the user types.
+ */
+class DigitsVisualTransformation(private val display: (String) -> String) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val shown = display(text.text)
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                var digitsSeen = 0
+                shown.forEachIndexed { index, char ->
+                    if (digitsSeen == offset) return index
+                    if (char.isDigit()) digitsSeen++
+                }
+                return shown.length
+            }
+
+            override fun transformedToOriginal(offset: Int): Int = shown.take(offset).count { it.isDigit() }
+        }
+        return TransformedText(AnnotatedString(shown), mapping)
     }
 }
 

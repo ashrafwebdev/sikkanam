@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.DialogProperties
 import com.ashrafwebdev.sikkanam.prayer.MasjidTimings
 
 import androidx.compose.foundation.layout.Arrangement
@@ -257,11 +258,11 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
     val values = remember {
         mutableStateMapOf<String, String>().apply {
             MasjidTimings.timeNames.forEach { name ->
-                put(MasjidTimings.key("time", name, masjid), MasjidTimings.get(context, "time", name, masjid))
+                put(MasjidTimings.key("time", name, masjid), timeDigits(MasjidTimings.get(context, "time", name, masjid)))
             }
             MasjidTimings.prayers.forEach { prayer ->
-                put(MasjidTimings.key("adhan", prayer, masjid), MasjidTimings.get(context, "adhan", prayer, masjid))
-                put(MasjidTimings.key("iqama", prayer, masjid), MasjidTimings.get(context, "iqama", prayer, masjid))
+                put(MasjidTimings.key("adhan", prayer, masjid), timeDigits(MasjidTimings.get(context, "adhan", prayer, masjid)))
+                put(MasjidTimings.key("iqama", prayer, masjid), timeDigits(MasjidTimings.get(context, "iqama", prayer, masjid)))
             }
         }
     }
@@ -287,6 +288,8 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        // Tapping outside the box must not throw away what was typed, so only the buttons close it.
+        properties = DialogProperties(dismissOnClickOutside = false),
         title = { Text(stringResource(R.string.prayer_masjid_title)) },
         text = {
             Column(
@@ -299,7 +302,8 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = fromText,
-                        onValueChange = { fromText = formatDateTyping(it) },
+                        onValueChange = { fromText = dateDigits(it) },
+                        visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                         label = { Text(stringResource(R.string.prayer_range_from)) },
                         placeholder = { Text(stringResource(R.string.mastoorat_date_hint)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -308,7 +312,8 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                     )
                     OutlinedTextField(
                         value = toText,
-                        onValueChange = { toText = formatDateTyping(it) },
+                        onValueChange = { toText = dateDigits(it) },
+                        visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                         label = { Text(stringResource(R.string.prayer_range_to)) },
                         placeholder = { Text(stringResource(R.string.mastoorat_date_hint)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -339,9 +344,10 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                     val timeKey = MasjidTimings.key("time", name, masjid)
                     OutlinedTextField(
                         value = values[timeKey].orEmpty(),
-                        onValueChange = { values[timeKey] = formatTimeTyping(it) },
+                        onValueChange = { values[timeKey] = timeDigits(it) },
                         label = { Text(stringResource(timeLabelRes(name))) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        visualTransformation = DigitsVisualTransformation(::timeWithColon),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -353,17 +359,19 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = values[adhanKey].orEmpty(),
-                            onValueChange = { values[adhanKey] = formatTimeTyping(it) },
+                            onValueChange = { values[adhanKey] = timeDigits(it) },
                             label = { Text(adhanLabel) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            visualTransformation = DigitsVisualTransformation(::timeWithColon),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier.weight(1f),
                         )
                         OutlinedTextField(
                             value = values[iqamaKey].orEmpty(),
-                            onValueChange = { values[iqamaKey] = formatTimeTyping(it) },
+                            onValueChange = { values[iqamaKey] = timeDigits(it) },
                             label = { Text(iqamaLabel) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            visualTransformation = DigitsVisualTransformation(::timeWithColon),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier.weight(1f),
                         )
@@ -376,8 +384,8 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = {
-                val all = values.toMap()
-                val rangeOk = MasjidTimings.saveRange(context, masjid, fromText, toText)
+                val all = values.mapValues { timeWithColon(it.value) }
+                val rangeOk = MasjidTimings.saveRange(context, masjid, dateWithSlashes(fromText), dateWithSlashes(toText))
                 rangeError = !rangeOk
                 if (all.values.any { it.isNotBlank() && !MasjidTimings.isValid(it) }) {
                     error = true

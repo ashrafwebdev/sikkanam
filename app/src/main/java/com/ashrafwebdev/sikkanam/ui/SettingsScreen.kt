@@ -531,9 +531,10 @@ private fun ReminderSection() {
         OutlinedTextField(
             value = text,
             onValueChange = {
-                text = formatDateTyping(it)
+                text = dateDigits(it)
                 message = null
             },
+            visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
             label = { Text(stringResource(R.string.settings_zakat_date)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -541,7 +542,7 @@ private fun ReminderSection() {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilledTonalButton(onClick = {
                 val parsed = try {
-                    SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(text.trim())
+                    SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(dateWithSlashes(text).trim())
                 } catch (e: Exception) {
                     null
                 }

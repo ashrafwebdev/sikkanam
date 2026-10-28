@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.TravelBooking
@@ -276,10 +277,10 @@ fun TravelBookingDialog(vm: FinanceViewModel, existing: TravelBooking?, initialG
                 TravelField(operator, { operator = it }, R.string.travel_field_operator)
                 TravelField(fromPlace, { fromPlace = it }, R.string.travel_field_from)
                 TravelField(toPlace, { toPlace = it }, R.string.travel_field_to)
-                TravelField(departDate, { departDate = formatDateTyping(it) }, R.string.travel_field_depart_date, KeyboardType.Number)
-                TravelField(departTime, { departTime = formatTimeTyping(it) }, R.string.travel_field_depart_time, KeyboardType.Number)
-                TravelField(arriveDate, { arriveDate = formatDateTyping(it) }, R.string.travel_field_arrive_date, KeyboardType.Number)
-                TravelField(arriveTime, { arriveTime = formatTimeTyping(it) }, R.string.travel_field_arrive_time, KeyboardType.Number)
+                TravelField(departDate, { departDate = dateDigits(it) }, R.string.travel_field_depart_date, KeyboardType.Number, DigitsVisualTransformation(::dateWithSlashes))
+                TravelField(departTime, { departTime = timeDigits(it) }, R.string.travel_field_depart_time, KeyboardType.Number, DigitsVisualTransformation(::timeWithColon))
+                TravelField(arriveDate, { arriveDate = dateDigits(it) }, R.string.travel_field_arrive_date, KeyboardType.Number, DigitsVisualTransformation(::dateWithSlashes))
+                TravelField(arriveTime, { arriveTime = timeDigits(it) }, R.string.travel_field_arrive_time, KeyboardType.Number, DigitsVisualTransformation(::timeWithColon))
                 TravelField(reference, { reference = it }, R.string.travel_field_reference)
                 TravelField(fare, { fare = it }, R.string.travel_field_fare, KeyboardType.Decimal)
                 TravelField(seat, { seat = it }, R.string.travel_field_seat)
@@ -353,11 +354,13 @@ private fun TravelField(
     onValueChange: (String) -> Unit,
     labelRes: Int,
     keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(stringResource(labelRes)) },
+        visualTransformation = visualTransformation,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth(),
@@ -376,5 +379,5 @@ private fun dateTimeLabel(millis: Long): String = dateLabel(millis) + " " + time
 /** Reads a dd/mm/yyyy date and an hh:mm time typed by the user. Null when either is not valid. */
 private fun parseDateTime(date: String, time: String): Long? = runCatching {
     SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US).apply { isLenient = false }
-        .parse("${date.trim()} ${time.trim()}")?.time
+        .parse("${dateWithSlashes(date).trim()} ${timeWithColon(time).trim()}")?.time
 }.getOrNull()

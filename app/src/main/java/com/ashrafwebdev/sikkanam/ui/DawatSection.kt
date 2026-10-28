@@ -170,7 +170,7 @@ fun DawatSection(vm: FinanceViewModel) {
 private fun parseDate(text: String): Long? {
     if (text.isBlank()) return 0L
     return try {
-        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(text.trim())?.time
+        SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }.parse(dateWithSlashes(text).trim())?.time
     } catch (e: Exception) {
         null
     }
@@ -219,7 +219,8 @@ private fun FollowUpDialog(person: DawatContact, onDismiss: () -> Unit, onSave: 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = date,
-                    onValueChange = { date = formatDateTyping(it) },
+                    onValueChange = { date = dateDigits(it) },
+                    visualTransformation = DigitsVisualTransformation(::dateWithSlashes),
                     label = { Text(stringResource(R.string.dawat_followup_date)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

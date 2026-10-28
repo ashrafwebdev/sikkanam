@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -52,7 +51,7 @@ import com.ashrafwebdev.sikkanam.update.UpdateBanner
 
 /** The bottom-bar pages. Islamic and Jamaat pages are hidden when switched off in Settings. */
 private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
-    MONEY(R.string.tab_money, Icons.Default.Home),
+    MONEY(R.string.tab_money, MoneyIcon),
     BUDGETS(R.string.tab_budgets, Icons.Default.DateRange),
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
