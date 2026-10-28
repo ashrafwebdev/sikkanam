@@ -33,4 +33,13 @@
     <string name="books_bookmarks_clear">Clear bookmarks</string>
     <string name="books_bookmark_place">Place %1$d</string>
     <string name="books_by">by %1$s</string>
+    <string name="reader_contents">Contents</string>
+    <string name="reader_search">Search</string>
+    <string name="reader_search_title">Search in this book</string>
+    <string name="reader_search_hint">Word or phrase</string>
+    <string name="reader_search_none">No matches.</string>
+    <string name="reader_close">Close</string>
+    <string name="reader_theme_light">Light</string>
+    <string name="reader_theme_sepia">Sepia</string>
+    <string name="reader_theme_dark">Dark</string>
 </resources>

@@ -81,3 +81,22 @@ object ReaderFontSize {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY, step.coerceIn(MIN_STEP, MAX_STEP)).apply()
     }
 }
+
+/** The page colours of the reader for EPUB and TXT books: light (the app's own colours), sepia or dark. */
+object ReaderTheme {
+    private const val PREFS = "reader_settings"
+    private const val KEY = "theme"
+    const val LIGHT = 0
+    const val SEPIA = 1
+    const val DARK = 2
+
+    fun load(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, LIGHT).coerceIn(LIGHT, DARK)
+
+    /** The next theme after [theme], wrapping from dark back to light. */
+    fun next(theme: Int): Int = if (theme >= DARK) LIGHT else theme + 1
+
+    fun save(context: Context, theme: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY, theme.coerceIn(LIGHT, DARK)).apply()
+    }
+}

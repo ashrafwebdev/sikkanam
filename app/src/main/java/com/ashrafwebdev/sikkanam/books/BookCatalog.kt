@@ -172,8 +172,8 @@ suspend fun importBook(context: Context, source: Uri): LocalBook? = withContext(
 private data class BundledBook(val id: String, val title: String, val asset: String, val version: Int)
 
 private val BUNDLED_BOOKS = listOf(
-    BundledBook("six-principles-en", "The Six Principles (Draft)", "books/six-principles-en.epub", 1),
-    BundledBook("six-principles-ta", "ஆறு அடிப்படைகள் (வரைவு)", "books/six-principles-ta.epub", 1),
+    BundledBook("six-principles-en", "The Six Principles (Draft)", "books/six-principles-en.epub", 3),
+    BundledBook("six-principles-ta", "ஆறு அடிப்படைகள் (வரைவு)", "books/six-principles-ta.epub", 3),
 )
 
 private const val BUNDLED_PREFS = "bundled_books"

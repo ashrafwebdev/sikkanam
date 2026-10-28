@@ -13,10 +13,18 @@ import java.io.File
 import java.io.StringReader
 import java.util.zip.ZipFile
 
-/** Text of a book as paragraphs, in reading order. EPUB chapters are joined one after another. */
-fun readTextBook(file: File, format: String): List<String> = when (format) {
+/**
+ * Text of a book as lines, in reading order. EPUB chapters are joined one after another.
+ * [headings] are the indexes of the lines that are chapter or section titles, for the Contents list.
+ */
+data class BookText(val lines: List<String>, val headings: List<Int>)
+
+/** Marks a heading line while the EPUB is read. The mark is removed again before the line is kept. */
+private const val HEADING_MARK = '\u0001'
+
+fun readTextBook(file: File, format: String): BookText = when (format) {
     "epub" -> readEpub(file)
-    else -> readPlainText(file)
+    else -> BookText(readPlainText(file), emptyList())
 }
 
 /** True if the file opens as a book in [format]. Plain text is accepted as long as it can be read. */
@@ -62,17 +70,24 @@ private fun readPlainText(file: File): List<String> =
     file.readText(Charsets.UTF_8).removePrefix("\uFEFF").lines().map { it.trim() }.filter { it.isNotEmpty() }
 
 /** An EPUB is a zip file: find the package file, then read its chapters in spine order. */
-private fun readEpub(file: File): List<String> = ZipFile(file).use { zip ->
-    val container = zip.readEntry("META-INF/container.xml") ?: return@use emptyList()
+private fun readEpub(file: File): BookText = ZipFile(file).use { zip ->
+    val empty = BookText(emptyList(), emptyList())
+    val container = zip.readEntry("META-INF/container.xml") ?: return@use empty
     val opfPath = Regex("full-path\\s*=\\s*\"([^\"]+)\"").find(container)?.groupValues?.get(1)
-        ?: return@use emptyList()
-    val opf = zip.readEntry(opfPath) ?: return@use emptyList()
+        ?: return@use empty
+    val opf = zip.readEntry(opfPath) ?: return@use empty
     val folder = opfPath.substringBeforeLast('/', "")
-    spineHrefs(opf).flatMap { href ->
+    val lines = ArrayList<String>()
+    val headings = ArrayList<Int>()
+    spineHrefs(opf).forEach { href ->
         val path = Uri.decode(if (folder.isEmpty()) href else "$folder/$href")
-        val html = zip.readEntry(path) ?: return@flatMap emptyList<String>()
-        htmlParagraphs(html)
+        val html = zip.readEntry(path) ?: return@forEach
+        htmlParagraphs(html).forEach { line ->
+            if (line.startsWith(HEADING_MARK)) headings.add(lines.size)
+            lines.add(line.removePrefix(HEADING_MARK.toString()))
+        }
     }
+    BookText(lines, headings)
 }
 
 /** The chapter files of an EPUB package, in the order the book reads them. */
@@ -98,14 +113,21 @@ private fun spineHrefs(opf: String): List<String> {
     return spine.mapNotNull { manifest[it] }
 }
 
-/** Strips the markup from one chapter and returns its non-empty lines. */
-private fun htmlParagraphs(html: String): List<String> =
-    Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString()
+/**
+ * Strips the markup from one chapter and returns its non-empty lines. Headings start with [HEADING_MARK],
+ * so the reader can list them.
+ */
+private fun htmlParagraphs(html: String): List<String> {
+    val marked = html
+        .replace(Regex("<h[1-6][^>]*>"), "<p>$HEADING_MARK")
+        .replace(Regex("</h[1-6]>"), "</p>")
+    return Html.fromHtml(marked, Html.FROM_HTML_MODE_LEGACY).toString()
         .replace('\u00A0', ' ')
         .replace("\uFFFC", "")
         .lines()
         .map { it.trim() }
         .filter { it.isNotEmpty() }
+}
 
 private fun ZipFile.readEntry(name: String): String? =
     getEntry(name)?.let { entry -> getInputStream(entry).bufferedReader(Charsets.UTF_8).use { it.readText() } }

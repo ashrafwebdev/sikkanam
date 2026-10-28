@@ -34,4 +34,13 @@
     <string name="books_bookmarks_clear">குறிகளை அழி</string>
     <string name="books_bookmark_place">இடம் %1$d</string>
     <string name="books_by">ஆசிரியர்: %1$s</string>
+    <string name="reader_contents">உள்ளடக்கம்</string>
+    <string name="reader_search">தேடு</string>
+    <string name="reader_search_title">இந்த நூலில் தேடு</string>
+    <string name="reader_search_hint">சொல் அல்லது சொற்றொடர்</string>
+    <string name="reader_search_none">பொருந்தும் இடம் இல்லை.</string>
+    <string name="reader_close">மூடு</string>
+    <string name="reader_theme_light">ஒளி</string>
+    <string name="reader_theme_sepia">சேபியா</string>
+    <string name="reader_theme_dark">இருள்</string>
 </resources>
