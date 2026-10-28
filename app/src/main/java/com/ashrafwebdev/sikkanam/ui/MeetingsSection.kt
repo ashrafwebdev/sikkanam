@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,11 +45,9 @@ fun MeetingsSection(vm: FinanceViewModel, groupId: Long) {
         SectionHeader(
             title = stringResource(R.string.meeting_title),
             action = {
-                FilledTonalButton(onClick = { showNew = true }) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
-                }
+                FilledTonalIconButton(onClick = { showNew = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
             },
         )
         if (meetings.isEmpty()) {

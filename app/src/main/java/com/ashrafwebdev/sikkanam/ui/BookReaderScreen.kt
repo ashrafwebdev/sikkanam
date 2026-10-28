@@ -8,11 +8,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -71,6 +76,7 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
     val context = LocalContext.current
     val file = bookFile(context, book)
     var fontStep by remember { mutableStateOf(ReaderFontSize.load(context)) }
+    var pdfZoom by remember { mutableStateOf(PDF_ZOOM_MIN) }
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -86,7 +92,16 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            if (book.format != "pdf") {
+            if (book.format == "pdf") {
+                TextButton(
+                    onClick = { pdfZoom = (pdfZoom - PDF_ZOOM_STEP).coerceAtLeast(PDF_ZOOM_MIN) },
+                    enabled = pdfZoom > PDF_ZOOM_MIN,
+                ) { Text("−") }
+                TextButton(
+                    onClick = { pdfZoom = (pdfZoom + PDF_ZOOM_STEP).coerceAtMost(PDF_ZOOM_MAX) },
+                    enabled = pdfZoom < PDF_ZOOM_MAX,
+                ) { Text("+") }
+            } else {
                 TextButton(
                     onClick = {
                         fontStep = (fontStep - 1).coerceAtLeast(ReaderFontSize.MIN_STEP)
@@ -105,7 +120,7 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
         }
         when {
             !file.exists() -> Message(stringResource(R.string.books_missing), Modifier.weight(1f))
-            book.format == "pdf" -> PdfBook(book.id, file, Modifier.weight(1f))
+            book.format == "pdf" -> PdfBook(book.id, file, pdfZoom, { pdfZoom = it }, Modifier.weight(1f))
             else -> TextBook(book.id, book.format, file, fontStep, Modifier.weight(1f))
         }
     }
@@ -189,8 +204,13 @@ private fun BookmarkBar(bookId: String, listState: LazyListState) {
     }
 }
 
+/** How far a PDF page can be zoomed: from the width of the screen up to three times that. */
+private const val PDF_ZOOM_MIN = 1f
+private const val PDF_ZOOM_MAX = 3f
+private const val PDF_ZOOM_STEP = 0.25f
+
 @Composable
-private fun PdfBook(bookId: String, file: File, modifier: Modifier) {
+private fun PdfBook(bookId: String, file: File, zoom: Float, onZoom: (Float) -> Unit, modifier: Modifier) {
     val opened by produceState<Result<PdfPages>?>(null, file) {
         value = withContext(Dispatchers.IO) { runCatching { PdfPages(file) } }
     }
@@ -201,28 +221,43 @@ private fun PdfBook(bookId: String, file: File, modifier: Modifier) {
     when {
         pdf == null -> Loading(modifier)
         pdf.isFailure -> Message(stringResource(R.string.books_error_open), modifier)
-        else -> PdfPageList(bookId, pdf.getOrThrow(), modifier)
+        else -> PdfPageList(bookId, pdf.getOrThrow(), zoom, onZoom, modifier)
     }
 }
 
 @Composable
-private fun PdfPageList(bookId: String, pdf: PdfPages, modifier: Modifier) {
+private fun PdfPageList(bookId: String, pdf: PdfPages, zoom: Float, onZoom: (Float) -> Unit, modifier: Modifier) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    // Pages are drawn to the width of the screen inside the side padding.
-    val widthPx = with(density) { (LocalConfiguration.current.screenWidthDp.dp - 32.dp).roundToPx() }
-        .coerceAtLeast(100)
+    // Pages are drawn to the width of the screen inside the side padding, times the zoom.
+    val pageWidth = LocalConfiguration.current.screenWidthDp.dp - 32.dp
+    val zoomedWidth = pageWidth * zoom
+    val widthPx = with(density) { zoomedWidth.roundToPx() }.coerceAtLeast(100)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
+    // Pinch with two fingers to zoom. Zoomed pages that are wider than the screen scroll sideways.
+    val currentZoom by rememberUpdatedState(zoom)
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         BookmarkBar(bookId, listState)
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, _, zoomChange, _ ->
+                        onZoom((currentZoom * zoomChange).coerceIn(PDF_ZOOM_MIN, PDF_ZOOM_MAX))
+                    }
+                }
+                .horizontalScroll(rememberScrollState()),
         ) {
-            items(count = pdf.pageCount) { index -> PdfPageImage(pdf, index, widthPx) }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.width(zoomedWidth).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
+                items(count = pdf.pageCount) { index -> PdfPageImage(pdf, index, widthPx) }
+            }
         }
     }
 }
@@ -252,6 +287,14 @@ private fun SaveProgress(bookId: String, listState: LazyListState) {
     val context = LocalContext.current
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }.collect { ReadingProgress.save(context, bookId, it) }
+    }
+    // Once the last item has been on screen, the book counts as read, so the library shows Read, not Continue.
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }.collect { last ->
+            if (last != null && last >= listState.layoutInfo.totalItemsCount - 1) {
+                ReadingProgress.markFinished(context, bookId)
+            }
+        }
     }
 }
 

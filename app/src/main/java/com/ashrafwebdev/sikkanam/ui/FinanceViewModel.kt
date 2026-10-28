@@ -22,7 +22,12 @@ import com.ashrafwebdev.sikkanam.data.MastooratTrip
 import com.ashrafwebdev.sikkanam.data.PairInput
 import com.ashrafwebdev.sikkanam.data.TaleemKind
 import com.ashrafwebdev.sikkanam.data.TashkeelKind
+import com.ashrafwebdev.sikkanam.reminders.cancelAllMastooratReminders
 import com.ashrafwebdev.sikkanam.reminders.cancelAllTravelReminders
+import com.ashrafwebdev.sikkanam.reminders.cancelMastooratTaleemReminder
+import com.ashrafwebdev.sikkanam.reminders.cancelMastooratTripReminder
+import com.ashrafwebdev.sikkanam.reminders.scheduleMastooratTaleemReminder
+import com.ashrafwebdev.sikkanam.reminders.scheduleMastooratTripReminder
 import com.ashrafwebdev.sikkanam.reminders.cancelTravelReminder
 import com.ashrafwebdev.sikkanam.reminders.scheduleTravelReminder
 import com.ashrafwebdev.sikkanam.data.AppDatabase
@@ -316,6 +321,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             val tripId = db.mastooratDao().insertTrip(
                 MastooratTrip(groupId = groupId, effort = effort, startMillis = startMillis, endMillis = endMillis, place = place.trim()),
             )
+            scheduleMastooratTripReminder(getApplication(), tripId, startMillis)
             db.mastooratDao().insertPairs(
                 pairs.map {
                     MastooratPair(tripId = tripId, mahramPersonId = resolvePerson(it.mahram), childAge = it.childAge, relation = it.relation)
@@ -342,6 +348,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun deleteMastooratTrip(trip: MastooratTrip) {
+        cancelMastooratTripReminder(getApplication(), trip.id)
         viewModelScope.launch {
             db.mastooratDao().deletePairsOfTrip(trip.id)
             db.mastooratDao().deleteTrip(trip.id)
@@ -362,7 +369,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     ): Boolean {
         val attended = attendedText.trim().toIntOrNull()?.takeIf { it >= 0 } ?: return false
         viewModelScope.launch {
-            db.mastooratDao().insertTaleem(
+            val taleemId = db.mastooratDao().insertTaleem(
                 MastooratTaleem(
                     groupId = groupId,
                     kind = kind,
@@ -375,11 +382,13 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                     tashkeelPersonId = roleId(tashkeel),
                 ),
             )
+            scheduleMastooratTaleemReminder(getApplication(), taleemId, dayMillis)
         }
         return true
     }
 
     fun deleteMastooratTaleem(id: Long) {
+        cancelMastooratTaleemReminder(getApplication(), id)
         viewModelScope.launch { db.mastooratDao().deleteTaleem(id) }
     }
 
@@ -1235,6 +1244,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch(Dispatchers.IO) {
             cancelAllTravelReminders(getApplication())
+            cancelAllMastooratReminders(getApplication())
             db.clearAllTables()
             data.categories.forEach { db.categoryDao().insert(it) }
             data.transactions.forEach { db.transactionDao().insert(it) }

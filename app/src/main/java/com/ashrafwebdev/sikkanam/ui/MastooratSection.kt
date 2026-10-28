@@ -1,5 +1,9 @@
 package com.ashrafwebdev.sikkanam.ui
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material.icons.filled.Share
 
+
+import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +19,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +42,10 @@ import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.MahramRelation
 import com.ashrafwebdev.sikkanam.data.MastooratEffort
+import com.ashrafwebdev.sikkanam.data.MastooratPair
 import com.ashrafwebdev.sikkanam.data.MastooratRules
+import com.ashrafwebdev.sikkanam.data.MastooratTaleem
+import com.ashrafwebdev.sikkanam.data.MastooratTashkeel
 import com.ashrafwebdev.sikkanam.data.MastooratTrip
 import com.ashrafwebdev.sikkanam.data.PairInput
 import com.ashrafwebdev.sikkanam.data.PairProblem
@@ -47,6 +53,7 @@ import com.ashrafwebdev.sikkanam.data.Person
 import com.ashrafwebdev.sikkanam.data.PersonChoice
 import com.ashrafwebdev.sikkanam.data.TaleemKind
 import com.ashrafwebdev.sikkanam.data.TashkeelKind
+import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -135,7 +142,7 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
     SectionCard {
         SectionHeader(title = stringResource(R.string.mastoorat_title))
         Text(stringResource(R.string.mastoorat_intro), style = MaterialTheme.typography.bodySmall)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ButtonRow {
             FilledTonalButton(onClick = { showNewTrip = true }) { Text(stringResource(R.string.mastoorat_new_trip)) }
             OutlinedButton(onClick = { showTaleem = true }) { Text(stringResource(R.string.mastoorat_record_taleem)) }
             OutlinedButton(onClick = { showTashkeel = true }) { Text(stringResource(R.string.mastoorat_record_tashkeel)) }
@@ -161,6 +168,14 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
             )
         }
     }
+
+    MonthlyReportCard(
+        trips = myTrips,
+        pairs = pairs,
+        taleem = myTaleem,
+        tashkeel = myTashkeel,
+        names = names,
+    )
 
     SectionCard {
         SectionHeader(title = stringResource(R.string.mastoorat_trips_title))
@@ -318,6 +333,72 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
     }
 }
 
+/**
+ * The month's figures for one Mastoorat group, with a month chooser and a share button. The share sends the
+ * same figures as plain text, so they can be sent to the masjid's shura.
+ */
+@Composable
+private fun MonthlyReportCard(
+    trips: List<MastooratTrip>,
+    pairs: List<MastooratPair>,
+    taleem: List<MastooratTaleem>,
+    tashkeel: List<MastooratTashkeel>,
+    names: Map<Long, String>,
+) {
+    val context = LocalContext.current
+    var monthStart by remember { mutableStateOf(startOfMonth(System.currentTimeMillis())) }
+    val monthEnd = addMonths(monthStart, 1)
+    val monthTrips = trips.filter { it.startMillis in monthStart until monthEnd }
+    val monthPairs = pairs.filter { pair -> monthTrips.any { it.id == pair.tripId } }
+    val monthTaleem = taleem.filter { it.dayMillis in monthStart until monthEnd }
+    val monthTashkeel = tashkeel.filter { it.dayMillis in monthStart until monthEnd }
+    val weekly = monthTaleem.filter { it.kind == TaleemKind.WEEKLY_IJTIMA }
+    val onTarget = weekly.count { MastooratRules.taleemOnTarget(it.attended) }
+    val dailyDays = monthTaleem.count { it.kind == TaleemKind.DAILY_HOME }
+    val joined = monthTashkeel.sumOf { it.joined }
+    val dutyLines = names.keys.mapNotNull { id ->
+        val reads = monthTaleem.count { it.readerPersonId == id }
+        val reception = monthTaleem.count { it.receptionPersonId == id }
+        val sixPoints = monthTaleem.count { it.sixPointsPersonId == id }
+        val tashkeelDuty = monthTaleem.count { it.tashkeelPersonId == id }
+        if (reads + reception + sixPoints + tashkeelDuty == 0) {
+            null
+        } else {
+            stringResource(R.string.mastoorat_duty_line, names[id].orEmpty(), reads, reception, sixPoints, tashkeelDuty)
+        }
+    }
+
+    val lines = listOf(
+        stringResource(R.string.mastoorat_report_month, monthLabel(monthStart)),
+        stringResource(R.string.mastoorat_report_trips, monthTrips.size),
+        stringResource(R.string.mastoorat_report_pairs, monthPairs.size, monthPairs.count { it.childAge != 0 }),
+        stringResource(R.string.mastoorat_report_taleem, weekly.size, onTarget, dailyDays),
+        stringResource(R.string.mastoorat_report_tashkeel, joined),
+    ) + dutyLines
+    val reportText = lines.joinToString("\n")
+
+    SectionCard {
+        SectionHeader(title = stringResource(R.string.mastoorat_report_title))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { monthStart = addMonths(monthStart, -1) }) {
+                Text(stringResource(R.string.mastoorat_report_prev))
+            }
+            Text(monthLabel(monthStart), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { monthStart = addMonths(monthStart, 1) }) {
+                Text(stringResource(R.string.mastoorat_report_next))
+            }
+        }
+        lines.drop(1).forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+        OutlinedIconButton(onClick = {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, reportText)
+            }
+            context.startActivity(Intent.createChooser(intent, null))
+        }) { Icon(Icons.Default.Share, contentDescription = stringResource(R.string.mastoorat_report_share)) }
+    }
+}
+
 @Composable
 private fun RecordRow(title: String, detail: String, roles: List<Pair<String, String>>, onDelete: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -459,7 +540,7 @@ private fun RecordTaleemDialog(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TaleemKind.entries.forEach { option ->
-                        FilterChip(selected = kind == option, onClick = { kind = option }, label = { Text(stringResource(taleemRes(option))) })
+                        AppChip(selected = kind == option, onClick = { kind = option }, label = { Text(stringResource(taleemRes(option))) })
                     }
                 }
                 DateField(day, { day = it }, R.string.mastoorat_day)
@@ -541,7 +622,7 @@ private fun RecordTashkeelDialog(
             ) {
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TashkeelKind.entries.forEach { option ->
-                        FilterChip(selected = kind == option, onClick = { kind = option }, label = { Text(stringResource(tashkeelRes(option))) })
+                        AppChip(selected = kind == option, onClick = { kind = option }, label = { Text(stringResource(tashkeelRes(option))) })
                     }
                 }
                 DateField(day, { day = it }, R.string.mastoorat_day)
@@ -574,7 +655,7 @@ private fun RecordTashkeelDialog(
 private fun EffortChips(selected: MastooratEffort, onSelect: (MastooratEffort) -> Unit) {
     Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         MastooratEffort.entries.forEach { option ->
-            FilterChip(selected = selected == option, onClick = { onSelect(option) }, label = { Text(stringResource(effortRes(option))) })
+            AppChip(selected = selected == option, onClick = { onSelect(option) }, label = { Text(stringResource(effortRes(option))) })
         }
     }
 }
@@ -583,7 +664,7 @@ private fun EffortChips(selected: MastooratEffort, onSelect: (MastooratEffort) -
 private fun DateField(value: String, onChange: (String) -> Unit, labelRes: Int) {
     OutlinedTextField(
         value = value,
-        onValueChange = onChange,
+        onValueChange = { onChange(formatDateTyping(it)) },
         label = { Text(stringResource(labelRes)) },
         placeholder = { Text(stringResource(R.string.mastoorat_date_hint)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -608,7 +689,7 @@ private fun PairRows(rows: MutableList<PairRow>, people: List<Person>) {
             Text(stringResource(R.string.mastoorat_relation_label), style = MaterialTheme.typography.labelSmall)
             Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MahramRelation.entries.forEach { option ->
-                    FilterChip(
+                    AppChip(
                         selected = row.relation == option,
                         onClick = { rows[index] = row.copy(relation = option) },
                         label = { Text(stringResource(relationRes(option))) },

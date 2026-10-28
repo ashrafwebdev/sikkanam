@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,7 +76,7 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             filters.forEach { (key, label) ->
-                FilterChip(
+                AppChip(
                     selected = filter == key,
                     onClick = { filter = key },
                     label = { Text(label) },

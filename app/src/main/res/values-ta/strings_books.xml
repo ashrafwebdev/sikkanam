@@ -28,6 +28,8 @@
     <string name="books_error_open">இந்த நூலைத் திறக்க முடியவில்லை.</string>
     <string name="books_empty_book">இந்த நூலில் காட்ட உரை இல்லை.</string>
     <string name="books_page_number">பக்கம் %1$d</string>
+    <string name="books_search">தலைப்பு, ஆசிரியர் அல்லது வடிவம் மூலம் நூல்களைத் தேடு</string>
+    <string name="books_search_none">தேடலுக்குப் பொருந்தும் நூல் இல்லை.</string>
     <string name="books_bookmark_here">இந்த இடத்தைக் குறி</string>
     <string name="books_bookmarks_clear">குறிகளை அழி</string>
     <string name="books_bookmark_place">இடம் %1$d</string>

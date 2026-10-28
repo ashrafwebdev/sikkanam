@@ -15,6 +15,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -72,11 +73,9 @@ fun DawatSection(vm: FinanceViewModel) {
         SectionHeader(
             title = stringResource(R.string.dawat_title),
             action = {
-                FilledTonalButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
-                }
+                FilledTonalIconButton(onClick = { showAdd = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
             },
         )
         Text(
@@ -220,7 +219,7 @@ private fun FollowUpDialog(person: DawatContact, onDismiss: () -> Unit, onSave: 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = date,
-                    onValueChange = { date = it },
+                    onValueChange = { date = formatDateTyping(it) },
                     label = { Text(stringResource(R.string.dawat_followup_date)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

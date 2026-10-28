@@ -18,8 +18,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -63,11 +63,9 @@ fun TravelScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 SectionHeader(
                     title = stringResource(R.string.travel_title),
                     action = {
-                        FilledTonalButton(onClick = { showNew = true }) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(Modifier.width(4.dp))
-                            Text(stringResource(R.string.action_add))
-                        }
+                        FilledTonalIconButton(onClick = { showNew = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
                     },
                 )
                 Text(stringResource(R.string.travel_intro), style = MaterialTheme.typography.bodySmall)
@@ -130,11 +128,9 @@ fun TripTravelSection(vm: FinanceViewModel, groupId: Long) {
         SectionHeader(
             title = stringResource(R.string.travel_trip_title),
             action = {
-                FilledTonalButton(onClick = { showNew = true }) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
-                }
+                FilledTonalIconButton(onClick = { showNew = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
             },
         )
         if (linked.isEmpty()) {
@@ -270,7 +266,7 @@ fun TravelBookingDialog(vm: FinanceViewModel, existing: TravelBooking?, initialG
                 Text(stringResource(R.string.travel_field_mode), style = MaterialTheme.typography.labelLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TravelMode.entries.forEach { option ->
-                        FilterChip(
+                        AppChip(
                             selected = mode == option,
                             onClick = { mode = option },
                             label = { Text(stringResource(option.labelRes)) },
@@ -280,10 +276,10 @@ fun TravelBookingDialog(vm: FinanceViewModel, existing: TravelBooking?, initialG
                 TravelField(operator, { operator = it }, R.string.travel_field_operator)
                 TravelField(fromPlace, { fromPlace = it }, R.string.travel_field_from)
                 TravelField(toPlace, { toPlace = it }, R.string.travel_field_to)
-                TravelField(departDate, { departDate = it }, R.string.travel_field_depart_date, KeyboardType.Number)
-                TravelField(departTime, { departTime = it }, R.string.travel_field_depart_time, KeyboardType.Number)
-                TravelField(arriveDate, { arriveDate = it }, R.string.travel_field_arrive_date, KeyboardType.Number)
-                TravelField(arriveTime, { arriveTime = it }, R.string.travel_field_arrive_time, KeyboardType.Number)
+                TravelField(departDate, { departDate = formatDateTyping(it) }, R.string.travel_field_depart_date, KeyboardType.Number)
+                TravelField(departTime, { departTime = formatTimeTyping(it) }, R.string.travel_field_depart_time, KeyboardType.Number)
+                TravelField(arriveDate, { arriveDate = formatDateTyping(it) }, R.string.travel_field_arrive_date, KeyboardType.Number)
+                TravelField(arriveTime, { arriveTime = formatTimeTyping(it) }, R.string.travel_field_arrive_time, KeyboardType.Number)
                 TravelField(reference, { reference = it }, R.string.travel_field_reference)
                 TravelField(fare, { fare = it }, R.string.travel_field_fare, KeyboardType.Decimal)
                 TravelField(seat, { seat = it }, R.string.travel_field_seat)
@@ -298,13 +294,13 @@ fun TravelBookingDialog(vm: FinanceViewModel, existing: TravelBooking?, initialG
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    FilterChip(
+                    AppChip(
                         selected = groupId == 0L,
                         onClick = { groupId = 0L },
                         label = { Text(stringResource(R.string.travel_group_none)) },
                     )
                     groups.forEach { group ->
-                        FilterChip(
+                        AppChip(
                             selected = groupId == group.id,
                             onClick = { groupId = group.id },
                             label = { Text(group.name) },

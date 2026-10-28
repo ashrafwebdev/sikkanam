@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,7 +45,7 @@ fun IslamicScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             IslamicPage.entries.forEach { option ->
-                FilterChip(
+                AppChip(
                     selected = page == option,
                     onClick = { page = option },
                     label = { Text(stringResource(option.labelRes)) },

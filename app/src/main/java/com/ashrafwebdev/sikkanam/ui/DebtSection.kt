@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -175,12 +174,12 @@ private fun NewDebtDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    AppChip(
                         selected = direction == DebtDirection.LENT,
                         onClick = { direction = DebtDirection.LENT },
                         label = { Text(stringResource(R.string.debt_lent)) },
                     )
-                    FilterChip(
+                    AppChip(
                         selected = direction == DebtDirection.BORROWED,
                         onClick = { direction = DebtDirection.BORROWED },
                         label = { Text(stringResource(R.string.debt_borrowed)) },
@@ -196,7 +195,7 @@ private fun NewDebtDialog(
                 )
                 OutlinedTextField(
                     value = due,
-                    onValueChange = { due = it },
+                    onValueChange = { due = formatDateTyping(it) },
                     label = { Text(stringResource(R.string.debt_due)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

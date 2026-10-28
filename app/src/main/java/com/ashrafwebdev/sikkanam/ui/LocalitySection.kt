@@ -1,4 +1,6 @@
 package com.ashrafwebdev.sikkanam.ui
+import androidx.compose.material.icons.filled.Edit
+
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +16,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -70,11 +72,9 @@ fun LocalitySection(vm: FinanceViewModel) {
         SectionHeader(
             title = stringResource(R.string.locality_title),
             action = {
-                FilledTonalButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
-                }
+                FilledTonalIconButton(onClick = { showAdd = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
             },
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -125,7 +125,9 @@ fun LocalitySection(vm: FinanceViewModel) {
                 FilledTonalButton(enabled = !metToday, onClick = { meetingWith = person }) {
                     Text(stringResource(if (metToday) R.string.locality_met_today_done else R.string.locality_met_today))
                 }
-                TextButton(onClick = { editing = person }) { Text(stringResource(R.string.action_edit)) }
+                IconButton(onClick = { editing = person }) {
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit))
+                }
                 IconButton(onClick = { vm.deleteLocalityPerson(person.id) }) {
                     Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.locality_delete_desc))
                 }
@@ -229,13 +231,13 @@ private fun TaskeelDialog(person: LocalityPerson, onDismiss: () -> Unit, onSave:
         title = { Text(stringResource(R.string.taskeel_dialog_title, person.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                FilterChip(
+                AppChip(
                     selected = chosen == null,
                     onClick = { chosen = null },
                     label = { Text(stringResource(R.string.taskeel_none)) },
                 )
                 KhuroojType.entries.forEach { type ->
-                    FilterChip(
+                    AppChip(
                         selected = chosen == type,
                         onClick = { chosen = type },
                         label = { Text(stringResource(khuroojLabelRes(type))) },
@@ -297,10 +299,10 @@ private fun LocalityPersonDialog(
                 }
                 OutlinedTextField(value = locality, onValueChange = { locality = it }, label = { Text(stringResource(R.string.locality_field)) }, singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(selected = forty, onClick = { forty = !forty }, label = { Text(stringResource(R.string.locality_tag_forty)) })
-                    FilterChip(selected = fourMonths, onClick = { fourMonths = !fourMonths }, label = { Text(stringResource(R.string.locality_tag_four_months)) })
+                    AppChip(selected = forty, onClick = { forty = !forty }, label = { Text(stringResource(R.string.locality_tag_forty)) })
+                    AppChip(selected = fourMonths, onClick = { fourMonths = !fourMonths }, label = { Text(stringResource(R.string.locality_tag_four_months)) })
                 }
-                FilterChip(
+                AppChip(
                     selected = active,
                     onClick = { active = !active },
                     label = { Text(stringResource(R.string.locality_status_active)) },
@@ -308,7 +310,7 @@ private fun LocalityPersonDialog(
                 Text(stringResource(R.string.locality_available_label), style = MaterialTheme.typography.labelLarge)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     KhuroojType.entries.forEach { type ->
-                        FilterChip(
+                        AppChip(
                             selected = type in available,
                             onClick = { available = if (type in available) available - type else available + type },
                             label = { Text(stringResource(khuroojLabelRes(type))) },

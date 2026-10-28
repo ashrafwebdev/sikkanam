@@ -20,8 +20,27 @@ object ReadingProgress {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .remove(bookId)
             .remove(bookmarkKey(bookId))
+            .remove(finishedKey(bookId))
             .apply()
     }
+
+    /** True once the reader has reached the last page or paragraph of the book. */
+    fun isFinished(context: Context, bookId: String): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(finishedKey(bookId), false)
+
+    fun markFinished(context: Context, bookId: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(finishedKey(bookId), true).apply()
+    }
+
+    /** Starts a finished book again from the beginning. Bookmarks are kept. */
+    fun restart(context: Context, bookId: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putInt(bookId, 0)
+            .putBoolean(finishedKey(bookId), false)
+            .apply()
+    }
+
+    private fun finishedKey(bookId: String) = "finished_$bookId"
 
     /** The places marked with a bookmark in this book, in reading order. */
     fun bookmarks(context: Context, bookId: String): List<Int> {

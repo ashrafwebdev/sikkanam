@@ -141,8 +141,17 @@ interface MastooratDao {
     @Query("DELETE FROM mastoorat_trips WHERE id = :id")
     suspend fun deleteTrip(id: Long)
 
+    @Query("SELECT * FROM mastoorat_taleem WHERE id = :id")
+    suspend fun taleemById(id: Long): MastooratTaleem?
+
+    @Query("SELECT * FROM mastoorat_trips WHERE id = :id")
+    suspend fun tripById(id: Long): MastooratTrip?
+
+    @Query("SELECT * FROM mastoorat_pairs WHERE tripId = :tripId")
+    suspend fun pairsOfTrip(tripId: Long): List<MastooratPair>
+
     @Insert
-    suspend fun insertTaleem(entry: MastooratTaleem)
+    suspend fun insertTaleem(entry: MastooratTaleem): Long
 
     @Query("DELETE FROM mastoorat_taleem WHERE id = :id")
     suspend fun deleteTaleem(id: Long)

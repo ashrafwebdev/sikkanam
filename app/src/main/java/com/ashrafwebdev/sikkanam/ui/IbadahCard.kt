@@ -1,4 +1,9 @@
 package com.ashrafwebdev.sikkanam.ui
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+
 
 import android.content.Context
 import androidx.annotation.StringRes
@@ -90,7 +95,7 @@ fun IbadahCard() {
         SectionHeader(title = stringResource(R.string.ibadah_title))
         DailyAmaalChecklist()
         Text(stringResource(R.string.ibadah_dhikr, dhikr), style = MaterialTheme.typography.bodyLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ButtonRow {
             FilledTonalButton(onClick = {
                 dhikr += 1
                 writeCount(context, "dhikr_", dhikr)
@@ -99,13 +104,13 @@ fun IbadahCard() {
                 dhikr += 33
                 writeCount(context, "dhikr_", dhikr)
             }) { Text(stringResource(R.string.ibadah_plus_33)) }
-            OutlinedButton(onClick = {
+            OutlinedIconButton(onClick = {
                 dhikr = 0
                 writeCount(context, "dhikr_", dhikr)
-            }) { Text(stringResource(R.string.ibadah_reset)) }
+            }) { Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.ibadah_reset)) }
         }
         Text(stringResource(R.string.ibadah_pages, pages), style = MaterialTheme.typography.bodyLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ButtonRow {
             FilledTonalButton(onClick = {
                 pages += 1
                 writeCount(context, "pages_", pages)

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -84,12 +83,12 @@ fun ZakatScreen(modifier: Modifier = Modifier) {
         SectionCard {
             SectionHeader(title = stringResource(R.string.zakat_nisab_title))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+                AppChip(
                     selected = useSilver,
                     onClick = { useSilver = true },
                     label = { Text(stringResource(R.string.zakat_silver)) },
                 )
-                FilterChip(
+                AppChip(
                     selected = !useSilver,
                     onClick = { useSilver = false },
                     label = { Text(stringResource(R.string.zakat_gold)) },

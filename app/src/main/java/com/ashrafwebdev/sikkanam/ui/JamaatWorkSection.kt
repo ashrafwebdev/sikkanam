@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -98,7 +97,7 @@ fun MuqamiAmaalSection(vm: FinanceViewModel, groupId: Long, members: List<TripMe
                 ) {
                     all.forEach { amaal ->
                         val done = mine.any { it.amaal == amaal.key && it.dayMillis == today && it.done }
-                        FilterChip(
+                        AppChip(
                             selected = done,
                             onClick = { vm.setAmaal(groupId, member.id, today, amaal, !done) },
                             label = { Text(stringResource(amaalLabelRes(amaal))) },
@@ -153,7 +152,7 @@ fun WeeklyProgrammeSection(vm: FinanceViewModel, groupId: Long, members: List<Tr
                 ) {
                     programmes.forEach { programme ->
                         val done = mine.any { it.amaal == programme.key }
-                        FilterChip(
+                        AppChip(
                             selected = done,
                             onClick = { vm.setWeekly(groupId, member.id, weekStart, programme, !done) },
                             label = { Text(stringResource(weeklyLabelRes(programme))) },
@@ -248,7 +247,7 @@ private fun NewKhuroojDialog(
                 // One per line, so each long label fits on a phone screen.
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     KhuroojType.entries.forEach { option ->
-                        FilterChip(
+                        AppChip(
                             selected = type == option,
                             onClick = { type = option },
                             label = { Text(stringResource(khuroojLabelRes(option))) },
@@ -257,14 +256,14 @@ private fun NewKhuroojDialog(
                 }
                 OutlinedTextField(
                     value = start,
-                    onValueChange = { start = it },
+                    onValueChange = { start = formatDateTyping(it) },
                     label = { Text(stringResource(R.string.khurooj_start)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = end,
-                    onValueChange = { end = it },
+                    onValueChange = { end = formatDateTyping(it) },
                     label = { Text(stringResource(R.string.khurooj_end)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,

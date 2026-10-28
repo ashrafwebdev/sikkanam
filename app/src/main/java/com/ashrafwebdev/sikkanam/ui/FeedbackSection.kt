@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -77,7 +76,7 @@ private fun FeedbackDialog(onDismiss: () -> Unit) {
                 // Stacked, so each label has the full width and does not wrap letter by letter.
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     FeedbackType.entries.forEach { option ->
-                        FilterChip(
+                        AppChip(
                             selected = type == option,
                             onClick = { type = option },
                             label = { Text(feedbackTypeLabel(option)) },

@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -94,12 +93,12 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.SemiBold,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    AppChip(
                         selected = newType == TransactionType.EXPENSE,
                         onClick = { newType = TransactionType.EXPENSE },
                         label = { Text(stringResource(R.string.type_expense)) },
                     )
-                    FilterChip(
+                    AppChip(
                         selected = newType == TransactionType.INCOME,
                         onClick = { newType = TransactionType.INCOME },
                         label = { Text(stringResource(R.string.type_income)) },
@@ -293,7 +292,7 @@ private fun LanguageSection() {
         )
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             AppLanguage.entries.forEach { option ->
-                FilterChip(
+                AppChip(
                     selected = language == option,
                     onClick = {
                         language = option
@@ -329,7 +328,7 @@ private fun TextSizeSection() {
         )
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             TextSize.entries.forEach { option ->
-                FilterChip(
+                AppChip(
                     selected = textSize == option,
                     onClick = {
                         textSize = option
@@ -532,7 +531,7 @@ private fun ReminderSection() {
         OutlinedTextField(
             value = text,
             onValueChange = {
-                text = it
+                text = formatDateTyping(it)
                 message = null
             },
             label = { Text(stringResource(R.string.settings_zakat_date)) },

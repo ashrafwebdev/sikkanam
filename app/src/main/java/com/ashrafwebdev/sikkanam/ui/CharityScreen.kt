@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -205,12 +204,12 @@ private fun DonationDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    AppChip(
                         selected = kind == DonationKind.SADAQAH,
                         onClick = { kind = DonationKind.SADAQAH },
                         label = { Text(stringResource(R.string.charity_sadaqah)) },
                     )
-                    FilterChip(
+                    AppChip(
                         selected = kind == DonationKind.PURIFICATION,
                         onClick = { kind = DonationKind.PURIFICATION },
                         label = { Text(stringResource(R.string.charity_purification)) },

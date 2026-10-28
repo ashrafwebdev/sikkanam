@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -69,11 +70,9 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
             SectionHeader(
                 title = stringResource(R.string.budget_monthly_title),
                 action = {
-                    FilledTonalButton(onClick = { editing = null; showDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(Modifier.width(4.dp))
-                        Text(stringResource(R.string.action_add))
-                    }
+                    FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
                 },
             )
         }

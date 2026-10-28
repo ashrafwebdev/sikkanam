@@ -67,6 +67,25 @@ fun addMonths(monthStart: Long, months: Int): Long {
 fun monthLabel(monthStart: Long): String =
     SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date(monthStart))
 
+/**
+ * Keeps a date being typed as dd/mm/yyyy. Only digits are kept, up to eight, and the slashes are added
+ * after the day and the month, so a number keyboard can enter the date.
+ */
+fun formatDateTyping(input: String): String = buildString {
+    input.filter { it.isDigit() }.take(8).forEachIndexed { index, digit ->
+        if (index == 2 || index == 4) append('/')
+        append(digit)
+    }
+}
+
+/** Keeps a time being typed as hh:mm. Only digits are kept, up to four, and the colon is added after the hour. */
+fun formatTimeTyping(input: String): String = buildString {
+    input.filter { it.isDigit() }.take(4).forEachIndexed { index, digit ->
+        if (index == 2) append(':')
+        append(digit)
+    }
+}
+
 /** Indian date format, for example 26/10/2026. */
 fun dateLabel(millis: Long): String =
     SimpleDateFormat("dd/MM/yyyy", Locale("en", "IN")).format(Date(millis))

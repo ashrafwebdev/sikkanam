@@ -1,4 +1,9 @@
 package com.ashrafwebdev.sikkanam.ui
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +69,7 @@ fun BooksPage(modifier: Modifier = Modifier) {
     var updating by remember { mutableStateOf(false) }
     var statusRes by remember { mutableStateOf<Int?>(null) }
     var removing by remember { mutableStateOf<LocalBook?>(null) }
+    var query by remember { mutableStateOf("") }
 
     val pickBook = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -76,6 +83,18 @@ fun BooksPage(modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+
+    // The search matches the title, the author and the format, so a long list stays easy to find things in.
+    val search = query.trim()
+    val shownLocal = local.filter { book ->
+        search.isEmpty() || book.title.contains(search, ignoreCase = true) ||
+            book.author.contains(search, ignoreCase = true) || book.format.contains(search, ignoreCase = true)
+    }
+    val shownRemote = remote.filter { book ->
+        search.isEmpty() || book.title.contains(search, ignoreCase = true) ||
+            book.author.contains(search, ignoreCase = true) || book.description.contains(search, ignoreCase = true) ||
+            book.format.contains(search, ignoreCase = true)
     }
 
     val reading = readingId?.let { id -> local.firstOrNull { it.id == id } }
@@ -114,6 +133,20 @@ fun BooksPage(modifier: Modifier = Modifier) {
                             Text(stringResource(if (updating) R.string.books_updating else R.string.books_update))
                         }
                     }
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = { Text(stringResource(R.string.books_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (search.isNotEmpty() && shownLocal.isEmpty() && shownRemote.isEmpty()) {
+                        Text(
+                            stringResource(R.string.books_search_none),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     statusRes?.let {
                         Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
@@ -130,7 +163,7 @@ fun BooksPage(modifier: Modifier = Modifier) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    local.forEach { book ->
+                    shownLocal.forEach { book ->
                         LocalBookRow(
                             book = book,
                             onRead = { readingId = book.id },
@@ -150,7 +183,7 @@ fun BooksPage(modifier: Modifier = Modifier) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    remote.forEach { book ->
+                    shownRemote.forEach { book ->
                         RemoteBookRow(
                             book = book,
                             downloaded = local.any { it.id == book.id },
@@ -199,7 +232,8 @@ fun BooksPage(modifier: Modifier = Modifier) {
 @Composable
 private fun LocalBookRow(book: LocalBook, onRead: () -> Unit, onRemove: () -> Unit) {
     val context = LocalContext.current
-    val started = ReadingProgress.load(context, book.id) > 0
+    val finished = ReadingProgress.isFinished(context, book.id)
+    val started = ReadingProgress.load(context, book.id) > 0 && !finished
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(book.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
         Text(
@@ -208,10 +242,16 @@ private fun LocalBookRow(book: LocalBook, onRead: () -> Unit, onRemove: () -> Un
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(onClick = onRead) {
+            FilledTonalButton(onClick = {
+                // A finished book opens again from the top.
+                if (finished) ReadingProgress.restart(context, book.id)
+                onRead()
+            }) {
                 Text(stringResource(if (started) R.string.books_continue else R.string.books_read))
             }
-            OutlinedButton(onClick = onRemove) { Text(stringResource(R.string.books_remove)) }
+            OutlinedIconButton(onClick = onRemove) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.books_remove))
+            }
         }
     }
 }

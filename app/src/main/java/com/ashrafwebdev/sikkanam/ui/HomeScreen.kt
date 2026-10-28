@@ -25,8 +25,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -165,11 +165,9 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                FilledTonalButton(onClick = { editing = null; showDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
-                }
+                FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
+        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+    }
                 TextButton(onClick = { exportLauncher.launch(exportFileName) }) {
                     Text(stringResource(R.string.home_export_csv))
                 }
@@ -188,17 +186,17 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+                AppChip(
                     selected = typeFilter == null,
                     onClick = { vm.setTypeFilter(null) },
                     label = { Text(stringResource(R.string.filter_all)) },
                 )
-                FilterChip(
+                AppChip(
                     selected = typeFilter == TransactionType.INCOME,
                     onClick = { vm.setTypeFilter(TransactionType.INCOME) },
                     label = { Text(stringResource(R.string.type_income)) },
                 )
-                FilterChip(
+                AppChip(
                     selected = typeFilter == TransactionType.EXPENSE,
                     onClick = { vm.setTypeFilter(TransactionType.EXPENSE) },
                     label = { Text(stringResource(R.string.type_expense)) },
@@ -399,12 +397,12 @@ private fun TransactionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    AppChip(
                         selected = type == TransactionType.EXPENSE,
                         onClick = { if (type != TransactionType.EXPENSE) category = ""; type = TransactionType.EXPENSE },
                         label = { Text(stringResource(R.string.type_expense)) },
                     )
-                    FilterChip(
+                    AppChip(
                         selected = type == TransactionType.INCOME,
                         onClick = { if (type != TransactionType.INCOME) category = ""; type = TransactionType.INCOME },
                         label = { Text(stringResource(R.string.type_income)) },
@@ -477,7 +475,7 @@ private fun TransactionDialog(
                     Text(stringResource(R.string.home_label_islamic_status), style = MaterialTheme.typography.labelLarge)
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf(HalalStatus.NONE, HalalStatus.HALAL, HalalStatus.DOUBTFUL, HalalStatus.HARAM).forEach { status ->
-                            FilterChip(
+                            AppChip(
                                 selected = halal == status,
                                 onClick = { halal = status },
                                 label = { Text(halalLabel(status)) },
