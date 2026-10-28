@@ -17,8 +17,34 @@ object ReadingProgress {
     }
 
     fun clear(context: Context, bookId: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(bookId).apply()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .remove(bookId)
+            .remove(bookmarkKey(bookId))
+            .apply()
     }
+
+    /** The places marked with a bookmark in this book, in reading order. */
+    fun bookmarks(context: Context, bookId: String): List<Int> {
+        val saved = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(bookmarkKey(bookId), "").orEmpty()
+        return saved.split(",").mapNotNull { it.toIntOrNull() }.distinct().sorted()
+    }
+
+    fun addBookmark(context: Context, bookId: String, position: Int) {
+        val updated = bookmarks(context, bookId) + position
+        saveBookmarks(context, bookId, updated)
+    }
+
+    fun clearBookmarks(context: Context, bookId: String) {
+        saveBookmarks(context, bookId, emptyList())
+    }
+
+    private fun saveBookmarks(context: Context, bookId: String, positions: List<Int>) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(bookmarkKey(bookId), positions.distinct().sorted().joinToString(","))
+            .apply()
+    }
+
+    private fun bookmarkKey(bookId: String) = "bookmarks_$bookId"
 }
 
 /** The text size the reader uses for EPUB and TXT books, as a step from 0 (smallest) to 4 (largest). */

@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -53,6 +57,7 @@ import com.ashrafwebdev.sikkanam.books.ReadingProgress
 import com.ashrafwebdev.sikkanam.books.bookFile
 import com.ashrafwebdev.sikkanam.books.readTextBook
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -130,17 +135,56 @@ private fun ParagraphList(bookId: String, paragraphs: List<String>, fontStep: In
     SaveProgress(bookId, listState)
     // Step 1 is the normal 16 sp body text; each step up or down adds or removes 2 sp.
     val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = (14 + 2 * fontStep).sp)
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(bottom = 24.dp),
-    ) {
-        items(paragraphs) { paragraph ->
-            Text(
-                paragraph,
-                style = textStyle,
-                modifier = Modifier.padding(vertical = 6.dp),
-            )
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        BookmarkBar(bookId, listState)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(bottom = 24.dp),
+        ) {
+            items(paragraphs) { paragraph ->
+                Text(
+                    paragraph,
+                    style = textStyle,
+                    modifier = Modifier.padding(vertical = 6.dp),
+                )
+            }
+        }
+    }
+}
+
+/** Marks the place on screen with a bookmark, and jumps back to saved bookmarks. */
+@Composable
+private fun BookmarkBar(bookId: String, listState: LazyListState) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var marks by remember(bookId) { mutableStateOf(ReadingProgress.bookmarks(context, bookId)) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = {
+                ReadingProgress.addBookmark(context, bookId, listState.firstVisibleItemIndex)
+                marks = ReadingProgress.bookmarks(context, bookId)
+            }) { Text(stringResource(R.string.books_bookmark_here)) }
+            if (marks.isNotEmpty()) {
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = {
+                    ReadingProgress.clearBookmarks(context, bookId)
+                    marks = emptyList()
+                }) { Text(stringResource(R.string.books_bookmarks_clear)) }
+            }
+        }
+        if (marks.isNotEmpty()) {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                marks.forEach { index ->
+                    AssistChip(
+                        onClick = { scope.launch { listState.scrollToItem(index) } },
+                        label = { Text(stringResource(R.string.books_bookmark_place, index + 1)) },
+                    )
+                }
+            }
         }
     }
 }
@@ -170,13 +214,16 @@ private fun PdfPageList(bookId: String, pdf: PdfPages, modifier: Modifier) {
         .coerceAtLeast(100)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 24.dp),
-    ) {
-        items(count = pdf.pageCount) { index -> PdfPageImage(pdf, index, widthPx) }
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        BookmarkBar(bookId, listState)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 24.dp),
+        ) {
+            items(count = pdf.pageCount) { index -> PdfPageImage(pdf, index, widthPx) }
+        }
     }
 }
 

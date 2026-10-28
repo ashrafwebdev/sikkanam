@@ -27,5 +27,8 @@
     <string name="books_error_open">This book could not be opened.</string>
     <string name="books_empty_book">This book has no text to show.</string>
     <string name="books_page_number">Page %1$d</string>
+    <string name="books_bookmark_here">Bookmark this place</string>
+    <string name="books_bookmarks_clear">Clear bookmarks</string>
+    <string name="books_bookmark_place">Place %1$d</string>
     <string name="books_by">by %1$s</string>
 </resources>
