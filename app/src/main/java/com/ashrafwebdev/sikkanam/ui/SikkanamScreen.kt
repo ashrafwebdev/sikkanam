@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,8 +52,8 @@ import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.update.UpdateBanner
 
 /** The bottom-bar pages. Islamic and Jamaat pages are hidden when switched off in Settings. */
-private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
-    MONEY(R.string.tab_money, MoneyIcon),
+private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector? = null, @DrawableRes val iconRes: Int? = null) {
+    MONEY(R.string.tab_money, iconRes = R.drawable.ic_money),
     BUDGETS(R.string.tab_budgets, Icons.Default.DateRange),
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
@@ -126,7 +128,11 @@ private fun TabBar(tabs: List<Tab>, current: Tab, onSelect: (Tab) -> Unit) {
                         .clickable { onSelect(tab) }
                         .padding(vertical = 8.dp),
                 ) {
-                    Icon(tab.icon, contentDescription = null, tint = color)
+                    if (tab.iconRes != null) {
+                        Icon(painterResource(tab.iconRes), contentDescription = null, tint = color)
+                    } else if (tab.icon != null) {
+                        Icon(tab.icon, contentDescription = null, tint = color)
+                    }
                     Spacer(Modifier.height(2.dp))
                     Text(
                         stringResource(tab.labelRes),
