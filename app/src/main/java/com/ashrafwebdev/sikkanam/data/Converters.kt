@@ -26,4 +26,22 @@ class Converters {
 
     @TypeConverter
     fun stringToGroupKind(value: String): GroupKind = GroupKind.valueOf(value)
+
+    @TypeConverter
+    fun mastooratEffortToString(effort: MastooratEffort): String = effort.name
+
+    @TypeConverter
+    fun stringToMastooratEffort(value: String): MastooratEffort = MastooratEffort.valueOf(value)
+
+    @TypeConverter
+    fun taleemKindToString(kind: TaleemKind): String = kind.name
+
+    @TypeConverter
+    fun stringToTaleemKind(value: String): TaleemKind = TaleemKind.valueOf(value)
+
+    @TypeConverter
+    fun tashkeelKindToString(kind: TashkeelKind): String = kind.name
+
+    @TypeConverter
+    fun stringToTashkeelKind(value: String): TashkeelKind = TashkeelKind.valueOf(value)
 }

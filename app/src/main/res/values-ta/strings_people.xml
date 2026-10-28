@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <string name="person_name">பெயர்</string>
+    <string name="person_phone">தொலைபேசி</string>
+    <string name="person_address">முகவரி</string>
+    <string name="person_matches">ஏற்கெனவே சேமிக்கப்பட்டவர். அந்த நபரைப் பயன்படுத்த பெயரைத் தட்டுங்கள்.</string>
+    <string name="person_new_hint">பட்டியலில் இன்னும் இல்லை. தொலைபேசியை நிரப்பி சேமித்தால் சேர்க்கப்படும்.</string>
+    <string name="person_saved_selected">சேமிக்கப்பட்ட நபரைப் பயன்படுத்துகிறது.</string>
+    <string name="person_not_this">இவர் இல்லை</string>
+</resources>

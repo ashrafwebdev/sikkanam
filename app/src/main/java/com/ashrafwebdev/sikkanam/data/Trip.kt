@@ -33,6 +33,8 @@ data class TripMember(
     @ColumnInfo(defaultValue = "0") val advanceCents: Long = 0,
     // Going members share costs. Members who only showed interest are listed but don't.
     @ColumnInfo(defaultValue = "1") val confirmed: Boolean = true,
+    // The person in the master register this member is linked to. 0 for members added before linking.
+    @ColumnInfo(defaultValue = "0") val personId: Long = 0,
 )
 
 /** A month of a family group that everyone has settled up. Balances carry forward only from after it. */

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Jamaat (khurooj) groups -->
-    <string name="trip_list_title">Jamaat and family</string>
+    <string name="trip_list_title">Jamaat and mastoorat</string>
     <string name="trip_btn_trip">Jamaat</string>
-    <string name="trip_btn_family">Family</string>
+    <string name="trip_btn_family">Mastoorat</string>
     <string name="trip_empty">No jamaat yet. Create one for a khurooj and share the costs with everyone going.</string>
     <string name="trip_kind_trip">Jamaat</string>
-    <string name="trip_kind_family">Family</string>
+    <string name="trip_kind_family">Mastoorat</string>
     <string name="trip_open">Open</string>
     <string name="trip_summary">%1$s · %2$d members · spent %3$s</string>
-    <string name="trip_new_family">New family group</string>
+    <string name="trip_new_family">New mastoorat group</string>
     <string name="trip_new_trip">New jamaat</string>
-    <string name="trip_family_name_hint">Family name, for example Joint family</string>
+    <string name="trip_family_name_hint">Group name, for example Sisters of our masjid</string>
     <string name="trip_name_hint">Jamaat name, for example Khurooj to Guduvancheri</string>
     <string name="trip_back">Back</string>
     <string name="trip_rename_desc">Rename jamaat</string>

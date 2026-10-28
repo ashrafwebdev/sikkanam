@@ -27,6 +27,8 @@ private val helpSections: List<Pair<Int, Int>> = listOf(
     R.string.help_learn_title to R.string.help_learn_text,
     R.string.help_jamaat_title to R.string.help_jamaat_text,
     R.string.help_dawat_title to R.string.help_dawat_text,
+    R.string.help_people_title to R.string.help_people_text,
+    R.string.help_mastoorat_title to R.string.help_mastoorat_text,
     R.string.help_directory_title to R.string.help_directory_text,
     R.string.help_travel_title to R.string.help_travel_text,
     R.string.help_notes_title to R.string.help_notes_text,

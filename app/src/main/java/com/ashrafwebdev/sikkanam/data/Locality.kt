@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -20,6 +21,8 @@ data class LocalityPerson(
     val notes: String = "",
     // The khurooj types this person is available for, as comma-separated KhuroojType names.
     val availableTypes: String = "",
+    // The person in the master register this entry is linked to. 0 for records made before linking.
+    @ColumnInfo(defaultValue = "0") val personId: Long = 0,
 )
 
 /**

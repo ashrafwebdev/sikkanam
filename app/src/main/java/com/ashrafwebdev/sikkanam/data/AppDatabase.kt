@@ -15,8 +15,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TripSettledMonth::class, Account::class, Transfer::class, Meeting::class, DutyAssignment::class, DutyType::class,
         GoalEntry::class, Place::class, Debt::class, AmaalCheck::class, Khurooj::class, DawatContact::class, LocalityPerson::class, MeetingVisit::class,
         Note::class, TravelBooking::class,
+        Person::class, MastooratTrip::class, MastooratPair::class, MastooratTaleem::class, MastooratTashkeel::class,
     ],
-    version = 32,
+    version = 33,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -44,6 +45,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dutyTypeDao(): DutyTypeDao
     abstract fun noteDao(): NoteDao
     abstract fun travelDao(): TravelDao
+    abstract fun personDao(): PersonDao
+    abstract fun mastooratDao(): MastooratDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -367,6 +370,69 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds the master register of people and links the existing dawat, locality and jamaat records to it,
+         * one register entry per name and phone. Also adds the Mastoorat tables.
+         */
+        private val MIGRATION_32_33 = object : Migration(32, 33) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "name TEXT NOT NULL, phone TEXT NOT NULL, address TEXT NOT NULL)"
+                )
+                db.execSQL("ALTER TABLE dawat_contacts ADD COLUMN personId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE locality_people ADD COLUMN personId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE trip_members ADD COLUMN personId INTEGER NOT NULL DEFAULT 0")
+                linkExistingPeople(db, "dawat_contacts", "area")
+                linkExistingPeople(db, "locality_people", "locality")
+                linkExistingPeople(db, "trip_members", "address")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS mastoorat_trips (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, effort TEXT NOT NULL, startMillis INTEGER NOT NULL, " +
+                        "endMillis INTEGER NOT NULL, place TEXT NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS mastoorat_pairs (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "tripId INTEGER NOT NULL, woman TEXT NOT NULL, mahram TEXT NOT NULL, childAge INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS mastoorat_taleem (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, kind TEXT NOT NULL, dayMillis INTEGER NOT NULL, " +
+                        "house TEXT NOT NULL, attended INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS mastoorat_tashkeel (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "groupId INTEGER NOT NULL, dayMillis INTEGER NOT NULL, kind TEXT NOT NULL, joined INTEGER NOT NULL)"
+                )
+            }
+        }
+
+        /** Points each record in [table] at a register entry with the same name and phone, adding one if needed. */
+        private fun linkExistingPeople(db: SupportSQLiteDatabase, table: String, addressColumn: String) {
+            class Row(val id: Long, val name: String, val phone: String, val address: String)
+
+            val rows = mutableListOf<Row>()
+            db.query("SELECT id, name, phone, $addressColumn FROM $table").use { c ->
+                while (c.moveToNext()) {
+                    rows += Row(c.getLong(0), c.getString(1).trim(), c.getString(2).trim(), c.getString(3).trim())
+                }
+            }
+            rows.filter { it.name.isNotEmpty() }.forEach { row ->
+                val existing = db.query(
+                    "SELECT id FROM people WHERE name = ? COLLATE NOCASE AND phone = ?",
+                    arrayOf(row.name, row.phone),
+                ).use { c -> if (c.moveToFirst()) c.getLong(0) else null }
+                val personId = existing ?: run {
+                    db.execSQL("INSERT INTO people (name, phone, address) VALUES (?, ?, ?)", arrayOf(row.name, row.phone, row.address))
+                    db.query("SELECT last_insert_rowid()").use { c ->
+                        c.moveToFirst()
+                        c.getLong(0)
+                    }
+                }
+                db.execSQL("UPDATE $table SET personId = ? WHERE id = ?", arrayOf(personId, row.id))
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -383,7 +449,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
                     MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30,
-                    MIGRATION_30_31, MIGRATION_31_32,
+                    MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

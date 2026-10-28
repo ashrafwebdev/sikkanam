@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -31,4 +32,6 @@ data class DawatContact(
     val metMillis: Long,
     val followUpMillis: Long = 0,
     val notes: String = "",
+    // The person in the master register this contact is linked to. 0 for records made before linking.
+    @ColumnInfo(defaultValue = "0") val personId: Long = 0,
 )

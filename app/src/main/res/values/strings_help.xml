@@ -47,6 +47,10 @@
     <string name="help_notes_title">Notes</string>
     <string name="help_notes_text">Write personal notes with a title and text, such as a reminder, a list, or a summary. Type in Search notes to find a note by its title or text. Tap a note to read all of it. Use Edit to change a note or Delete to remove it. Notes are saved on this phone and included in the backup.</string>
 
+    <string name="help_people_title">People list</string>
+    <string name="help_people_text">Each person is saved once in the people list. When you add someone in Dawat, Locality or Jamaat, type their name first. If they are already listed, tap their name to use them. Add a new person only when no match appears. The same person then shows in every section they belong to.</string>
+    <string name="help_mastoorat_title">Mastoorat</string>
+    <string name="help_mastoorat_text">Open Jamaat and tap a Mastoorat group. Record trips for 3 days, 10 days, 40 days, or 2 months abroad, with pairs of a woman and her mahram. A trip can have at most 5 pairs, and at most 2 pairs can bring a female child aged 9 or over. Short trips can take more pairs later, but longer trips cannot. Record weekly ijtima in a house (the target is 20 to 25 women), daily taleem at home, and tashkeel by how long the women went out. The group\'s expense split and monthly settle-up work as before.</string>
     <string name="help_settings_title">Settings</string>
     <string name="help_settings_text">Choose the language (system, English, or Tamil) and the text size. Switch the Islamic and Jamaat pages on or off. Pick the prayer city and Asr method, set the zakat date, lock the app with fingerprint or screen lock, save or restore a backup, check for updates, and send feedback.</string>
 

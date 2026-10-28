@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mastoorat: the women's efforts, taleem and tashkeel. Apostrophes are escaped. -->
+    <string name="mastoorat_title">Mastoorat efforts</string>
+    <string name="mastoorat_intro">Track the women\'s efforts: trips with pairs of women and their mahram, weekly and daily taleem, and tashkeel. The limits are checked as you record.</string>
+    <string name="mastoorat_new_trip">New trip</string>
+    <string name="mastoorat_record_taleem">Record taleem</string>
+    <string name="mastoorat_record_tashkeel">Record tashkeel</string>
+    <string name="mastoorat_efforts_title">Summary of efforts</string>
+    <string name="mastoorat_effort_summary">%1$s: %2$d trips, %3$d pairs, %4$d with a female child</string>
+    <string name="mastoorat_effort_3">3 days</string>
+    <string name="mastoorat_effort_10">10 days</string>
+    <string name="mastoorat_effort_40">40 days</string>
+    <string name="mastoorat_effort_2m">2 months, foreign</string>
+    <string name="mastoorat_trips_title">Trips</string>
+    <string name="mastoorat_trips_empty">No trips yet. Tap New trip to record one.</string>
+    <string name="mastoorat_delete_desc">Delete</string>
+    <string name="mastoorat_place">Place: %1$s</string>
+    <string name="mastoorat_pairs_count">Pairs: %1$d of %2$d</string>
+    <string name="mastoorat_child_line">, female child aged %1$d</string>
+    <string name="mastoorat_pair_line">%1$s with mahram %2$s</string>
+    <string name="mastoorat_add_pairs">Add pairs</string>
+    <string name="mastoorat_no_extra_pairs">No extra pairs can be added to this trip.</string>
+    <string name="mastoorat_delete_confirm">Delete this trip and its pairs?</string>
+    <string name="mastoorat_taleem_title">Taleem</string>
+    <string name="mastoorat_taleem_summary">Weekly ijtima: %1$d recorded, %2$d on target (20 to 25 women). Daily taleem: %3$d days recorded.</string>
+    <string name="mastoorat_taleem_weekly">Weekly ijtima in a house</string>
+    <string name="mastoorat_taleem_daily">Daily taleem at home</string>
+    <string name="mastoorat_attended_line">House: %1$s · %2$d women</string>
+    <string name="mastoorat_off_target">Off target</string>
+    <string name="mastoorat_tashkeel_title">Tashkeel with mahram men</string>
+    <string name="mastoorat_tashkeel_3x3">3 times 3 days</string>
+    <string name="mastoorat_tashkeel_10">10 days</string>
+    <string name="mastoorat_tashkeel_40">40 days</string>
+    <string name="mastoorat_tashkeel_2m">2 months</string>
+    <string name="mastoorat_joined_line">%1$d women joined</string>
+    <string name="mastoorat_err_pairs">A trip can have at most %1$d pairs.</string>
+    <string name="mastoorat_err_child_pairs">At most %1$d pairs can bring a female child.</string>
+    <string name="mastoorat_err_child_age">A female child must be at least %1$d years old.</string>
+    <string name="mastoorat_date_error">Enter valid dates as dd/mm/yyyy. The end date cannot be before the start date.</string>
+    <string name="mastoorat_pairs_error">Enter at least one pair, with the woman and her mahram.</string>
+    <string name="mastoorat_number_error">Enter a number.</string>
+    <string name="mastoorat_start_date">Start date (dd/mm/yyyy)</string>
+    <string name="mastoorat_end_date">End date (dd/mm/yyyy)</string>
+    <string name="mastoorat_place_field">Place</string>
+    <string name="mastoorat_pairs_title">Pairs</string>
+    <string name="mastoorat_woman">Woman</string>
+    <string name="mastoorat_mahram">Mahram</string>
+    <string name="mastoorat_child_age">Female child\'s age, blank for none</string>
+    <string name="mastoorat_add_pair_row">Add a pair</string>
+    <string name="mastoorat_day">Date (dd/mm/yyyy)</string>
+    <string name="mastoorat_date_hint">dd/mm/yyyy</string>
+    <string name="mastoorat_house">House</string>
+    <string name="mastoorat_women_count">Women who came</string>
+    <string name="mastoorat_joined_count">Women who joined</string>
+</resources>

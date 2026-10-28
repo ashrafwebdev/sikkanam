@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.DawatContact
 import com.ashrafwebdev.sikkanam.data.DawatStatus
+import com.ashrafwebdev.sikkanam.data.Person
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -57,6 +58,7 @@ private fun statusRes(status: DawatStatus): Int = when (status) {
 @Composable
 fun DawatSection(vm: FinanceViewModel) {
     val contacts by vm.dawatContacts.collectAsState()
+    val people by vm.people.collectAsState()
     var showAdd by remember { mutableStateOf(false) }
     var followUpFor by remember { mutableStateOf<DawatContact?>(null) }
     var showForm by remember { mutableStateOf(false) }
@@ -123,9 +125,10 @@ fun DawatSection(vm: FinanceViewModel) {
 
     if (showAdd) {
         AddDawatDialog(
+            people = people,
             onDismiss = { showAdd = false },
-            onSave = { name, phone, area, notes ->
-                if (vm.addDawatContact(name, phone, area, notes)) {
+            onSave = { choice, area, notes ->
+                if (vm.addDawatContact(choice, area, notes)) {
                     showAdd = false
                     true
                 } else {
@@ -174,9 +177,12 @@ private fun parseDate(text: String): Long? {
 }
 
 @Composable
-private fun AddDawatDialog(onDismiss: () -> Unit, onSave: (String, String, String, String) -> Boolean) {
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+private fun AddDawatDialog(
+    people: List<Person>,
+    onDismiss: () -> Unit,
+    onSave: (PersonChoice, String, String) -> Boolean,
+) {
+    var choice by remember { mutableStateOf(PersonChoice()) }
     var area by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
@@ -187,21 +193,14 @@ private fun AddDawatDialog(onDismiss: () -> Unit, onSave: (String, String, Strin
         title = { Text(stringResource(R.string.dawat_add_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.dawat_name)) }, singleLine = true)
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text(stringResource(R.string.dawat_phone)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true,
-                )
+                PersonPickerFields(people = people, choice = choice, onChoice = { choice = it })
                 OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text(stringResource(R.string.dawat_area)) }, singleLine = true)
                 OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text(stringResource(R.string.dawat_notes)) }, minLines = 2)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (!onSave(name, phone, area, notes)) error = nameError }) { Text(stringResource(R.string.action_save)) }
+            TextButton(onClick = { if (!onSave(choice, area, notes)) error = nameError }) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

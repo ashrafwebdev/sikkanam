@@ -11,6 +11,16 @@ import com.ashrafwebdev.sikkanam.data.Meeting
 import com.ashrafwebdev.sikkanam.data.Note
 import com.ashrafwebdev.sikkanam.data.TravelBooking
 import com.ashrafwebdev.sikkanam.data.TravelMode
+import com.ashrafwebdev.sikkanam.data.Person
+import com.ashrafwebdev.sikkanam.data.MastooratEffort
+import com.ashrafwebdev.sikkanam.data.MastooratPair
+import com.ashrafwebdev.sikkanam.data.MastooratRules
+import com.ashrafwebdev.sikkanam.data.MastooratTaleem
+import com.ashrafwebdev.sikkanam.data.MastooratTashkeel
+import com.ashrafwebdev.sikkanam.data.MastooratTrip
+import com.ashrafwebdev.sikkanam.data.PairInput
+import com.ashrafwebdev.sikkanam.data.TaleemKind
+import com.ashrafwebdev.sikkanam.data.TashkeelKind
 import com.ashrafwebdev.sikkanam.reminders.cancelAllTravelReminders
 import com.ashrafwebdev.sikkanam.reminders.cancelTravelReminder
 import com.ashrafwebdev.sikkanam.reminders.scheduleTravelReminder
@@ -259,6 +269,95 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val tripExpenses: StateFlow<List<TripExpense>> = db.tripDao().observeExpenses()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** The master register of people, shared by Dawat, Locality and Jamaat. */
+    val people: StateFlow<List<Person>> = db.personDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * The register entry for the person on a form: the one picked from the list, an existing entry with the
+     * same name and phone, or a new entry.
+     */
+    private suspend fun resolvePerson(choice: PersonChoice): Long {
+        if (choice.personId != 0L) return choice.personId
+        val name = choice.name.trim()
+        val phone = choice.phone.trim()
+        val existing = db.personDao().all().firstOrNull { it.name.equals(name, ignoreCase = true) && it.phone == phone }
+        return existing?.id ?: db.personDao().insert(Person(name = name, phone = phone, address = choice.address.trim()))
+    }
+
+    val mastooratTrips: StateFlow<List<MastooratTrip>> = db.mastooratDao().observeTrips()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val mastooratPairs: StateFlow<List<MastooratPair>> = db.mastooratDao().observePairs()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val mastooratTaleem: StateFlow<List<MastooratTaleem>> = db.mastooratDao().observeTaleem()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val mastooratTashkeel: StateFlow<List<MastooratTashkeel>> = db.mastooratDao().observeTashkeel()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private fun pairsValid(pairs: List<PairInput>): Boolean =
+        pairs.isNotEmpty() && pairs.all { it.woman.isNotBlank() && it.mahram.isNotBlank() } && MastooratRules.check(pairs) == null
+
+    /** Records a Mastoorat trip with its pairs. Returns false when the dates are wrong or the pairs break the limits. */
+    fun saveMastooratTrip(
+        groupId: Long,
+        effort: MastooratEffort,
+        startMillis: Long,
+        endMillis: Long,
+        place: String,
+        pairs: List<PairInput>,
+    ): Boolean {
+        if (endMillis < startMillis || !pairsValid(pairs)) return false
+        viewModelScope.launch {
+            val tripId = db.mastooratDao().insertTrip(
+                MastooratTrip(groupId = groupId, effort = effort, startMillis = startMillis, endMillis = endMillis, place = place.trim()),
+            )
+            db.mastooratDao().insertPairs(pairs.map { MastooratPair(tripId = tripId, woman = it.woman.trim(), mahram = it.mahram.trim(), childAge = it.childAge) })
+        }
+        return true
+    }
+
+    /** Adds pairs to a 3 or 10 day trip. Longer trips take no extra pairs once they are made. */
+    fun addMastooratPairs(trip: MastooratTrip, pairs: List<PairInput>): Boolean {
+        if (!MastooratRules.canAddPairsLater(trip.effort) || !pairsValid(pairs)) return false
+        val already = mastooratPairs.value.filter { it.tripId == trip.id }.map { PairInput(it.woman, it.mahram, it.childAge) }
+        if (MastooratRules.check(already + pairs) != null) return false
+        viewModelScope.launch {
+            db.mastooratDao().insertPairs(pairs.map { MastooratPair(tripId = trip.id, woman = it.woman.trim(), mahram = it.mahram.trim(), childAge = it.childAge) })
+        }
+        return true
+    }
+
+    fun deleteMastooratTrip(trip: MastooratTrip) {
+        viewModelScope.launch {
+            db.mastooratDao().deletePairsOfTrip(trip.id)
+            db.mastooratDao().deleteTrip(trip.id)
+        }
+    }
+
+    fun saveMastooratTaleem(groupId: Long, kind: TaleemKind, dayMillis: Long, house: String, attendedText: String): Boolean {
+        val attended = attendedText.trim().toIntOrNull()?.takeIf { it >= 0 } ?: return false
+        viewModelScope.launch {
+            db.mastooratDao().insertTaleem(MastooratTaleem(groupId = groupId, kind = kind, dayMillis = dayMillis, house = house.trim(), attended = attended))
+        }
+        return true
+    }
+
+    fun deleteMastooratTaleem(id: Long) {
+        viewModelScope.launch { db.mastooratDao().deleteTaleem(id) }
+    }
+
+    fun saveMastooratTashkeel(groupId: Long, kind: TashkeelKind, dayMillis: Long, joinedText: String): Boolean {
+        val joined = joinedText.trim().toIntOrNull()?.takeIf { it >= 0 } ?: return false
+        viewModelScope.launch {
+            db.mastooratDao().insertTashkeel(MastooratTashkeel(groupId = groupId, dayMillis = dayMillis, kind = kind, joined = joined))
+        }
+        return true
+    }
+
+    fun deleteMastooratTashkeel(id: Long) {
+        viewModelScope.launch { db.mastooratDao().deleteTashkeel(id) }
+    }
+
     fun addTripGroup(name: String, kind: GroupKind = GroupKind.TRIP): Boolean {
         if (name.isBlank()) return false
         viewModelScope.launch { db.tripDao().insertGroup(TripGroup(name = name.trim(), kind = kind)) }
@@ -275,6 +374,10 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             tripSettledMonths.value.filter { it.groupId == groupId }.forEach {
                 tripDao.deleteSettledMonth(groupId, it.monthMillis)
             }
+            db.mastooratDao().deletePairsOfGroup(groupId)
+            db.mastooratDao().deleteTripsOfGroup(groupId)
+            db.mastooratDao().deleteTaleemOfGroup(groupId)
+            db.mastooratDao().deleteTashkeelOfGroup(groupId)
             tripDao.deleteGroup(groupId)
         }
     }
@@ -647,27 +750,27 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
      */
     fun addTripMember(
         groupId: Long,
-        name: String,
-        phone: String,
-        address: String,
+        choice: PersonChoice,
         daysText: String,
         advanceText: String,
         confirmed: Boolean,
     ): Boolean {
-        val clean = name.trim()
+        val clean = choice.name.trim()
         if (clean.isBlank()) return false
         if (tripMembers.value.any { it.groupId == groupId && it.name.equals(clean, ignoreCase = true) }) return false
         val (days, advance) = parseMemberFields(daysText, advanceText) ?: return false
         viewModelScope.launch {
+            val personId = resolvePerson(choice.copy(name = clean))
             db.tripDao().insertMember(
                 TripMember(
                     groupId = groupId,
                     name = clean,
-                    phone = phone.trim(),
-                    address = address.trim(),
+                    phone = choice.phone.trim(),
+                    address = choice.address.trim(),
                     days = days,
                     advanceCents = advance,
                     confirmed = confirmed,
+                    personId = personId,
                 )
             )
         }
@@ -930,12 +1033,21 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val dawatContacts: StateFlow<List<DawatContact>> = db.dawatDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** Records a person met in dawat. Returns false if the name is blank. */
-    fun addDawatContact(name: String, phone: String, area: String, notes: String): Boolean {
+    /** Records a person met in dawat, linked to the register. Returns false if the name is blank. */
+    fun addDawatContact(choice: PersonChoice, area: String, notes: String): Boolean {
+        val name = choice.name.trim()
         if (name.isBlank()) return false
         viewModelScope.launch {
+            val personId = resolvePerson(choice.copy(name = name))
             db.dawatDao().insert(
-                DawatContact(name = name.trim(), phone = phone.trim(), area = area.trim(), metMillis = System.currentTimeMillis(), notes = notes.trim()),
+                DawatContact(
+                    name = name,
+                    phone = choice.phone.trim(),
+                    area = area.trim(),
+                    metMillis = System.currentTimeMillis(),
+                    notes = notes.trim(),
+                    personId = personId,
+                ),
             )
         }
         return true
@@ -964,7 +1076,14 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             val groupId = db.tripDao().insertGroup(TripGroup(name = name.trim(), kind = GroupKind.TRIP))
             contacts.forEach { person ->
                 db.tripDao().insertMember(
-                    TripMember(groupId = groupId, name = person.name, phone = person.phone, address = person.area, confirmed = true),
+                    TripMember(
+                        groupId = groupId,
+                        name = person.name,
+                        phone = person.phone,
+                        address = person.area,
+                        confirmed = true,
+                        personId = person.personId,
+                    ),
                 )
             }
         }
@@ -974,11 +1093,21 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val localityPeople: StateFlow<List<LocalityPerson>> = db.localityDao().observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** Adds a person from the locality. Returns false if the name is blank. */
-    fun addLocalityPerson(person: LocalityPerson): Boolean {
-        if (person.name.isBlank()) return false
+    /** Adds a person from the locality, linked to the register. Returns false if the name is blank. */
+    fun addLocalityPerson(person: LocalityPerson, choice: PersonChoice): Boolean {
+        val name = choice.name.trim()
+        if (name.isBlank()) return false
         viewModelScope.launch {
-            db.localityDao().insert(person.copy(name = person.name.trim(), phone = person.phone.trim(), locality = person.locality.trim(), notes = person.notes.trim()))
+            val personId = resolvePerson(choice.copy(name = name))
+            db.localityDao().insert(
+                person.copy(
+                    name = name,
+                    phone = choice.phone.trim(),
+                    locality = person.locality.trim(),
+                    notes = person.notes.trim(),
+                    personId = personId,
+                ),
+            )
         }
         return true
     }
@@ -1046,6 +1175,14 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         khurooj = khurooj.value,
         notes = notes.value,
         travelBookings = travelBookings.value,
+        people = people.value,
+        mastooratTrips = mastooratTrips.value,
+        mastooratPairs = mastooratPairs.value,
+        mastooratTaleem = mastooratTaleem.value,
+        mastooratTashkeel = mastooratTashkeel.value,
+        dawatContacts = dawatContacts.value,
+        localityPeople = localityPeople.value,
+        meetingVisits = meetingVisits.value,
     ).toJson()
 
 
@@ -1077,8 +1214,16 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 val id = db.travelDao().insert(booking)
                 scheduleTravelReminder(getApplication(), id, booking.departMillis)
             }
+            data.people.forEach { db.personDao().insert(it) }
+            data.dawatContacts.forEach { db.dawatDao().insert(it) }
+            data.localityPeople.forEach { db.localityDao().insert(it) }
+            data.meetingVisits.forEach { db.meetingVisitDao().insert(it) }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
+            data.mastooratTrips.forEach { db.mastooratDao().insertTrip(it) }
+            if (data.mastooratPairs.isNotEmpty()) db.mastooratDao().insertPairs(data.mastooratPairs)
+            data.mastooratTaleem.forEach { db.mastooratDao().insertTaleem(it) }
+            data.mastooratTashkeel.forEach { db.mastooratDao().insertTashkeel(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }
             data.tripExpenses.forEach { db.tripDao().insertExpense(it) }
             data.tripSettledMonths.forEach { db.tripDao().insertSettledMonth(it) }

@@ -49,6 +49,7 @@ import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.contacts.hasContactsPermission
 import com.ashrafwebdev.sikkanam.contacts.saveToPhoneContacts
 import com.ashrafwebdev.sikkanam.data.GroupKind
+import com.ashrafwebdev.sikkanam.data.Person
 import com.ashrafwebdev.sikkanam.data.TripContribution
 import com.ashrafwebdev.sikkanam.data.TripExpense
 import com.ashrafwebdev.sikkanam.data.TripGroup
@@ -159,6 +160,7 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     val allExpenses by vm.tripExpenses.collectAsState()
 
     // A family group is ongoing, so its settle-up is shown one month at a time.
+    val register by vm.people.collectAsState()
     val isFamily = group.kind == GroupKind.FAMILY
     var monthStart by rememberSaveable { mutableStateOf(startOfMonth(System.currentTimeMillis())) }
     val monthEnd = addMonths(monthStart, 1)
@@ -309,6 +311,9 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         item { MuqamiAmaalSection(vm, group.id, members) }
         item { WeeklyProgrammeSection(vm, group.id, members) }
         item { KhuroojSection(vm, group.id) }
+        if (isFamily) {
+            item { MastooratSection(vm, group.id) }
+        }
         item { TripTravelSection(vm, group.id) }
         item { MeetingsSection(vm, group.id) }
         item { DutiesSection(vm, group.id, members.map { it.name }) }
@@ -499,9 +504,10 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     if (showAddMember) {
         MemberDialog(
             existing = null,
+            people = register,
             onDismiss = { showAddMember = false },
-            onSave = { name, phone, address, days, advance, going ->
-                if (vm.addTripMember(group.id, name, phone, address, days, advance, going)) {
+            onSave = { choice, days, advance, going ->
+                if (vm.addTripMember(group.id, choice, days, advance, going)) {
                     showAddMember = false
                     true
                 } else {
@@ -514,9 +520,10 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     renamingMember?.let { member ->
         MemberDialog(
             existing = member,
+            people = register,
             onDismiss = { renamingMember = null },
-            onSave = { name, phone, address, days, advance, going ->
-                if (vm.updateTripMember(member, name, phone, address, days, advance, going)) {
+            onSave = { choice, days, advance, going ->
+                if (vm.updateTripMember(member, choice.name, choice.phone, choice.address, days, advance, going)) {
                     renamingMember = null
                     true
                 } else {
@@ -767,13 +774,22 @@ private fun ExpenseDialog(
 @Composable
 private fun MemberDialog(
     existing: TripMember?,
+    people: List<Person>,
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String, String, Boolean) -> Boolean,
+    onSave: (PersonChoice, String, String, Boolean) -> Boolean,
 ) {
-    var name by remember { mutableStateOf(existing?.name ?: "") }
+    // A new member is picked from the register, or added to it. Editing keeps the name, phone and address as they are.
+    var choice by remember {
+        mutableStateOf(
+            PersonChoice(
+                personId = existing?.personId ?: 0,
+                name = existing?.name.orEmpty(),
+                phone = existing?.phone.orEmpty(),
+                address = existing?.address.orEmpty(),
+            ),
+        )
+    }
     var going by remember { mutableStateOf(existing?.confirmed ?: false) }
-    var phone by remember { mutableStateOf(existing?.phone ?: "") }
-    var address by remember { mutableStateOf(existing?.address ?: "") }
     var days by remember { mutableStateOf(if (existing == null || existing.days == 0) "" else existing.days.toString()) }
     var advance by remember {
         mutableStateOf(
@@ -790,11 +806,11 @@ private fun MemberDialog(
     // Saves the member, then the phone contact if the user asked for it. Contacts are only
     // written after the trip member is saved, so a failed save never leaves a stray contact.
     fun submit(writeContact: Boolean) {
-        if (!onSave(name, phone, address, days, advance, going)) {
+        if (!onSave(choice, days, advance, going)) {
             error = memberError
             return
         }
-        if (writeContact && !saveToPhoneContacts(context, name.trim(), phone.trim())) {
+        if (writeContact && !saveToPhoneContacts(context, choice.name.trim(), choice.phone.trim())) {
             Toast.makeText(context, contactFailed, Toast.LENGTH_LONG).show()
         }
     }
@@ -816,25 +832,29 @@ private fun MemberDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.trip_member_name)) },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text(stringResource(R.string.trip_contact_number)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text(stringResource(R.string.trip_address)) },
-                    maxLines = 3,
-                )
+                if (existing == null) {
+                    PersonPickerFields(people = people, choice = choice, onChoice = { choice = it }, showAddress = true)
+                } else {
+                    OutlinedTextField(
+                        value = choice.name,
+                        onValueChange = { choice = choice.copy(name = it) },
+                        label = { Text(stringResource(R.string.trip_member_name)) },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = choice.phone,
+                        onValueChange = { choice = choice.copy(phone = it) },
+                        label = { Text(stringResource(R.string.trip_contact_number)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = choice.address,
+                        onValueChange = { choice = choice.copy(address = it) },
+                        label = { Text(stringResource(R.string.trip_address)) },
+                        maxLines = 3,
+                    )
+                }
                 OutlinedTextField(
                     value = days,
                     onValueChange = { days = it },
@@ -858,7 +878,7 @@ private fun MemberDialog(
                         Checkbox(
                             checked = saveToContacts,
                             onCheckedChange = { saveToContacts = it },
-                            enabled = phone.isNotBlank(),
+                            enabled = choice.phone.isNotBlank(),
                         )
                         Text(stringResource(R.string.trip_save_to_contacts))
                     }
@@ -868,7 +888,7 @@ private fun MemberDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val wantContact = existing == null && saveToContacts && phone.isNotBlank()
+                val wantContact = existing == null && saveToContacts && choice.phone.isNotBlank()
                 if (wantContact && !hasContactsPermission(context)) {
                     contactsPermission.launch(Manifest.permission.WRITE_CONTACTS)
                 } else {

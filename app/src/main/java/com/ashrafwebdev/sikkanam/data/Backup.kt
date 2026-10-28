@@ -27,6 +27,14 @@ data class BackupData(
     val khurooj: List<Khurooj> = emptyList(),
     val notes: List<Note> = emptyList(),
     val travelBookings: List<TravelBooking> = emptyList(),
+    val people: List<Person> = emptyList(),
+    val mastooratTrips: List<MastooratTrip> = emptyList(),
+    val mastooratPairs: List<MastooratPair> = emptyList(),
+    val mastooratTaleem: List<MastooratTaleem> = emptyList(),
+    val mastooratTashkeel: List<MastooratTashkeel> = emptyList(),
+    val dawatContacts: List<DawatContact> = emptyList(),
+    val localityPeople: List<LocalityPerson> = emptyList(),
+    val meetingVisits: List<MeetingVisit> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -174,6 +182,7 @@ fun BackupData.toJson(): String {
                 put("days", m.days)
                 put("advanceCents", m.advanceCents)
                 put("confirmed", m.confirmed)
+                put("personId", m.personId)
             })
         }
     })
@@ -261,6 +270,104 @@ fun BackupData.toJson(): String {
             put(JSONObject().apply {
                 put("groupId", s.groupId)
                 put("monthMillis", s.monthMillis)
+            })
+        }
+    })
+    root.put("dawatContacts", JSONArray().apply {
+        dawatContacts.forEach { d ->
+            put(JSONObject().apply {
+                put("id", d.id)
+                put("name", d.name)
+                put("phone", d.phone)
+                put("area", d.area)
+                put("status", d.status.name)
+                put("metMillis", d.metMillis)
+                put("followUpMillis", d.followUpMillis)
+                put("notes", d.notes)
+                put("personId", d.personId)
+            })
+        }
+    })
+    root.put("localityPeople", JSONArray().apply {
+        localityPeople.forEach { p ->
+            put(JSONObject().apply {
+                put("id", p.id)
+                put("name", p.name)
+                put("phone", p.phone)
+                put("locality", p.locality)
+                put("wentFortyDays", p.wentFortyDays)
+                put("wentFourMonths", p.wentFourMonths)
+                put("active", p.active)
+                put("notes", p.notes)
+                put("availableTypes", p.availableTypes)
+                put("personId", p.personId)
+            })
+        }
+    })
+    root.put("meetingVisits", JSONArray().apply {
+        meetingVisits.forEach { v ->
+            put(JSONObject().apply {
+                put("id", v.id)
+                put("personId", v.personId)
+                put("dayMillis", v.dayMillis)
+                put("note", v.note)
+                put("taskeel", v.taskeel)
+            })
+        }
+    })
+    root.put("people", JSONArray().apply {
+        people.forEach { p ->
+            put(JSONObject().apply {
+                put("id", p.id)
+                put("name", p.name)
+                put("phone", p.phone)
+                put("address", p.address)
+            })
+        }
+    })
+    root.put("mastooratTrips", JSONArray().apply {
+        mastooratTrips.forEach { t ->
+            put(JSONObject().apply {
+                put("id", t.id)
+                put("groupId", t.groupId)
+                put("effort", t.effort.name)
+                put("startMillis", t.startMillis)
+                put("endMillis", t.endMillis)
+                put("place", t.place)
+            })
+        }
+    })
+    root.put("mastooratPairs", JSONArray().apply {
+        mastooratPairs.forEach { p ->
+            put(JSONObject().apply {
+                put("id", p.id)
+                put("tripId", p.tripId)
+                put("woman", p.woman)
+                put("mahram", p.mahram)
+                put("childAge", p.childAge)
+            })
+        }
+    })
+    root.put("mastooratTaleem", JSONArray().apply {
+        mastooratTaleem.forEach { t ->
+            put(JSONObject().apply {
+                put("id", t.id)
+                put("groupId", t.groupId)
+                put("kind", t.kind.name)
+                put("dayMillis", t.dayMillis)
+                put("house", t.house)
+                put("attended", t.attended)
+            })
+        }
+    })
+    root.put("mastooratTashkeel", JSONArray().apply {
+        mastooratTashkeel.forEach { t ->
+            put(JSONObject().apply {
+                put("id", t.id)
+                put("groupId", t.groupId)
+                put("dayMillis", t.dayMillis)
+                put("kind", t.kind.name)
+                put("joined", t.joined)
             })
         }
     })
@@ -450,6 +557,7 @@ fun parseBackup(text: String): BackupData {
                 days = o.optInt("days", 0),
                 advanceCents = o.optLong("advanceCents", 0),
                 confirmed = o.optBoolean("confirmed", true),
+                personId = o.optLong("personId", 0),
             )
         }
     } ?: emptyList()
@@ -579,6 +687,116 @@ fun parseBackup(text: String): BackupData {
         }
     } ?: emptyList()
 
+    // Dawat, locality and meeting records are optional. Older backups have none.
+    val dawatContacts = root.optJSONArray("dawatContacts")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            DawatContact(
+                id = o.optLong("id", 0),
+                name = o.getString("name"),
+                phone = o.optString("phone"),
+                area = o.optString("area"),
+                status = DawatStatus.valueOf(o.optString("status", DawatStatus.MET.name)),
+                metMillis = o.optLong("metMillis", 0),
+                followUpMillis = o.optLong("followUpMillis", 0),
+                notes = o.optString("notes"),
+                personId = o.optLong("personId", 0),
+            )
+        }
+    } ?: emptyList()
+    val localityPeople = root.optJSONArray("localityPeople")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            LocalityPerson(
+                id = o.optLong("id", 0),
+                name = o.getString("name"),
+                phone = o.optString("phone"),
+                locality = o.optString("locality"),
+                wentFortyDays = o.optBoolean("wentFortyDays", false),
+                wentFourMonths = o.optBoolean("wentFourMonths", false),
+                active = o.optBoolean("active", false),
+                notes = o.optString("notes"),
+                availableTypes = o.optString("availableTypes"),
+                personId = o.optLong("personId", 0),
+            )
+        }
+    } ?: emptyList()
+    val meetingVisits = root.optJSONArray("meetingVisits")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            MeetingVisit(
+                id = o.optLong("id", 0),
+                personId = o.getLong("personId"),
+                dayMillis = o.optLong("dayMillis", 0),
+                note = o.optString("note"),
+                taskeel = o.optString("taskeel"),
+            )
+        }
+    } ?: emptyList()
+
+    // The master register and Mastoorat records are optional too. Older backups have none.
+    val people = root.optJSONArray("people")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            Person(
+                id = o.optLong("id", 0),
+                name = o.getString("name"),
+                phone = o.optString("phone"),
+                address = o.optString("address"),
+            )
+        }
+    } ?: emptyList()
+    val mastooratTrips = root.optJSONArray("mastooratTrips")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            MastooratTrip(
+                id = o.optLong("id", 0),
+                groupId = o.getLong("groupId"),
+                effort = MastooratEffort.valueOf(o.getString("effort")),
+                startMillis = o.optLong("startMillis", 0),
+                endMillis = o.optLong("endMillis", 0),
+                place = o.optString("place"),
+            )
+        }
+    } ?: emptyList()
+    val mastooratPairs = root.optJSONArray("mastooratPairs")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            MastooratPair(
+                id = o.optLong("id", 0),
+                tripId = o.getLong("tripId"),
+                woman = o.optString("woman"),
+                mahram = o.optString("mahram"),
+                childAge = o.optInt("childAge", 0),
+            )
+        }
+    } ?: emptyList()
+    val mastooratTaleem = root.optJSONArray("mastooratTaleem")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            MastooratTaleem(
+                id = o.optLong("id", 0),
+                groupId = o.getLong("groupId"),
+                kind = TaleemKind.valueOf(o.getString("kind")),
+                dayMillis = o.optLong("dayMillis", 0),
+                house = o.optString("house"),
+                attended = o.optInt("attended", 0),
+            )
+        }
+    } ?: emptyList()
+    val mastooratTashkeel = root.optJSONArray("mastooratTashkeel")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            MastooratTashkeel(
+                id = o.optLong("id", 0),
+                groupId = o.getLong("groupId"),
+                dayMillis = o.optLong("dayMillis", 0),
+                kind = TashkeelKind.valueOf(o.getString("kind")),
+                joined = o.optInt("joined", 0),
+            )
+        }
+    } ?: emptyList()
+
     return BackupData(
         transactions, budgets, donations, categories, goals,
         tripGroups, tripMembers, tripContributions, tripExpenses, tripSettledMonths,
@@ -590,5 +808,13 @@ fun parseBackup(text: String): BackupData {
         khurooj = khurooj,
         notes = notes,
         travelBookings = travelBookings,
+        people = people,
+        mastooratTrips = mastooratTrips,
+        mastooratPairs = mastooratPairs,
+        mastooratTaleem = mastooratTaleem,
+        mastooratTashkeel = mastooratTashkeel,
+        dawatContacts = dawatContacts,
+        localityPeople = localityPeople,
+        meetingVisits = meetingVisits,
     )
 }

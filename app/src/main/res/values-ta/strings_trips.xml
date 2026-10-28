@@ -2,17 +2,17 @@
 <!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
 <resources>
     <!-- Jamaat (khurooj) groups -->
-    <string name="trip_list_title">ஜமாஅத் மற்றும் குடும்பம்</string>
+    <string name="trip_list_title">ஜமாஅத் மற்றும் மஸ்தூராத்</string>
     <string name="trip_btn_trip">ஜமாஅத்</string>
-    <string name="trip_btn_family">குடும்பம்</string>
+    <string name="trip_btn_family">மஸ்தூராத்</string>
     <string name="trip_empty">இன்னும் ஜமாஅத் இல்லை. கிளம்பலுக்கு ஒன்றை உருவாக்கி, செல்லும் அனைவருடனும் செலவைப் பகிருங்கள்.</string>
     <string name="trip_kind_trip">ஜமாஅத்</string>
-    <string name="trip_kind_family">குடும்பம்</string>
+    <string name="trip_kind_family">மஸ்தூராத்</string>
     <string name="trip_open">திற</string>
     <string name="trip_summary">%1$s · %2$d உறுப்பினர்கள் · செலவு %3$s</string>
-    <string name="trip_new_family">புதிய குடும்பக் குழு</string>
+    <string name="trip_new_family">புதிய மஸ்தூராத் குழு</string>
     <string name="trip_new_trip">புதிய ஜமாஅத்</string>
-    <string name="trip_family_name_hint">குடும்பப் பெயர், எ.கா. கூட்டுக் குடும்பம்</string>
+    <string name="trip_family_name_hint">குழுவின் பெயர், எ.கா. நம் பள்ளிவாசல் சகோதரிகள்</string>
     <string name="trip_name_hint">ஜமாஅத் பெயர், எ.கா. குடுவஞ்சேரி கிளம்பல்</string>
     <string name="trip_back">பின்செல்</string>
     <string name="trip_rename_desc">ஜமாஅத் பெயரை மாற்று</string>

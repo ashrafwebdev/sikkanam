@@ -37,6 +37,7 @@ import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.KhuroojType
 import com.ashrafwebdev.sikkanam.data.LocalityPerson
 import com.ashrafwebdev.sikkanam.data.MeetingVisit
+import com.ashrafwebdev.sikkanam.data.Person
 
 /** Splits a comma-separated list of khurooj type names back into types. Unknown names are ignored. */
 private fun parseTypes(text: String): Set<KhuroojType> =
@@ -50,6 +51,7 @@ private fun parseTypes(text: String): Set<KhuroojType> =
 @Composable
 fun LocalitySection(vm: FinanceViewModel) {
     val people by vm.localityPeople.collectAsState()
+    val register by vm.people.collectAsState()
     val visits by vm.meetingVisits.collectAsState()
     val today = startOfDay(System.currentTimeMillis())
     var showAdd by remember { mutableStateOf(false) }
@@ -169,9 +171,10 @@ fun LocalitySection(vm: FinanceViewModel) {
     if (showAdd) {
         LocalityPersonDialog(
             existing = null,
+            people = register,
             onDismiss = { showAdd = false },
-            onSave = { person ->
-                if (vm.addLocalityPerson(person)) {
+            onSave = { person, choice ->
+                if (vm.addLocalityPerson(person, choice)) {
                     showAdd = false
                     true
                 } else {
@@ -184,8 +187,9 @@ fun LocalitySection(vm: FinanceViewModel) {
     editing?.let { person ->
         LocalityPersonDialog(
             existing = person,
+            people = register,
             onDismiss = { editing = null },
-            onSave = { updated ->
+            onSave = { updated, _ ->
                 if (updated.name.isBlank()) {
                     false
                 } else {
@@ -249,11 +253,14 @@ private fun TaskeelDialog(person: LocalityPerson, onDismiss: () -> Unit, onSave:
 @Composable
 private fun LocalityPersonDialog(
     existing: LocalityPerson?,
+    people: List<Person>,
     onDismiss: () -> Unit,
-    onSave: (LocalityPerson) -> Boolean,
+    onSave: (LocalityPerson, PersonChoice) -> Boolean,
 ) {
-    var name by remember { mutableStateOf(existing?.name ?: "") }
-    var phone by remember { mutableStateOf(existing?.phone ?: "") }
+    // A new person is picked from the register (or added to it). Editing keeps the name and phone as they are.
+    var choice by remember {
+        mutableStateOf(PersonChoice(personId = existing?.personId ?: 0, name = existing?.name.orEmpty(), phone = existing?.phone.orEmpty()))
+    }
     var locality by remember { mutableStateOf(existing?.locality ?: "") }
     var forty by remember { mutableStateOf(existing?.wentFortyDays ?: false) }
     var fourMonths by remember { mutableStateOf(existing?.wentFourMonths ?: false) }
@@ -270,14 +277,23 @@ private fun LocalityPersonDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.dawat_name)) }, singleLine = true)
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text(stringResource(R.string.dawat_phone)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true,
-                )
+                if (existing == null) {
+                    PersonPickerFields(people = people, choice = choice, onChoice = { choice = it })
+                } else {
+                    OutlinedTextField(
+                        value = choice.name,
+                        onValueChange = { choice = choice.copy(name = it) },
+                        label = { Text(stringResource(R.string.dawat_name)) },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = choice.phone,
+                        onValueChange = { choice = choice.copy(phone = it) },
+                        label = { Text(stringResource(R.string.dawat_phone)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        singleLine = true,
+                    )
+                }
                 OutlinedTextField(value = locality, onValueChange = { locality = it }, label = { Text(stringResource(R.string.locality_field)) }, singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     FilterChip(selected = forty, onClick = { forty = !forty }, label = { Text(stringResource(R.string.locality_tag_forty)) })
@@ -306,16 +322,17 @@ private fun LocalityPersonDialog(
             TextButton(onClick = {
                 val person = LocalityPerson(
                     id = existing?.id ?: 0,
-                    name = name,
-                    phone = phone,
+                    name = choice.name,
+                    phone = choice.phone,
                     locality = locality,
                     wentFortyDays = forty,
                     wentFourMonths = fourMonths,
                     active = active,
                     notes = notes,
                     availableTypes = available.joinToString(",") { it.name },
+                    personId = existing?.personId ?: 0,
                 )
-                if (!onSave(person)) error = nameError
+                if (!onSave(person, choice)) error = nameError
             }) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },

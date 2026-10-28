@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The master register of people, shared by Dawat, Locality and Jamaat -->
+    <string name="person_name">Name</string>
+    <string name="person_phone">Phone</string>
+    <string name="person_address">Address</string>
+    <string name="person_matches">Already saved. Tap a name to use that person.</string>
+    <string name="person_new_hint">Not in the list yet. Fill in the phone, then save to add them.</string>
+    <string name="person_saved_selected">Using a saved person.</string>
+    <string name="person_not_this">Not this person</string>
+</resources>

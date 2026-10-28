@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <string name="mastoorat_title">மஸ்தூராத் முயற்சிகள்</string>
+    <string name="mastoorat_intro">பெண்களின் முயற்சிகளைப் பதிவு செய்யுங்கள்: மஹ்ரமுடன் பெண்களின் ஜோடிகளுடன் பயணங்கள், வாராந்திர மற்றும் தினசரி தஃலீம், தஷ்கீல். பதிவு செய்யும்போது வரம்புகள் சரிபார்க்கப்படும்.</string>
+    <string name="mastoorat_new_trip">புதிய பயணம்</string>
+    <string name="mastoorat_record_taleem">தஃலீம் பதிவு</string>
+    <string name="mastoorat_record_tashkeel">தஷ்கீல் பதிவு</string>
+    <string name="mastoorat_efforts_title">முயற்சிகளின் சுருக்கம்</string>
+    <string name="mastoorat_effort_summary">%1$s: %2$d பயணங்கள், %3$d ஜோடிகள், %4$d பேருடன் பெண் குழந்தை</string>
+    <string name="mastoorat_effort_3">3 நாட்கள்</string>
+    <string name="mastoorat_effort_10">10 நாட்கள்</string>
+    <string name="mastoorat_effort_40">40 நாட்கள்</string>
+    <string name="mastoorat_effort_2m">2 மாதங்கள், வெளிநாடு</string>
+    <string name="mastoorat_trips_title">பயணங்கள்</string>
+    <string name="mastoorat_trips_empty">இன்னும் பயணங்கள் இல்லை. ஒன்றைப் பதிவு செய்ய புதிய பயணம் என்பதைத் தட்டுங்கள்.</string>
+    <string name="mastoorat_delete_desc">நீக்கு</string>
+    <string name="mastoorat_place">இடம்: %1$s</string>
+    <string name="mastoorat_pairs_count">ஜோடிகள்: %1$d / %2$d</string>
+    <string name="mastoorat_child_line">, %1$d வயது பெண் குழந்தை</string>
+    <string name="mastoorat_pair_line">%1$s, மஹ்ரம் %2$s உடன்</string>
+    <string name="mastoorat_add_pairs">ஜோடிகளைச் சேர்</string>
+    <string name="mastoorat_no_extra_pairs">இந்தப் பயணத்தில் கூடுதல் ஜோடிகள் சேர்க்க முடியாது.</string>
+    <string name="mastoorat_delete_confirm">இந்தப் பயணத்தையும் அதன் ஜோடிகளையும் நீக்கவா?</string>
+    <string name="mastoorat_taleem_title">தஃலீம்</string>
+    <string name="mastoorat_taleem_summary">வாராந்திர இஜ்திமா: %1$d பதிவு, %2$d இலக்கில் (20 முதல் 25 பெண்கள்). தினசரி தஃலீம்: %3$d நாட்கள் பதிவு.</string>
+    <string name="mastoorat_taleem_weekly">ஒரு வீட்டில் வாராந்திர இஜ்திமா</string>
+    <string name="mastoorat_taleem_daily">வீட்டில் தினசரி தஃலீம்</string>
+    <string name="mastoorat_attended_line">வீடு: %1$s · %2$d பெண்கள்</string>
+    <string name="mastoorat_off_target">இலக்கில் இல்லை</string>
+    <string name="mastoorat_tashkeel_title">மஹ்ரம் ஆண்களுடன் தஷ்கீல்</string>
+    <string name="mastoorat_tashkeel_3x3">3 முறை 3 நாட்கள்</string>
+    <string name="mastoorat_tashkeel_10">10 நாட்கள்</string>
+    <string name="mastoorat_tashkeel_40">40 நாட்கள்</string>
+    <string name="mastoorat_tashkeel_2m">2 மாதங்கள்</string>
+    <string name="mastoorat_joined_line">%1$d பெண்கள் சேர்ந்தனர்</string>
+    <string name="mastoorat_err_pairs">ஒரு பயணத்தில் அதிகபட்சம் %1$d ஜோடிகள் இருக்கலாம்.</string>
+    <string name="mastoorat_err_child_pairs">அதிகபட்சம் %1$d ஜோடிகள் மட்டுமே பெண் குழந்தையை அழைத்து வரலாம்.</string>
+    <string name="mastoorat_err_child_age">பெண் குழந்தைக்கு குறைந்தது %1$d வயது இருக்க வேண்டும்.</string>
+    <string name="mastoorat_date_error">தேதிகளை dd/mm/yyyy வடிவில் சரியாக உள்ளிடுங்கள். முடிவு தேதி தொடக்க தேதிக்கு முன் இருக்கக்கூடாது.</string>
+    <string name="mastoorat_pairs_error">பெண் மற்றும் அவரது மஹ்ரம் உடன் குறைந்தது ஒரு ஜோடியை உள்ளிடுங்கள்.</string>
+    <string name="mastoorat_number_error">ஓர் எண்ணை உள்ளிடுங்கள்.</string>
+    <string name="mastoorat_start_date">தொடக்க தேதி (dd/mm/yyyy)</string>
+    <string name="mastoorat_end_date">முடிவு தேதி (dd/mm/yyyy)</string>
+    <string name="mastoorat_place_field">இடம்</string>
+    <string name="mastoorat_pairs_title">ஜோடிகள்</string>
+    <string name="mastoorat_woman">பெண்</string>
+    <string name="mastoorat_mahram">மஹ்ரம்</string>
+    <string name="mastoorat_child_age">பெண் குழந்தையின் வயது, இல்லையெனில் காலியாக</string>
+    <string name="mastoorat_add_pair_row">ஒரு ஜோடியைச் சேர்</string>
+    <string name="mastoorat_day">தேதி (dd/mm/yyyy)</string>
+    <string name="mastoorat_date_hint">dd/mm/yyyy</string>
+    <string name="mastoorat_house">வீடு</string>
+    <string name="mastoorat_women_count">வந்த பெண்கள்</string>
+    <string name="mastoorat_joined_count">சேர்ந்த பெண்கள்</string>
+</resources>
