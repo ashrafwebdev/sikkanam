@@ -16,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         GoalEntry::class, Place::class, Debt::class, AmaalCheck::class, Khurooj::class, DawatContact::class, LocalityPerson::class, MeetingVisit::class,
         Note::class, TravelBooking::class,
     ],
-    version = 31,
+    version = 32,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -360,6 +360,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the pinned flag to notes, so pinned notes can be listed first. */
+        private val MIGRATION_31_32 = object : Migration(31, 32) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -376,7 +383,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
                     MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30,
-                    MIGRATION_30_31,
+                    MIGRATION_30_31, MIGRATION_31_32,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

@@ -271,6 +271,7 @@ fun BackupData.toJson(): String {
                 put("title", n.title)
                 put("body", n.body)
                 put("updatedMillis", n.updatedMillis)
+                put("pinned", n.pinned)
             })
         }
     })
@@ -573,6 +574,7 @@ fun parseBackup(text: String): BackupData {
                 title = o.getString("title"),
                 body = o.optString("body", ""),
                 updatedMillis = o.optLong("updatedMillis", 0),
+                pinned = o.optBoolean("pinned", false),
             )
         }
     } ?: emptyList()

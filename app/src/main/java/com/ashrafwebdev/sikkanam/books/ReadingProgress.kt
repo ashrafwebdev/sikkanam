@@ -20,3 +20,19 @@ object ReadingProgress {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(bookId).apply()
     }
 }
+
+/** The text size the reader uses for EPUB and TXT books, as a step from 0 (smallest) to 4 (largest). */
+object ReaderFontSize {
+    private const val PREFS = "reader_settings"
+    private const val KEY = "font_step"
+    const val MIN_STEP = 0
+    const val MAX_STEP = 4
+    const val DEFAULT_STEP = 1
+
+    fun load(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, DEFAULT_STEP).coerceIn(MIN_STEP, MAX_STEP)
+
+    fun save(context: Context, step: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY, step.coerceIn(MIN_STEP, MAX_STEP)).apply()
+    }
+}

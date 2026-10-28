@@ -107,18 +107,12 @@ fun TravelScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         TravelBookingDialog(vm, existing = booking, initialGroupId = 0L, onDismiss = { editing = null })
     }
     deleting?.let { booking ->
-        AlertDialog(
-            onDismissRequest = { deleting = null },
-            text = { Text(stringResource(R.string.travel_delete_confirm)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    vm.deleteTravel(booking.id)
-                    deleting = null
-                }) { Text(stringResource(R.string.action_delete)) }
+        TravelDeleteDialog(
+            onConfirm = {
+                vm.deleteTravel(booking.id)
+                deleting = null
             },
-            dismissButton = {
-                TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
+            onDismiss = { deleting = null },
         )
     }
 }
@@ -128,6 +122,8 @@ fun TravelScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 fun TripTravelSection(vm: FinanceViewModel, groupId: Long) {
     val bookings by vm.travelBookings.collectAsState()
     var showNew by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<TravelBooking?>(null) }
+    var deleting by remember { mutableStateOf<TravelBooking?>(null) }
     val linked = bookings.filter { it.groupId == groupId }
 
     SectionCard {
@@ -145,18 +141,49 @@ fun TripTravelSection(vm: FinanceViewModel, groupId: Long) {
             Text(stringResource(R.string.travel_trip_empty), style = MaterialTheme.typography.bodySmall)
         }
         linked.forEach { booking ->
-            Text(
-                stringResource(booking.mode.labelRes) + ": " +
-                    stringResource(R.string.travel_route, booking.fromPlace, booking.toPlace) +
-                    ", " + dateTimeLabel(booking.departMillis),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(booking.mode.labelRes) + ": " +
+                        stringResource(R.string.travel_route, booking.fromPlace, booking.toPlace) +
+                        ", " + dateTimeLabel(booking.departMillis),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = { editing = booking }) {
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.travel_edit_desc))
+                }
+                IconButton(onClick = { deleting = booking }) {
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.travel_delete_desc))
+                }
+            }
         }
     }
 
     if (showNew) {
         TravelBookingDialog(vm, existing = null, initialGroupId = groupId, onDismiss = { showNew = false })
     }
+    editing?.let { booking ->
+        TravelBookingDialog(vm, existing = booking, initialGroupId = groupId, onDismiss = { editing = null })
+    }
+    deleting?.let { booking ->
+        TravelDeleteDialog(
+            onConfirm = {
+                vm.deleteTravel(booking.id)
+                deleting = null
+            },
+            onDismiss = { deleting = null },
+        )
+    }
+}
+
+@Composable
+private fun TravelDeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = { Text(stringResource(R.string.travel_delete_confirm)) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 @Composable

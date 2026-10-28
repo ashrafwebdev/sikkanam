@@ -109,7 +109,7 @@ interface MeetingDao {
 
 @Dao
 interface NoteDao {
-    @Query("SELECT * FROM notes ORDER BY updatedMillis DESC")
+    @Query("SELECT * FROM notes ORDER BY pinned DESC, updatedMillis DESC")
     fun observeAll(): Flow<List<Note>>
 
     @Insert

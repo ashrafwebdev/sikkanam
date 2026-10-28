@@ -441,11 +441,17 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             title = clean,
             body = body.trim(),
             updatedMillis = System.currentTimeMillis(),
+            pinned = existing?.pinned ?: false,
         )
         viewModelScope.launch {
             if (existing == null) db.noteDao().insert(entry) else db.noteDao().update(entry)
         }
         return true
+    }
+
+    /** Pins a note to the top of the list, or unpins it. Keeps its last-saved date. */
+    fun togglePinNote(note: Note) {
+        viewModelScope.launch { db.noteDao().update(note.copy(pinned = !note.pinned)) }
     }
 
     fun deleteNote(id: Long) {

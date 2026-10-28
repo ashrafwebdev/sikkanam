@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,11 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +44,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.books.LocalBook
 import com.ashrafwebdev.sikkanam.books.PdfPages
+import com.ashrafwebdev.sikkanam.books.ReaderFontSize
 import com.ashrafwebdev.sikkanam.books.ReadingProgress
 import com.ashrafwebdev.sikkanam.books.bookFile
 import com.ashrafwebdev.sikkanam.books.readTextBook
@@ -56,7 +63,9 @@ import java.io.File
 @Composable
 fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = Modifier) {
     BackHandler(onBack = onBack)
-    val file = bookFile(LocalContext.current, book)
+    val context = LocalContext.current
+    val file = bookFile(context, book)
+    var fontStep by remember { mutableStateOf(ReaderFontSize.load(context)) }
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -70,18 +79,35 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
+            if (book.format != "pdf") {
+                TextButton(
+                    onClick = {
+                        fontStep = (fontStep - 1).coerceAtLeast(ReaderFontSize.MIN_STEP)
+                        ReaderFontSize.save(context, fontStep)
+                    },
+                    enabled = fontStep > ReaderFontSize.MIN_STEP,
+                ) { Text("A-") }
+                TextButton(
+                    onClick = {
+                        fontStep = (fontStep + 1).coerceAtMost(ReaderFontSize.MAX_STEP)
+                        ReaderFontSize.save(context, fontStep)
+                    },
+                    enabled = fontStep < ReaderFontSize.MAX_STEP,
+                ) { Text("A+") }
+            }
         }
         when {
             !file.exists() -> Message(stringResource(R.string.books_missing), Modifier.weight(1f))
             book.format == "pdf" -> PdfBook(book.id, file, Modifier.weight(1f))
-            else -> TextBook(book.id, book.format, file, Modifier.weight(1f))
+            else -> TextBook(book.id, book.format, file, fontStep, Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun TextBook(bookId: String, format: String, file: File, modifier: Modifier) {
+private fun TextBook(bookId: String, format: String, file: File, fontStep: Int, modifier: Modifier) {
     val loaded by produceState<Result<List<String>>?>(null, file, format) {
         value = withContext(Dispatchers.IO) { runCatching { readTextBook(file, format) } }
     }
@@ -89,12 +115,12 @@ private fun TextBook(bookId: String, format: String, file: File, modifier: Modif
     when {
         result == null -> Loading(modifier)
         result.isFailure -> Message(stringResource(R.string.books_error_open), modifier)
-        else -> ParagraphList(bookId, result.getOrThrow(), modifier)
+        else -> ParagraphList(bookId, result.getOrThrow(), fontStep, modifier)
     }
 }
 
 @Composable
-private fun ParagraphList(bookId: String, paragraphs: List<String>, modifier: Modifier) {
+private fun ParagraphList(bookId: String, paragraphs: List<String>, fontStep: Int, modifier: Modifier) {
     if (paragraphs.isEmpty()) {
         Message(stringResource(R.string.books_empty_book), modifier)
         return
@@ -102,6 +128,8 @@ private fun ParagraphList(bookId: String, paragraphs: List<String>, modifier: Mo
     val context = LocalContext.current
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
+    // Step 1 is the normal 16 sp body text; each step up or down adds or removes 2 sp.
+    val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = (14 + 2 * fontStep).sp)
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -110,7 +138,7 @@ private fun ParagraphList(bookId: String, paragraphs: List<String>, modifier: Mo
         items(paragraphs) { paragraph ->
             Text(
                 paragraph,
-                style = MaterialTheme.typography.bodyLarge,
+                style = textStyle,
                 modifier = Modifier.padding(vertical = 6.dp),
             )
         }

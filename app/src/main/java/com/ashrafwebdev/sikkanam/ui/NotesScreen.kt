@@ -53,7 +53,8 @@ fun NotesScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val shown = allNotes.filter { note ->
         search.isEmpty() ||
             note.title.contains(search, ignoreCase = true) ||
-            note.body.contains(search, ignoreCase = true)
+            note.body.contains(search, ignoreCase = true) ||
+            dateLabel(note.updatedMillis).contains(search)
     }
 
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -106,6 +107,13 @@ fun NotesScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        if (note.pinned) {
+                            Text(
+                                stringResource(R.string.notes_pinned),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                         Text(
                             note.body,
                             style = MaterialTheme.typography.bodySmall,
@@ -162,6 +170,10 @@ fun NotesScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         NoteViewDialog(
             note = note,
             onDismiss = { viewing = null },
+            onTogglePin = {
+                vm.togglePinNote(note)
+                viewing = null
+            },
             onEdit = {
                 viewing = null
                 editing = note
@@ -191,7 +203,13 @@ fun NotesScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
 
 /** Shows the whole note. Edit and Delete are reached from here or from the list. */
 @Composable
-private fun NoteViewDialog(note: Note, onDismiss: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun NoteViewDialog(
+    note: Note,
+    onDismiss: () -> Unit,
+    onTogglePin: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(note.title) },
@@ -205,6 +223,9 @@ private fun NoteViewDialog(note: Note, onDismiss: () -> Unit, onEdit: () -> Unit
                     style = MaterialTheme.typography.labelSmall,
                 )
                 Text(note.body, style = MaterialTheme.typography.bodyMedium)
+                TextButton(onClick = onTogglePin) {
+                    Text(stringResource(if (note.pinned) R.string.notes_unpin else R.string.notes_pin))
+                }
             }
         },
         confirmButton = { TextButton(onClick = onEdit) { Text(stringResource(R.string.action_edit)) } },

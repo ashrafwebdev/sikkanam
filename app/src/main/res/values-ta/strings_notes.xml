@@ -16,4 +16,7 @@
     <string name="notes_delete_desc">குறிப்பை நீக்கு</string>
     <string name="notes_delete_confirm">இந்தக் குறிப்பை நீக்கவா?</string>
     <string name="notes_updated">கடைசியாகச் சேமிக்கப்பட்டது %1$s</string>
+    <string name="notes_pin">மேலே பின் வை</string>
+    <string name="notes_unpin">பின் நீக்கு</string>
+    <string name="notes_pinned">பின் வைக்கப்பட்டது</string>
 </resources>
