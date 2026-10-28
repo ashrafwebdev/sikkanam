@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.books.LocalBook
 import com.ashrafwebdev.sikkanam.books.ReadingProgress
+import com.ashrafwebdev.sikkanam.books.installBundledBooks
 import com.ashrafwebdev.sikkanam.books.RemoteBook
 import com.ashrafwebdev.sikkanam.books.downloadBook
 import com.ashrafwebdev.sikkanam.books.importBook
@@ -52,6 +54,10 @@ fun BooksPage(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     var remote by remember { mutableStateOf(loadRemoteIndex(context)) }
     var local by remember { mutableStateOf(loadLocalBooks(context)) }
+    LaunchedEffect(Unit) {
+        installBundledBooks(context)
+        local = loadLocalBooks(context)
+    }
     var readingId by rememberSaveable { mutableStateOf<String?>(null) }
     var downloadingId by remember { mutableStateOf<String?>(null) }
     var updating by remember { mutableStateOf(false) }

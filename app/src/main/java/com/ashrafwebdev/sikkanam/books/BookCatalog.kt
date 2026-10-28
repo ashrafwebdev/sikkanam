@@ -164,6 +164,38 @@ suspend fun importBook(context: Context, source: Uri): LocalBook? = withContext(
     local
 }
 
+/**
+ * Books shipped inside the app (in assets/books). Each one is copied to the phone when its [version]
+ * is newer than the copy already installed. Removing a bundled book from the phone keeps it removed
+ * until a newer version is shipped.
+ */
+private data class BundledBook(val id: String, val title: String, val asset: String, val version: Int)
+
+private val BUNDLED_BOOKS = listOf(
+    BundledBook("six-principles-en", "The Six Principles (Draft)", "books/six-principles-en.epub", 1),
+    BundledBook("six-principles-ta", "ஆறு அடிப்படைகள் (வரைவு)", "books/six-principles-ta.epub", 1),
+)
+
+private const val BUNDLED_PREFS = "bundled_books"
+
+/** Copies the books shipped with the app onto the phone, when they are new or updated. */
+suspend fun installBundledBooks(context: Context) = withContext(Dispatchers.IO) {
+    val prefs = context.getSharedPreferences(BUNDLED_PREFS, Context.MODE_PRIVATE)
+    BUNDLED_BOOKS.forEach { book ->
+        if (prefs.getInt(book.id, 0) >= book.version) return@forEach
+        val fileName = "${book.id}.epub"
+        val target = File(bookDir(context), fileName)
+        try {
+            context.assets.open(book.asset).use { input -> target.outputStream().use { input.copyTo(it) } }
+        } catch (e: Exception) {
+            return@forEach
+        }
+        val local = LocalBook(book.id, book.title, "", "epub", fileName)
+        saveLocalBooks(context, loadLocalBooks(context).filter { it.id != book.id } + local)
+        prefs.edit().putInt(book.id, book.version).apply()
+    }
+}
+
 /** Deletes the copy of [book] from the phone, and its saved reading place. */
 fun removeBook(context: Context, book: LocalBook) {
     saveLocalBooks(context, loadLocalBooks(context).filter { it.id != book.id })
