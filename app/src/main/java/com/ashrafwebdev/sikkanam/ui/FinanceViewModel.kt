@@ -9,6 +9,11 @@ import com.ashrafwebdev.sikkanam.data.DutyType
 import com.ashrafwebdev.sikkanam.data.Duties
 import com.ashrafwebdev.sikkanam.data.Meeting
 import com.ashrafwebdev.sikkanam.data.Note
+import com.ashrafwebdev.sikkanam.data.TravelBooking
+import com.ashrafwebdev.sikkanam.data.TravelMode
+import com.ashrafwebdev.sikkanam.reminders.cancelAllTravelReminders
+import com.ashrafwebdev.sikkanam.reminders.cancelTravelReminder
+import com.ashrafwebdev.sikkanam.reminders.scheduleTravelReminder
 import com.ashrafwebdev.sikkanam.data.AppDatabase
 import com.ashrafwebdev.sikkanam.data.Transfer
 import com.ashrafwebdev.sikkanam.data.BackupData
@@ -445,6 +450,63 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
 
     fun deleteNote(id: Long) {
         viewModelScope.launch { db.noteDao().delete(id) }
+    }
+
+    val travelBookings: StateFlow<List<TravelBooking>> = db.travelDao().observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Adds a booking, or updates [existing]. Mode, route and departure are required, and the arrival
+     * (0 when unknown) must not be before departure. The fare is optional. The reminder is rescheduled.
+     */
+    fun saveTravel(
+        existing: TravelBooking?,
+        mode: TravelMode,
+        operator: String,
+        fromPlace: String,
+        toPlace: String,
+        departMillis: Long,
+        arriveMillis: Long,
+        reference: String,
+        fareText: String,
+        seat: String,
+        notes: String,
+        groupId: Long,
+    ): Boolean {
+        val from = fromPlace.trim()
+        val to = toPlace.trim()
+        if (from.isBlank() || to.isBlank() || departMillis <= 0) return false
+        if (arriveMillis != 0L && arriveMillis < departMillis) return false
+        val fare = if (fareText.isBlank()) 0L else parseCents(fareText) ?: return false
+        val entry = TravelBooking(
+            id = existing?.id ?: 0,
+            mode = mode,
+            operator = operator.trim(),
+            fromPlace = from,
+            toPlace = to,
+            departMillis = departMillis,
+            arriveMillis = arriveMillis,
+            reference = reference.trim(),
+            fareCents = fare,
+            seat = seat.trim(),
+            notes = notes.trim(),
+            groupId = groupId,
+        )
+        viewModelScope.launch {
+            val id = if (existing == null) {
+                db.travelDao().insert(entry)
+            } else {
+                db.travelDao().update(entry)
+                existing.id
+            }
+            scheduleTravelReminder(getApplication(), id, departMillis)
+        }
+        return true
+    }
+
+    fun deleteTravel(id: Long) {
+        cancelTravelReminder(getApplication(), id)
+        viewModelScope.launch { db.travelDao().delete(id) }
     }
 
     val dutyAssignments: StateFlow<List<DutyAssignment>> = db.dutyDao().observeAll()
@@ -977,6 +1039,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         amaalChecks = amaalChecks.value,
         khurooj = khurooj.value,
         notes = notes.value,
+        travelBookings = travelBookings.value,
     ).toJson()
 
 
@@ -991,6 +1054,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             return false
         }
         viewModelScope.launch(Dispatchers.IO) {
+            cancelAllTravelReminders(getApplication())
             db.clearAllTables()
             data.categories.forEach { db.categoryDao().insert(it) }
             data.transactions.forEach { db.transactionDao().insert(it) }
@@ -1003,6 +1067,10 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             data.amaalChecks.forEach { db.amaalDao().insert(it) }
             data.khurooj.forEach { db.khuroojDao().insert(it) }
             data.notes.forEach { db.noteDao().insert(it) }
+            data.travelBookings.forEach { booking ->
+                val id = db.travelDao().insert(booking)
+                scheduleTravelReminder(getApplication(), id, booking.departMillis)
+            }
             data.tripGroups.forEach { db.tripDao().insertGroup(it) }
             data.tripMembers.forEach { db.tripDao().insertMember(it) }
             data.tripContributions.forEach { db.tripDao().insertContribution(it) }

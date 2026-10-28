@@ -123,6 +123,24 @@ interface NoteDao {
 }
 
 @Dao
+interface TravelDao {
+    @Query("SELECT * FROM travel_bookings ORDER BY departMillis ASC")
+    fun observeAll(): Flow<List<TravelBooking>>
+
+    @Query("SELECT * FROM travel_bookings WHERE id = :id")
+    suspend fun getById(id: Long): TravelBooking?
+
+    @Insert
+    suspend fun insert(booking: TravelBooking): Long
+
+    @Update
+    suspend fun update(booking: TravelBooking)
+
+    @Query("DELETE FROM travel_bookings WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
 interface CategoryRenameDao {
     /** Renames a category on every transaction and budget that uses it. */
     @Query("UPDATE transactions SET category = :newName WHERE category = :oldName AND type = :type")

@@ -309,6 +309,7 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
         item { MuqamiAmaalSection(vm, group.id, members) }
         item { WeeklyProgrammeSection(vm, group.id, members) }
         item { KhuroojSection(vm, group.id) }
+        item { TripTravelSection(vm, group.id) }
         item { MeetingsSection(vm, group.id) }
         item { DutiesSection(vm, group.id, members.map { it.name }) }
         item { SectionHeader(title = stringResource(R.string.trip_members)) }

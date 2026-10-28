@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -56,6 +57,7 @@ private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
     DIRECTORY(R.string.tab_directory, Icons.Default.LocationOn),
+    TRAVEL(R.string.tab_travel, Icons.AutoMirrored.Filled.Send),
     NOTES(R.string.tab_notes, Icons.Default.Edit),
     HELP(R.string.tab_help, Icons.Default.Search),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings),
@@ -91,6 +93,7 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
                 Tab.JAMAAT -> TripsScreen(viewModel, contentModifier)
                 // Back from the directory goes to Money, since it is a tab now.
                 Tab.DIRECTORY -> DirectoryPage(viewModel, onBack = { selected = Tab.MONEY }, modifier = contentModifier)
+                Tab.TRAVEL -> TravelScreen(viewModel, contentModifier)
                 Tab.NOTES -> NotesScreen(viewModel, contentModifier)
                 Tab.HELP -> HelpScreen(contentModifier)
                 Tab.SETTINGS -> SettingsScreen(viewModel, contentModifier)

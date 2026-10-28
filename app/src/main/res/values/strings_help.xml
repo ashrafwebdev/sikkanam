@@ -52,4 +52,7 @@
 
     <string name="help_backup_title">Backup</string>
     <string name="help_backup_text">Save a backup from Settings every month, and before you change phones. A backup includes all your money, jamaat, dawat, and locality records. Restoring a backup replaces the data on the phone.</string>
+    <string name="help_travel_title">Travel</string>
+    <string name="help_travel_text">Record bus, train and flight bookings by hand, with the operator, route, times, booking reference, fare and seat. Upcoming and past trips are listed separately. Link a booking to a jamaat trip to show it on that trip. A reminder is sent 12 hours before departure. The app does not search for or book tickets. Bookings are saved on this phone and included in the backup.</string>
+
 </resources>

@@ -26,6 +26,7 @@ data class BackupData(
     val amaalChecks: List<AmaalCheck> = emptyList(),
     val khurooj: List<Khurooj> = emptyList(),
     val notes: List<Note> = emptyList(),
+    val travelBookings: List<TravelBooking> = emptyList(),
 )
 
 private const val FORMAT_VERSION = 1
@@ -270,6 +271,24 @@ fun BackupData.toJson(): String {
                 put("title", n.title)
                 put("body", n.body)
                 put("updatedMillis", n.updatedMillis)
+            })
+        }
+    })
+    root.put("travelBookings", JSONArray().apply {
+        travelBookings.forEach { b ->
+            put(JSONObject().apply {
+                put("id", b.id)
+                put("mode", b.mode.name)
+                put("operator", b.operator)
+                put("fromPlace", b.fromPlace)
+                put("toPlace", b.toPlace)
+                put("departMillis", b.departMillis)
+                put("arriveMillis", b.arriveMillis)
+                put("reference", b.reference)
+                put("fareCents", b.fareCents)
+                put("seat", b.seat)
+                put("notes", b.notes)
+                put("groupId", b.groupId)
             })
         }
     })
@@ -524,6 +543,27 @@ fun parseBackup(text: String): BackupData {
         }
     } ?: emptyList()
 
+    // Travel bookings are optional too. Older backups have none.
+    val travelBookings = root.optJSONArray("travelBookings")?.let { arr ->
+        List(arr.length()) { i ->
+            val o = arr.getJSONObject(i)
+            TravelBooking(
+                id = o.optLong("id", 0),
+                mode = TravelMode.valueOf(o.optString("mode", "BUS")),
+                operator = o.optString("operator"),
+                fromPlace = o.getString("fromPlace"),
+                toPlace = o.getString("toPlace"),
+                departMillis = o.getLong("departMillis"),
+                arriveMillis = o.optLong("arriveMillis", 0),
+                reference = o.optString("reference"),
+                fareCents = o.optLong("fareCents", 0),
+                seat = o.optString("seat"),
+                notes = o.optString("notes"),
+                groupId = o.optLong("groupId", 0),
+            )
+        }
+    } ?: emptyList()
+
     // Notes are optional too. Older backups have none.
     val notes = root.optJSONArray("notes")?.let { arr ->
         List(arr.length()) { i ->
@@ -547,5 +587,6 @@ fun parseBackup(text: String): BackupData {
         amaalChecks = amaalChecks,
         khurooj = khurooj,
         notes = notes,
+        travelBookings = travelBookings,
     )
 }

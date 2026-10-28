@@ -14,9 +14,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TripGroup::class, TripMember::class, TripContribution::class, TripExpense::class,
         TripSettledMonth::class, Account::class, Transfer::class, Meeting::class, DutyAssignment::class, DutyType::class,
         GoalEntry::class, Place::class, Debt::class, AmaalCheck::class, Khurooj::class, DawatContact::class, LocalityPerson::class, MeetingVisit::class,
-        Note::class,
+        Note::class, TravelBooking::class,
     ],
-    version = 30,
+    version = 31,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -43,6 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dutyDao(): DutyDao
     abstract fun dutyTypeDao(): DutyTypeDao
     abstract fun noteDao(): NoteDao
+    abstract fun travelDao(): TravelDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -347,6 +348,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the travel bookings table (bus, train and flight tickets recorded by hand). */
+        private val MIGRATION_30_31 = object : Migration(30, 31) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS travel_bookings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "mode TEXT NOT NULL, operator TEXT NOT NULL, fromPlace TEXT NOT NULL, toPlace TEXT NOT NULL, " +
+                        "departMillis INTEGER NOT NULL, arriveMillis INTEGER NOT NULL, reference TEXT NOT NULL, " +
+                        "fareCents INTEGER NOT NULL, seat TEXT NOT NULL, notes TEXT NOT NULL, groupId INTEGER NOT NULL)"
+                )
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -363,6 +376,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
                     MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30,
+                    MIGRATION_30_31,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

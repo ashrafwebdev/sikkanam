@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Travel: bus, train and flight bookings recorded by hand -->
+    <string name="tab_travel">Travel</string>
+    <string name="travel_title">Travel bookings</string>
+    <string name="travel_intro">Record bus, train and flight tickets by hand. Link a booking to a jamaat trip to show it on that trip. A reminder is sent 12 hours before departure.</string>
+    <string name="travel_empty">No bookings yet. Tap Add to record one.</string>
+    <string name="travel_upcoming">Upcoming</string>
+    <string name="travel_past">Past</string>
+    <string name="travel_add_title">New booking</string>
+    <string name="travel_edit_title">Edit booking</string>
+    <string name="travel_mode_bus">Bus</string>
+    <string name="travel_mode_train">Train</string>
+    <string name="travel_mode_flight">Flight</string>
+    <string name="travel_field_mode">Mode</string>
+    <string name="travel_field_operator">Operator (bus company, train or airline)</string>
+    <string name="travel_field_from">From</string>
+    <string name="travel_field_to">To</string>
+    <string name="travel_field_depart_date">Departure date (dd/mm/yyyy)</string>
+    <string name="travel_field_depart_time">Departure time (hh:mm)</string>
+    <string name="travel_field_arrive_date">Arrival date (optional)</string>
+    <string name="travel_field_arrive_time">Arrival time (optional)</string>
+    <string name="travel_field_reference">Booking reference</string>
+    <string name="travel_field_fare">Fare</string>
+    <string name="travel_field_seat">Seat</string>
+    <string name="travel_field_notes">Notes</string>
+    <string name="travel_field_group">Linked jamaat trip</string>
+    <string name="travel_group_none">Not linked</string>
+    <string name="travel_error">Check the route, the departure date and time (dd/mm/yyyy and hh:mm), the arrival time and the fare.</string>
+    <string name="travel_route">%1$s to %2$s</string>
+    <string name="travel_departs">Departs %1$s</string>
+    <string name="travel_arrives">Arrives %1$s</string>
+    <string name="travel_reference">Booking reference: %1$s</string>
+    <string name="travel_seat">Seat: %1$s</string>
+    <string name="travel_fare">Fare: %1$s</string>
+    <string name="travel_trip">Trip: %1$s</string>
+    <string name="travel_edit_desc">Edit booking</string>
+    <string name="travel_delete_desc">Delete booking</string>
+    <string name="travel_delete_confirm">Delete this booking? Its reminder will be cancelled too.</string>
+    <string name="travel_trip_title">Travel</string>
+    <string name="travel_trip_empty">No travel is booked for this trip yet.</string>
+    <string name="travel_reminder_title">Trip reminder</string>
+    <string name="travel_reminder_text">%1$s from %2$s to %3$s departs %4$s</string>
+</resources>

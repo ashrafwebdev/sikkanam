@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Travel: bus, train and flight bookings recorded by hand -->
+    <string name="tab_travel">பயணம்</string>
+    <string name="travel_title">பயணச் சீட்டுகள்</string>
+    <string name="travel_intro">பேருந்து, ரயில், விமானச் சீட்டுகளை கையால் பதிவு செய்யுங்கள். ஒரு சீட்டை ஜமாஅத் பயணத்துடன் இணைத்தால் அந்தப் பயணத்தில் அது காட்டப்படும். புறப்படுவதற்கு 12 மணி நேரத்துக்கு முன் நினைவூட்டல் அனுப்பப்படும்.</string>
+    <string name="travel_empty">இன்னும் சீட்டுகள் இல்லை. ஒன்றைப் பதிவு செய்ய சேர் என்பதைத் தட்டுங்கள்.</string>
+    <string name="travel_upcoming">வரவிருக்கும் பயணங்கள்</string>
+    <string name="travel_past">கடந்த பயணங்கள்</string>
+    <string name="travel_add_title">புதிய சீட்டு</string>
+    <string name="travel_edit_title">சீட்டைத் திருத்து</string>
+    <string name="travel_mode_bus">பேருந்து</string>
+    <string name="travel_mode_train">ரயில்</string>
+    <string name="travel_mode_flight">விமானம்</string>
+    <string name="travel_field_mode">வகை</string>
+    <string name="travel_field_operator">நிறுவனம் (பேருந்து நிறுவனம், ரயில் அல்லது விமான நிறுவனம்)</string>
+    <string name="travel_field_from">புறப்படும் இடம்</string>
+    <string name="travel_field_to">சேருமிடம்</string>
+    <string name="travel_field_depart_date">புறப்படும் தேதி (dd/mm/yyyy)</string>
+    <string name="travel_field_depart_time">புறப்படும் நேரம் (hh:mm)</string>
+    <string name="travel_field_arrive_date">சேரும் தேதி (விருப்பம்)</string>
+    <string name="travel_field_arrive_time">சேரும் நேரம் (விருப்பம்)</string>
+    <string name="travel_field_reference">முன்பதிவு எண்</string>
+    <string name="travel_field_fare">கட்டணம்</string>
+    <string name="travel_field_seat">இருக்கை</string>
+    <string name="travel_field_notes">குறிப்புகள்</string>
+    <string name="travel_field_group">இணைக்கப்பட்ட ஜமாஅத் பயணம்</string>
+    <string name="travel_group_none">இணைக்கவில்லை</string>
+    <string name="travel_error">வழித்தடம், புறப்படும் தேதி மற்றும் நேரம் (dd/mm/yyyy, hh:mm), சேரும் நேரம், கட்டணம் ஆகியவற்றைச் சரிபார்க்கவும்.</string>
+    <string name="travel_route">%1$s இலிருந்து %2$s வரை</string>
+    <string name="travel_departs">புறப்படும்: %1$s</string>
+    <string name="travel_arrives">சேரும்: %1$s</string>
+    <string name="travel_reference">முன்பதிவு எண்: %1$s</string>
+    <string name="travel_seat">இருக்கை: %1$s</string>
+    <string name="travel_fare">கட்டணம்: %1$s</string>
+    <string name="travel_trip">பயணம்: %1$s</string>
+    <string name="travel_edit_desc">சீட்டைத் திருத்து</string>
+    <string name="travel_delete_desc">சீட்டை நீக்கு</string>
+    <string name="travel_delete_confirm">இந்தச் சீட்டை நீக்கவா? அதன் நினைவூட்டலும் ரத்து செய்யப்படும்.</string>
+    <string name="travel_trip_title">பயணம்</string>
+    <string name="travel_trip_empty">இந்த ஜமாஅத் பயணத்துக்கு இன்னும் சீட்டுகள் இணைக்கப்படவில்லை.</string>
+    <string name="travel_reminder_title">பயண நினைவூட்டல்</string>
+    <string name="travel_reminder_text">%1$s, %2$s இலிருந்து %3$s வரை, %4$s புறப்படும்</string>
+</resources>
