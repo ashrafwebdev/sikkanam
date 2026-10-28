@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
@@ -27,17 +28,28 @@ data class MastooratTrip(
     val place: String = "",
 )
 
-/** One pair going out: a woman and her mahram. [childAge] is the age of the female child they bring, or 0 for none. */
+/**
+ * One pair going out: a woman and her mahram. Only the mahram man is recorded, by his person in the
+ * people list. The women's names are never written down. [childAge] is the age of the female child
+ * they bring, or 0 for none.
+ */
 @Entity(tableName = "mastoorat_pairs")
 data class MastooratPair(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val tripId: Long,
-    val woman: String,
-    val mahram: String,
+    val mahramPersonId: Long,
     val childAge: Int = 0,
+    // How the woman is related to the mahram man. A man can be mahram to several women of his family.
+    @ColumnInfo(defaultValue = "'OTHER'") val relation: MahramRelation = MahramRelation.OTHER,
 )
 
-/** One taleem meeting in a house: the house, the day, and how many women came. */
+/** How the woman in a pair is related to her mahram man. */
+enum class MahramRelation { WIFE, MOTHER, DAUGHTER, SISTER, OTHER }
+
+/**
+ * One weekly ijtima of taleem, or a daily taleem at home: the house, the day, how many women came, and
+ * who has which part, each as a person from the people list (0 for none). Only men are recorded here.
+ */
 @Entity(tableName = "mastoorat_taleem")
 data class MastooratTaleem(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -46,6 +58,11 @@ data class MastooratTaleem(
     val dayMillis: Long,
     val house: String = "",
     val attended: Int = 0,
+    // Who reads the taleem, who does istiqbal (reception), who gives the 6 points talk, and who does tashkeel.
+    @ColumnInfo(defaultValue = "0") val readerPersonId: Long = 0,
+    @ColumnInfo(defaultValue = "0") val receptionPersonId: Long = 0,
+    @ColumnInfo(defaultValue = "0") val sixPointsPersonId: Long = 0,
+    @ColumnInfo(defaultValue = "0") val tashkeelPersonId: Long = 0,
 )
 
 /** Women who went out for tashkeel on [dayMillis], counted by how long they went. */
@@ -58,11 +75,15 @@ data class MastooratTashkeel(
     val joined: Int = 0,
 )
 
-/** A pair as it is entered, before it is saved. */
-data class PairInput(val woman: String, val mahram: String, val childAge: Int)
+/** A pair as it is entered, before it is saved. The mahram is picked from the people list, or added to it. */
+data class PairInput(
+    val mahram: PersonChoice,
+    val childAge: Int,
+    val relation: MahramRelation = MahramRelation.OTHER,
+)
 
 /** Why a set of pairs breaks the Mastoorat limits. */
-enum class PairProblem { TOO_MANY_PAIRS, TOO_MANY_CHILD_PAIRS, CHILD_TOO_YOUNG }
+enum class PairProblem { TOO_MANY_PAIRS, TOO_MANY_CHILD_PAIRS, CHILD_TOO_YOUNG, CHILD_NOT_ALLOWED }
 
 /** The limits set for the Mastoorat efforts. */
 object MastooratRules {
@@ -76,10 +97,15 @@ object MastooratRules {
     fun canAddPairsLater(effort: MastooratEffort): Boolean =
         effort == MastooratEffort.DAYS_3 || effort == MastooratEffort.DAYS_10
 
-    /** Checks the pairs against the limits. Returns null when they are allowed. */
-    fun check(pairs: List<PairInput>): PairProblem? {
+    /** Only the 3 day and 10 day trips may bring a female child. */
+    fun childAllowed(effort: MastooratEffort): Boolean =
+        effort == MastooratEffort.DAYS_3 || effort == MastooratEffort.DAYS_10
+
+    /** Checks the pairs of a trip against the limits. Returns null when they are allowed. */
+    fun check(effort: MastooratEffort, pairs: List<PairInput>): PairProblem? {
         if (pairs.size > MAX_PAIRS) return PairProblem.TOO_MANY_PAIRS
         val withChild = pairs.filter { it.childAge != 0 }
+        if (withChild.isNotEmpty() && !childAllowed(effort)) return PairProblem.CHILD_NOT_ALLOWED
         if (withChild.any { it.childAge < MIN_CHILD_AGE }) return PairProblem.CHILD_TOO_YOUNG
         if (withChild.size > MAX_CHILD_PAIRS) return PairProblem.TOO_MANY_CHILD_PAIRS
         return null

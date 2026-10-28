@@ -2,7 +2,7 @@
 <!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
 <resources>
     <string name="mastoorat_title">மஸ்தூராத் முயற்சிகள்</string>
-    <string name="mastoorat_intro">பெண்களின் முயற்சிகளைப் பதிவு செய்யுங்கள்: மஹ்ரமுடன் பெண்களின் ஜோடிகளுடன் பயணங்கள், வாராந்திர மற்றும் தினசரி தஃலீம், தஷ்கீல். பதிவு செய்யும்போது வரம்புகள் சரிபார்க்கப்படும்.</string>
+    <string name="mastoorat_intro">பெண்களின் முயற்சிகளைப் பதிவு செய்யுங்கள்: ஒரு பெண்ணும் அவரது மஹ்ரம் ஆணும் கொண்ட ஜோடிகளுடன் பயணங்கள், வாராந்திர மற்றும் தினசரி தஃலீம், தஷ்கீல். ஆண்கள் மட்டுமே மக்கள் பட்டியலிலிருந்து பெயரிடப்படுவர். பெண்களின் பெயர்கள் ஒருபோதும் எழுதப்படாது. பதிவு செய்யும்போது வரம்புகள் சரிபார்க்கப்படும்.</string>
     <string name="mastoorat_new_trip">புதிய பயணம்</string>
     <string name="mastoorat_record_taleem">தஃலீம் பதிவு</string>
     <string name="mastoorat_record_tashkeel">தஷ்கீல் பதிவு</string>
@@ -18,7 +18,21 @@
     <string name="mastoorat_place">இடம்: %1$s</string>
     <string name="mastoorat_pairs_count">ஜோடிகள்: %1$d / %2$d</string>
     <string name="mastoorat_child_line">, %1$d வயது பெண் குழந்தை</string>
-    <string name="mastoorat_pair_line">%1$s, மஹ்ரம் %2$s உடன்</string>
+    <string name="mastoorat_pair_line">மஹ்ரம்: %1$s, உறவு: %2$s</string>
+    <string name="mastoorat_relation_label">இந்தப் பெண்ணுக்கும் இந்த மஹ்ரமுக்கும் உள்ள உறவு</string>
+    <string name="mastoorat_rel_wife">மனைவி</string>
+    <string name="mastoorat_rel_mother">தாய்</string>
+    <string name="mastoorat_rel_daughter">மகள்</string>
+    <string name="mastoorat_rel_sister">சகோதரி</string>
+    <string name="mastoorat_rel_other">மற்றவர்</string>
+    <string name="mastoorat_roles_title">இந்த வாரப் பொறுப்புகள்</string>
+    <string name="mastoorat_role_reader">தஃலீம் படிப்பவர்</string>
+    <string name="mastoorat_role_reception">இஸ்திக்பால் (வரவேற்பு)</string>
+    <string name="mastoorat_role_six_points">6 அம்ச பயான்</string>
+    <string name="mastoorat_role_tashkeel">தஷ்கீல்</string>
+    <string name="mastoorat_role_none">குறிப்பிடப்படவில்லை</string>
+    <string name="mastoorat_duties_title">இதுவரை பொறுப்புகள்</string>
+    <string name="mastoorat_duty_line">%1$s: படிப்பு %2$d, வரவேற்பு %3$d, 6 அம்சம் %4$d, தஷ்கீல் %5$d</string>
     <string name="mastoorat_add_pairs">ஜோடிகளைச் சேர்</string>
     <string name="mastoorat_no_extra_pairs">இந்தப் பயணத்தில் கூடுதல் ஜோடிகள் சேர்க்க முடியாது.</string>
     <string name="mastoorat_delete_confirm">இந்தப் பயணத்தையும் அதன் ஜோடிகளையும் நீக்கவா?</string>
@@ -37,6 +51,7 @@
     <string name="mastoorat_err_pairs">ஒரு பயணத்தில் அதிகபட்சம் %1$d ஜோடிகள் இருக்கலாம்.</string>
     <string name="mastoorat_err_child_pairs">அதிகபட்சம் %1$d ஜோடிகள் மட்டுமே பெண் குழந்தையை அழைத்து வரலாம்.</string>
     <string name="mastoorat_err_child_age">பெண் குழந்தைக்கு குறைந்தது %1$d வயது இருக்க வேண்டும்.</string>
+    <string name="mastoorat_err_child_not_allowed">3 நாள், 10 நாள் பயணங்களில் மட்டுமே பெண் குழந்தையை அழைத்து வர முடியும்.</string>
     <string name="mastoorat_date_error">தேதிகளை dd/mm/yyyy வடிவில் சரியாக உள்ளிடுங்கள். முடிவு தேதி தொடக்க தேதிக்கு முன் இருக்கக்கூடாது.</string>
     <string name="mastoorat_pairs_error">பெண் மற்றும் அவரது மஹ்ரம் உடன் குறைந்தது ஒரு ஜோடியை உள்ளிடுங்கள்.</string>
     <string name="mastoorat_number_error">ஓர் எண்ணை உள்ளிடுங்கள்.</string>

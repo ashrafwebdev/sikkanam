@@ -40,6 +40,12 @@ class Converters {
     fun stringToTaleemKind(value: String): TaleemKind = TaleemKind.valueOf(value)
 
     @TypeConverter
+    fun mahramRelationToString(relation: MahramRelation): String = relation.name
+
+    @TypeConverter
+    fun stringToMahramRelation(value: String): MahramRelation = MahramRelation.valueOf(value)
+
+    @TypeConverter
     fun tashkeelKindToString(kind: TashkeelKind): String = kind.name
 
     @TypeConverter

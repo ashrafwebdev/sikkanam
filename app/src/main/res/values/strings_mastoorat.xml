@@ -2,7 +2,7 @@
 <resources>
     <!-- Mastoorat: the women's efforts, taleem and tashkeel. Apostrophes are escaped. -->
     <string name="mastoorat_title">Mastoorat efforts</string>
-    <string name="mastoorat_intro">Track the women\'s efforts: trips with pairs of women and their mahram, weekly and daily taleem, and tashkeel. The limits are checked as you record.</string>
+    <string name="mastoorat_intro">Track the women\'s efforts: trips with pairs of a woman and her mahram man, weekly and daily taleem, and tashkeel. Only the men are named, from the people list. The women\'s names are never written down. The limits are checked as you record.</string>
     <string name="mastoorat_new_trip">New trip</string>
     <string name="mastoorat_record_taleem">Record taleem</string>
     <string name="mastoorat_record_tashkeel">Record tashkeel</string>
@@ -18,7 +18,21 @@
     <string name="mastoorat_place">Place: %1$s</string>
     <string name="mastoorat_pairs_count">Pairs: %1$d of %2$d</string>
     <string name="mastoorat_child_line">, female child aged %1$d</string>
-    <string name="mastoorat_pair_line">%1$s with mahram %2$s</string>
+    <string name="mastoorat_pair_line">Mahram: %1$s, relation: %2$s</string>
+    <string name="mastoorat_relation_label">Relation of the woman to this mahram</string>
+    <string name="mastoorat_rel_wife">Wife</string>
+    <string name="mastoorat_rel_mother">Mother</string>
+    <string name="mastoorat_rel_daughter">Daughter</string>
+    <string name="mastoorat_rel_sister">Sister</string>
+    <string name="mastoorat_rel_other">Other</string>
+    <string name="mastoorat_roles_title">Responsibilities this week</string>
+    <string name="mastoorat_role_reader">Reads the taleem</string>
+    <string name="mastoorat_role_reception">Istiqbal (reception)</string>
+    <string name="mastoorat_role_six_points">6 points talk</string>
+    <string name="mastoorat_role_tashkeel">Tashkeel</string>
+    <string name="mastoorat_role_none">not named</string>
+    <string name="mastoorat_duties_title">Duties so far</string>
+    <string name="mastoorat_duty_line">%1$s: reads %2$d, reception %3$d, 6 points %4$d, tashkeel %5$d</string>
     <string name="mastoorat_add_pairs">Add pairs</string>
     <string name="mastoorat_no_extra_pairs">No extra pairs can be added to this trip.</string>
     <string name="mastoorat_delete_confirm">Delete this trip and its pairs?</string>
@@ -37,6 +51,7 @@
     <string name="mastoorat_err_pairs">A trip can have at most %1$d pairs.</string>
     <string name="mastoorat_err_child_pairs">At most %1$d pairs can bring a female child.</string>
     <string name="mastoorat_err_child_age">A female child must be at least %1$d years old.</string>
+    <string name="mastoorat_err_child_not_allowed">Only 3 day and 10 day trips can bring a female child.</string>
     <string name="mastoorat_date_error">Enter valid dates as dd/mm/yyyy. The end date cannot be before the start date.</string>
     <string name="mastoorat_pairs_error">Enter at least one pair, with the woman and her mahram.</string>
     <string name="mastoorat_number_error">Enter a number.</string>

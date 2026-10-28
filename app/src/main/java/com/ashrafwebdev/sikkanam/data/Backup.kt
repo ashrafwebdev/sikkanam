@@ -342,9 +342,9 @@ fun BackupData.toJson(): String {
             put(JSONObject().apply {
                 put("id", p.id)
                 put("tripId", p.tripId)
-                put("woman", p.woman)
-                put("mahram", p.mahram)
+                put("mahramPersonId", p.mahramPersonId)
                 put("childAge", p.childAge)
+                put("relation", p.relation.name)
             })
         }
     })
@@ -357,6 +357,10 @@ fun BackupData.toJson(): String {
                 put("dayMillis", t.dayMillis)
                 put("house", t.house)
                 put("attended", t.attended)
+                put("readerPersonId", t.readerPersonId)
+                put("receptionPersonId", t.receptionPersonId)
+                put("sixPointsPersonId", t.sixPointsPersonId)
+                put("tashkeelPersonId", t.tashkeelPersonId)
             })
         }
     })
@@ -765,9 +769,9 @@ fun parseBackup(text: String): BackupData {
             MastooratPair(
                 id = o.optLong("id", 0),
                 tripId = o.getLong("tripId"),
-                woman = o.optString("woman"),
-                mahram = o.optString("mahram"),
+                mahramPersonId = o.optLong("mahramPersonId", 0),
                 childAge = o.optInt("childAge", 0),
+                relation = MahramRelation.valueOf(o.optString("relation", MahramRelation.OTHER.name)),
             )
         }
     } ?: emptyList()
@@ -781,6 +785,10 @@ fun parseBackup(text: String): BackupData {
                 dayMillis = o.optLong("dayMillis", 0),
                 house = o.optString("house"),
                 attended = o.optInt("attended", 0),
+                readerPersonId = o.optLong("readerPersonId", 0),
+                receptionPersonId = o.optLong("receptionPersonId", 0),
+                sixPointsPersonId = o.optLong("sixPointsPersonId", 0),
+                tashkeelPersonId = o.optLong("tashkeelPersonId", 0),
             )
         }
     } ?: emptyList()

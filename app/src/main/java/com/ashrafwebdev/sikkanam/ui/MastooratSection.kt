@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -37,18 +37,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
+import com.ashrafwebdev.sikkanam.data.MahramRelation
 import com.ashrafwebdev.sikkanam.data.MastooratEffort
 import com.ashrafwebdev.sikkanam.data.MastooratRules
 import com.ashrafwebdev.sikkanam.data.MastooratTrip
 import com.ashrafwebdev.sikkanam.data.PairInput
 import com.ashrafwebdev.sikkanam.data.PairProblem
+import com.ashrafwebdev.sikkanam.data.Person
+import com.ashrafwebdev.sikkanam.data.PersonChoice
 import com.ashrafwebdev.sikkanam.data.TaleemKind
 import com.ashrafwebdev.sikkanam.data.TashkeelKind
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-/** A pair row as typed in the form. A row with no woman and no mahram is left out when saving. */
-private data class PairRow(val woman: String = "", val mahram: String = "", val childAge: String = "")
+/** A pair row as typed in the form. Only the mahram man is named. A row with no mahram and no age is left out. */
+private data class PairRow(
+    val mahram: PersonChoice = PersonChoice(),
+    val childAge: String = "",
+    val relation: MahramRelation = MahramRelation.OTHER,
+)
+
+private fun relationRes(relation: MahramRelation): Int = when (relation) {
+    MahramRelation.WIFE -> R.string.mastoorat_rel_wife
+    MahramRelation.MOTHER -> R.string.mastoorat_rel_mother
+    MahramRelation.DAUGHTER -> R.string.mastoorat_rel_daughter
+    MahramRelation.SISTER -> R.string.mastoorat_rel_sister
+    MahramRelation.OTHER -> R.string.mastoorat_rel_other
+}
 
 private fun effortRes(effort: MastooratEffort): Int = when (effort) {
     MastooratEffort.DAYS_3 -> R.string.mastoorat_effort_3
@@ -75,13 +90,14 @@ private fun parseDay(text: String): Long? = runCatching {
 }.getOrNull()
 
 /** The limit messages, read once while the form is composed so the click handlers can use them. */
-private class PairMessages(val tooMany: String, val childPairs: String, val childAge: String) {
-    /** The problem with these pairs, as a message, or null when they are allowed. */
-    fun problemOf(pairs: List<PairInput>): String? = when (MastooratRules.check(pairs)) {
+private class PairMessages(val tooMany: String, val childPairs: String, val childAge: String, val childNotAllowed: String) {
+    /** The problem with these pairs in this effort, as a message, or null when they are allowed. */
+    fun problemOf(effort: MastooratEffort, pairs: List<PairInput>): String? = when (MastooratRules.check(effort, pairs)) {
         null -> null
         PairProblem.TOO_MANY_PAIRS -> tooMany
         PairProblem.TOO_MANY_CHILD_PAIRS -> childPairs
         PairProblem.CHILD_TOO_YOUNG -> childAge
+        PairProblem.CHILD_NOT_ALLOWED -> childNotAllowed
     }
 }
 
@@ -90,12 +106,13 @@ private fun rememberPairMessages(): PairMessages = PairMessages(
     tooMany = stringResource(R.string.mastoorat_err_pairs, MastooratRules.MAX_PAIRS),
     childPairs = stringResource(R.string.mastoorat_err_child_pairs, MastooratRules.MAX_CHILD_PAIRS),
     childAge = stringResource(R.string.mastoorat_err_child_age, MastooratRules.MIN_CHILD_AGE),
+    childNotAllowed = stringResource(R.string.mastoorat_err_child_not_allowed),
 )
 
 /**
  * The Mastoorat section of a Mastoorat group: the women's efforts (3, 10 and 40 days, and 2 months foreign),
- * the taleem in houses, and the tashkeel of women with their mahram men. It checks the pair and child
- * limits as records are made.
+ * the pairs with their mahram men, the weekly ijtima and daily taleem with who has which part, and tashkeel.
+ * Only men's names are recorded, from the people list. The women's names are never written down.
  */
 @Composable
 fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
@@ -103,6 +120,8 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
     val pairs by vm.mastooratPairs.collectAsState()
     val taleem by vm.mastooratTaleem.collectAsState()
     val tashkeel by vm.mastooratTashkeel.collectAsState()
+    val register by vm.people.collectAsState()
+    val names = register.associate { it.id to it.name }
     val myTrips = trips.filter { it.groupId == groupId }
     val myTaleem = taleem.filter { it.groupId == groupId }
     val myTashkeel = tashkeel.filter { it.groupId == groupId }
@@ -172,7 +191,11 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
                 tripPairs.forEach { pair ->
                     val child = if (pair.childAge != 0) stringResource(R.string.mastoorat_child_line, pair.childAge) else ""
                     Text(
-                        stringResource(R.string.mastoorat_pair_line, pair.woman, pair.mahram) + child,
+                        stringResource(
+                            R.string.mastoorat_pair_line,
+                            names[pair.mahramPersonId].orEmpty(),
+                            stringResource(relationRes(pair.relation)),
+                        ) + child,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -193,15 +216,34 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
             stringResource(R.string.mastoorat_taleem_summary, weekly.size, onTarget, myTaleem.count { it.kind == TaleemKind.DAILY_HOME }),
             style = MaterialTheme.typography.bodySmall,
         )
+        // Who has done each part, so the duties are shared fairly and easy to see.
+        if (myTaleem.isNotEmpty()) {
+            Text(stringResource(R.string.mastoorat_duties_title), style = MaterialTheme.typography.labelLarge)
+            register.forEach { person ->
+                val reads = myTaleem.count { it.readerPersonId == person.id }
+                val reception = myTaleem.count { it.receptionPersonId == person.id }
+                val sixPoints = myTaleem.count { it.sixPointsPersonId == person.id }
+                val tashkeelDuty = myTaleem.count { it.tashkeelPersonId == person.id }
+                if (reads + reception + sixPoints + tashkeelDuty > 0) {
+                    Text(
+                        stringResource(R.string.mastoorat_duty_line, person.name, reads, reception, sixPoints, tashkeelDuty),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        }
         myTaleem.take(20).forEach { entry ->
+            val offTarget = entry.kind == TaleemKind.WEEKLY_IJTIMA && !MastooratRules.taleemOnTarget(entry.attended)
             RecordRow(
                 title = stringResource(taleemRes(entry.kind)) + " · " + dateLabel(entry.dayMillis),
                 detail = stringResource(R.string.mastoorat_attended_line, entry.house, entry.attended) +
-                    if (entry.kind == TaleemKind.WEEKLY_IJTIMA && !MastooratRules.taleemOnTarget(entry.attended)) {
-                        " · " + stringResource(R.string.mastoorat_off_target)
-                    } else {
-                        ""
-                    },
+                    if (offTarget) " · " + stringResource(R.string.mastoorat_off_target) else "",
+                roles = listOf(
+                    stringResource(R.string.mastoorat_role_reader) to names[entry.readerPersonId].orEmpty(),
+                    stringResource(R.string.mastoorat_role_reception) to names[entry.receptionPersonId].orEmpty(),
+                    stringResource(R.string.mastoorat_role_six_points) to names[entry.sixPointsPersonId].orEmpty(),
+                    stringResource(R.string.mastoorat_role_tashkeel) to names[entry.tashkeelPersonId].orEmpty(),
+                ),
                 onDelete = { vm.deleteMastooratTaleem(entry.id) },
             )
         }
@@ -219,6 +261,7 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
             RecordRow(
                 title = stringResource(tashkeelRes(entry.kind)) + " · " + dateLabel(entry.dayMillis),
                 detail = stringResource(R.string.mastoorat_joined_line, entry.joined),
+                roles = emptyList(),
                 onDelete = { vm.deleteMastooratTashkeel(entry.id) },
             )
         }
@@ -226,6 +269,7 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
 
     if (showNewTrip) {
         NewMastooratTripDialog(
+            people = register,
             onDismiss = { showNewTrip = false },
             onSave = { effort, start, end, place, inputs -> vm.saveMastooratTrip(groupId, effort, start, end, place, inputs) },
             onSaved = { showNewTrip = false },
@@ -234,7 +278,9 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
     addingPairsTo?.let { trip ->
         AddPairsDialog(
             trip = trip,
-            existing = pairs.filter { it.tripId == trip.id }.map { PairInput(it.woman, it.mahram, it.childAge) },
+            people = register,
+            existing = pairs.filter { it.tripId == trip.id }
+                .map { PairInput(PersonChoice(personId = it.mahramPersonId), it.childAge, it.relation) },
             onDismiss = { addingPairsTo = null },
             onSave = { inputs -> vm.addMastooratPairs(trip, inputs) },
             onSaved = { addingPairsTo = null },
@@ -255,8 +301,11 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
     }
     if (showTaleem) {
         RecordTaleemDialog(
+            people = register,
             onDismiss = { showTaleem = false },
-            onSave = { kind, day, house, attended -> vm.saveMastooratTaleem(groupId, kind, day, house, attended) },
+            onSave = { kind, day, house, attended, reader, reception, sixPoints, tashkeelPerson ->
+                vm.saveMastooratTaleem(groupId, kind, day, house, attended, reader, reception, sixPoints, tashkeelPerson)
+            },
             onSaved = { showTaleem = false },
         )
     }
@@ -270,11 +319,17 @@ fun MastooratSection(vm: FinanceViewModel, groupId: Long) {
 }
 
 @Composable
-private fun RecordRow(title: String, detail: String, onDelete: () -> Unit) {
+private fun RecordRow(title: String, detail: String, roles: List<Pair<String, String>>, onDelete: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
             Text(detail, style = MaterialTheme.typography.bodySmall)
+            roles.forEach { (label, name) ->
+                Text(
+                    label + ": " + name.ifBlank { stringResource(R.string.mastoorat_role_none) },
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
         IconButton(onClick = onDelete) {
             Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.mastoorat_delete_desc))
@@ -282,9 +337,10 @@ private fun RecordRow(title: String, detail: String, onDelete: () -> Unit) {
     }
 }
 
-/** Starts a trip: its effort, dates, place, and the pairs going out. */
+/** Starts a trip: its effort, dates, place, and the mahram men of the pairs going out. */
 @Composable
 private fun NewMastooratTripDialog(
+    people: List<Person>,
     onDismiss: () -> Unit,
     onSave: (MastooratEffort, Long, Long, String, List<PairInput>) -> Boolean,
     onSaved: () -> Unit,
@@ -311,7 +367,7 @@ private fun NewMastooratTripDialog(
                 DateField(start, { start = it }, R.string.mastoorat_start_date)
                 DateField(end, { end = it }, R.string.mastoorat_end_date)
                 OutlinedTextField(value = place, onValueChange = { place = it }, label = { Text(stringResource(R.string.mastoorat_place_field)) }, singleLine = true)
-                PairRows(rows)
+                PairRows(rows, people)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
@@ -323,7 +379,7 @@ private fun NewMastooratTripDialog(
                 error = when {
                     startMillis == null || endMillis == null || endMillis < startMillis -> dateError
                     inputs.isEmpty() -> pairError
-                    else -> messages.problemOf(inputs)
+                    else -> messages.problemOf(effort, inputs)
                 }
                 if (error == null && onSave(effort, startMillis!!, endMillis!!, place, inputs)) onSaved()
             }) { Text(stringResource(R.string.action_save)) }
@@ -336,6 +392,7 @@ private fun NewMastooratTripDialog(
 @Composable
 private fun AddPairsDialog(
     trip: MastooratTrip,
+    people: List<Person>,
     existing: List<PairInput>,
     onDismiss: () -> Unit,
     onSave: (List<PairInput>) -> Boolean,
@@ -354,7 +411,7 @@ private fun AddPairsDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                PairRows(rows)
+                PairRows(rows, people)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
@@ -363,7 +420,7 @@ private fun AddPairsDialog(
                 val inputs = pairInputs(rows)
                 error = when {
                     inputs.isEmpty() -> pairError
-                    else -> messages.problemOf(existing + inputs) ?: if (onSave(inputs)) null else pairError
+                    else -> messages.problemOf(trip.effort, existing + inputs) ?: if (onSave(inputs)) null else pairError
                 }
                 if (error == null) onSaved()
             }) { Text(stringResource(R.string.action_save)) }
@@ -372,16 +429,22 @@ private fun AddPairsDialog(
     )
 }
 
+/** One taleem meeting: the type, the day, the house, the women who came, and who has each part. */
 @Composable
 private fun RecordTaleemDialog(
+    people: List<Person>,
     onDismiss: () -> Unit,
-    onSave: (TaleemKind, Long, String, String) -> Boolean,
+    onSave: (TaleemKind, Long, String, String, PersonChoice, PersonChoice, PersonChoice, PersonChoice) -> Boolean,
     onSaved: () -> Unit,
 ) {
     var kind by remember { mutableStateOf(TaleemKind.WEEKLY_IJTIMA) }
     var day by remember { mutableStateOf("") }
     var house by remember { mutableStateOf("") }
     var attended by remember { mutableStateOf("") }
+    var reader by remember { mutableStateOf(PersonChoice()) }
+    var reception by remember { mutableStateOf(PersonChoice()) }
+    var sixPoints by remember { mutableStateOf(PersonChoice()) }
+    var tashkeelPerson by remember { mutableStateOf(PersonChoice()) }
     var error by remember { mutableStateOf<String?>(null) }
     val dateError = stringResource(R.string.mastoorat_date_error)
     val numberError = stringResource(R.string.mastoorat_number_error)
@@ -408,6 +471,35 @@ private fun RecordTaleemDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
+                Text(stringResource(R.string.mastoorat_roles_title), style = MaterialTheme.typography.labelLarge)
+                PersonPickerFields(
+                    people = people,
+                    choice = reader,
+                    onChoice = { reader = it },
+                    label = stringResource(R.string.mastoorat_role_reader),
+                    showPhone = false,
+                )
+                PersonPickerFields(
+                    people = people,
+                    choice = reception,
+                    onChoice = { reception = it },
+                    label = stringResource(R.string.mastoorat_role_reception),
+                    showPhone = false,
+                )
+                PersonPickerFields(
+                    people = people,
+                    choice = sixPoints,
+                    onChoice = { sixPoints = it },
+                    label = stringResource(R.string.mastoorat_role_six_points),
+                    showPhone = false,
+                )
+                PersonPickerFields(
+                    people = people,
+                    choice = tashkeelPerson,
+                    onChoice = { tashkeelPerson = it },
+                    label = stringResource(R.string.mastoorat_role_tashkeel),
+                    showPhone = false,
+                )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
@@ -419,7 +511,7 @@ private fun RecordTaleemDialog(
                     attended.trim().toIntOrNull() == null -> numberError
                     else -> null
                 }
-                if (error == null && onSave(kind, dayMillis!!, house, attended)) onSaved()
+                if (error == null && onSave(kind, dayMillis!!, house, attended, reader, reception, sixPoints, tashkeelPerson)) onSaved()
             }) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
@@ -500,26 +592,29 @@ private fun DateField(value: String, onChange: (String) -> Unit, labelRes: Int) 
     )
 }
 
-/** The pair rows of a form. Each row is a woman, her mahram, and the age of a female child (blank for none). */
+/** The pair rows of a form. Each row is a mahram man from the people list, and the age of a female child (blank for none). */
 @Composable
-private fun PairRows(rows: MutableList<PairRow>) {
+private fun PairRows(rows: MutableList<PairRow>, people: List<Person>) {
     Text(stringResource(R.string.mastoorat_pairs_title), style = MaterialTheme.typography.labelLarge)
     rows.forEachIndexed { index, row ->
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            OutlinedTextField(
-                value = row.woman,
-                onValueChange = { rows[index] = row.copy(woman = it) },
-                label = { Text(stringResource(R.string.mastoorat_woman)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+            PersonPickerFields(
+                people = people,
+                choice = row.mahram,
+                onChoice = { rows[index] = row.copy(mahram = it) },
+                label = stringResource(R.string.mastoorat_mahram),
+                showPhone = false,
             )
-            OutlinedTextField(
-                value = row.mahram,
-                onValueChange = { rows[index] = row.copy(mahram = it) },
-                label = { Text(stringResource(R.string.mastoorat_mahram)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Text(stringResource(R.string.mastoorat_relation_label), style = MaterialTheme.typography.labelSmall)
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                MahramRelation.entries.forEach { option ->
+                    FilterChip(
+                        selected = row.relation == option,
+                        onClick = { rows[index] = row.copy(relation = option) },
+                        label = { Text(stringResource(relationRes(option))) },
+                    )
+                }
+            }
             OutlinedTextField(
                 value = row.childAge,
                 onValueChange = { rows[index] = row.copy(childAge = it) },
@@ -539,7 +634,7 @@ private fun PairRows(rows: MutableList<PairRow>) {
     }
 }
 
-/** The pairs typed in the rows. Rows left completely empty are skipped. */
+/** The pairs typed in the rows. Rows with no mahram and no age are skipped. */
 private fun pairInputs(rows: List<PairRow>): List<PairInput> = rows
-    .filter { it.woman.isNotBlank() || it.mahram.isNotBlank() || it.childAge.isNotBlank() }
-    .map { PairInput(it.woman.trim(), it.mahram.trim(), it.childAge.trim().toIntOrNull() ?: 0) }
+    .filter { it.mahram.name.isNotBlank() || it.mahram.personId != 0L || it.childAge.isNotBlank() }
+    .map { PairInput(it.mahram, it.childAge.trim().toIntOrNull() ?: 0, it.relation) }

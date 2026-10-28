@@ -38,6 +38,7 @@ import com.ashrafwebdev.sikkanam.data.KhuroojType
 import com.ashrafwebdev.sikkanam.data.LocalityPerson
 import com.ashrafwebdev.sikkanam.data.MeetingVisit
 import com.ashrafwebdev.sikkanam.data.Person
+import com.ashrafwebdev.sikkanam.data.PersonChoice
 
 /** Splits a comma-separated list of khurooj type names back into types. Unknown names are ignored. */
 private fun parseTypes(text: String): Set<KhuroojType> =

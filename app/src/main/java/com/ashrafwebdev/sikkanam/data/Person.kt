@@ -21,6 +21,17 @@ data class Person(
     val address: String = "",
 )
 
+/**
+ * The person chosen in a form. [personId] is the saved person picked from the list, or 0 when the
+ * person is new and will be saved to the list when the form is saved.
+ */
+data class PersonChoice(
+    val personId: Long = 0,
+    val name: String = "",
+    val phone: String = "",
+    val address: String = "",
+)
+
 @Dao
 interface PersonDao {
     @Query("SELECT * FROM people ORDER BY name COLLATE NOCASE")

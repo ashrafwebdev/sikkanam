@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         Note::class, TravelBooking::class,
         Person::class, MastooratTrip::class, MastooratPair::class, MastooratTaleem::class, MastooratTashkeel::class,
     ],
-    version = 33,
+    version = 34,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -433,6 +433,49 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Mastoorat pairs now name only the mahram man, from the people list, so the women's names are dropped.
+         * Weekly taleem gets the four responsibilities: reader, reception, the 6 points talk, and tashkeel.
+         */
+        private val MIGRATION_33_34 = object : Migration(33, 34) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS mastoorat_pairs_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "tripId INTEGER NOT NULL, mahramPersonId INTEGER NOT NULL, childAge INTEGER NOT NULL, " +
+                        "relation TEXT NOT NULL DEFAULT 'OTHER')"
+                )
+                class OldPair(val tripId: Long, val mahram: String, val childAge: Int)
+
+                val old = mutableListOf<OldPair>()
+                db.query("SELECT tripId, mahram, childAge FROM mastoorat_pairs").use { c ->
+                    while (c.moveToNext()) old += OldPair(c.getLong(0), c.getString(1).trim(), c.getInt(2))
+                }
+                old.filter { it.mahram.isNotEmpty() }.forEach { pair ->
+                    val existing = db.query(
+                        "SELECT id FROM people WHERE name = ? COLLATE NOCASE LIMIT 1",
+                        arrayOf(pair.mahram),
+                    ).use { c -> if (c.moveToFirst()) c.getLong(0) else null }
+                    val personId = existing ?: run {
+                        db.execSQL("INSERT INTO people (name, phone, address) VALUES (?, '', '')", arrayOf(pair.mahram))
+                        db.query("SELECT last_insert_rowid()").use { c ->
+                            c.moveToFirst()
+                            c.getLong(0)
+                        }
+                    }
+                    db.execSQL(
+                        "INSERT INTO mastoorat_pairs_new (tripId, mahramPersonId, childAge) VALUES (?, ?, ?)",
+                        arrayOf(pair.tripId, personId, pair.childAge),
+                    )
+                }
+                db.execSQL("DROP TABLE mastoorat_pairs")
+                db.execSQL("ALTER TABLE mastoorat_pairs_new RENAME TO mastoorat_pairs")
+                db.execSQL("ALTER TABLE mastoorat_taleem ADD COLUMN readerPersonId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE mastoorat_taleem ADD COLUMN receptionPersonId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE mastoorat_taleem ADD COLUMN sixPointsPersonId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE mastoorat_taleem ADD COLUMN tashkeelPersonId INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private val SEED_ON_CREATE = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 DefaultCategories.insertInto { sql, args -> db.execSQL(sql, args) }
@@ -449,7 +492,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
                     MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20,
                     MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30,
-                    MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33,
+                    MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33, MIGRATION_33_34,
                 )
                 .addCallback(SEED_ON_CREATE)
                 .build()

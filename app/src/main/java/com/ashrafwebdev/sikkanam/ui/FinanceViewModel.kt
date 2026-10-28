@@ -12,6 +12,7 @@ import com.ashrafwebdev.sikkanam.data.Note
 import com.ashrafwebdev.sikkanam.data.TravelBooking
 import com.ashrafwebdev.sikkanam.data.TravelMode
 import com.ashrafwebdev.sikkanam.data.Person
+import com.ashrafwebdev.sikkanam.data.PersonChoice
 import com.ashrafwebdev.sikkanam.data.MastooratEffort
 import com.ashrafwebdev.sikkanam.data.MastooratPair
 import com.ashrafwebdev.sikkanam.data.MastooratRules
@@ -294,8 +295,12 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     val mastooratTashkeel: StateFlow<List<MastooratTashkeel>> = db.mastooratDao().observeTashkeel()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private fun pairsValid(pairs: List<PairInput>): Boolean =
-        pairs.isNotEmpty() && pairs.all { it.woman.isNotBlank() && it.mahram.isNotBlank() } && MastooratRules.check(pairs) == null
+    private fun pairsValid(effort: MastooratEffort, pairs: List<PairInput>): Boolean =
+        pairs.isNotEmpty() && pairs.all { it.mahram.name.isNotBlank() } && MastooratRules.check(effort, pairs) == null
+
+    /** The register entry for a responsibility, or 0 when nobody is named for it. */
+    private suspend fun roleId(choice: PersonChoice): Long =
+        if (choice.personId == 0L && choice.name.isBlank()) 0L else resolvePerson(choice)
 
     /** Records a Mastoorat trip with its pairs. Returns false when the dates are wrong or the pairs break the limits. */
     fun saveMastooratTrip(
@@ -306,23 +311,32 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         place: String,
         pairs: List<PairInput>,
     ): Boolean {
-        if (endMillis < startMillis || !pairsValid(pairs)) return false
+        if (endMillis < startMillis || !pairsValid(effort, pairs)) return false
         viewModelScope.launch {
             val tripId = db.mastooratDao().insertTrip(
                 MastooratTrip(groupId = groupId, effort = effort, startMillis = startMillis, endMillis = endMillis, place = place.trim()),
             )
-            db.mastooratDao().insertPairs(pairs.map { MastooratPair(tripId = tripId, woman = it.woman.trim(), mahram = it.mahram.trim(), childAge = it.childAge) })
+            db.mastooratDao().insertPairs(
+                pairs.map {
+                    MastooratPair(tripId = tripId, mahramPersonId = resolvePerson(it.mahram), childAge = it.childAge, relation = it.relation)
+                },
+            )
         }
         return true
     }
 
     /** Adds pairs to a 3 or 10 day trip. Longer trips take no extra pairs once they are made. */
     fun addMastooratPairs(trip: MastooratTrip, pairs: List<PairInput>): Boolean {
-        if (!MastooratRules.canAddPairsLater(trip.effort) || !pairsValid(pairs)) return false
-        val already = mastooratPairs.value.filter { it.tripId == trip.id }.map { PairInput(it.woman, it.mahram, it.childAge) }
-        if (MastooratRules.check(already + pairs) != null) return false
+        if (!MastooratRules.canAddPairsLater(trip.effort) || !pairsValid(trip.effort, pairs)) return false
+        val already = mastooratPairs.value.filter { it.tripId == trip.id }
+            .map { PairInput(PersonChoice(personId = it.mahramPersonId), it.childAge, it.relation) }
+        if (MastooratRules.check(trip.effort, already + pairs) != null) return false
         viewModelScope.launch {
-            db.mastooratDao().insertPairs(pairs.map { MastooratPair(tripId = trip.id, woman = it.woman.trim(), mahram = it.mahram.trim(), childAge = it.childAge) })
+            db.mastooratDao().insertPairs(
+                pairs.map {
+                    MastooratPair(tripId = trip.id, mahramPersonId = resolvePerson(it.mahram), childAge = it.childAge, relation = it.relation)
+                },
+            )
         }
         return true
     }
@@ -334,10 +348,33 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun saveMastooratTaleem(groupId: Long, kind: TaleemKind, dayMillis: Long, house: String, attendedText: String): Boolean {
+    /** Records a taleem meeting with who reads, does reception, gives the 6 points talk, and does tashkeel. */
+    fun saveMastooratTaleem(
+        groupId: Long,
+        kind: TaleemKind,
+        dayMillis: Long,
+        house: String,
+        attendedText: String,
+        reader: PersonChoice,
+        reception: PersonChoice,
+        sixPoints: PersonChoice,
+        tashkeel: PersonChoice,
+    ): Boolean {
         val attended = attendedText.trim().toIntOrNull()?.takeIf { it >= 0 } ?: return false
         viewModelScope.launch {
-            db.mastooratDao().insertTaleem(MastooratTaleem(groupId = groupId, kind = kind, dayMillis = dayMillis, house = house.trim(), attended = attended))
+            db.mastooratDao().insertTaleem(
+                MastooratTaleem(
+                    groupId = groupId,
+                    kind = kind,
+                    dayMillis = dayMillis,
+                    house = house.trim(),
+                    attended = attended,
+                    readerPersonId = roleId(reader),
+                    receptionPersonId = roleId(reception),
+                    sixPointsPersonId = roleId(sixPoints),
+                    tashkeelPersonId = roleId(tashkeel),
+                ),
+            )
         }
         return true
     }

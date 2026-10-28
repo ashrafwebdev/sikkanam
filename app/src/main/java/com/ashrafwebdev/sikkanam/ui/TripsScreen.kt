@@ -50,6 +50,7 @@ import com.ashrafwebdev.sikkanam.contacts.hasContactsPermission
 import com.ashrafwebdev.sikkanam.contacts.saveToPhoneContacts
 import com.ashrafwebdev.sikkanam.data.GroupKind
 import com.ashrafwebdev.sikkanam.data.Person
+import com.ashrafwebdev.sikkanam.data.PersonChoice
 import com.ashrafwebdev.sikkanam.data.TripContribution
 import com.ashrafwebdev.sikkanam.data.TripExpense
 import com.ashrafwebdev.sikkanam.data.TripGroup

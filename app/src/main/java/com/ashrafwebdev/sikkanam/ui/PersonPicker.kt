@@ -15,17 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Person
-
-/**
- * The person chosen in a form. [personId] is the saved person picked from the list, or 0 when the
- * person is new and will be saved to the list when the form is saved.
- */
-data class PersonChoice(
-    val personId: Long = 0,
-    val name: String = "",
-    val phone: String = "",
-    val address: String = "",
-)
+import com.ashrafwebdev.sikkanam.data.PersonChoice
 
 /** Saved people whose name or phone matches the text. Phone matches need at least four digits. */
 fun matchPeople(people: List<Person>, query: String): List<Person> {
@@ -45,6 +35,8 @@ fun PersonPickerFields(
     people: List<Person>,
     choice: PersonChoice,
     onChoice: (PersonChoice) -> Unit,
+    label: String = stringResource(R.string.person_name),
+    showPhone: Boolean = true,
     showAddress: Boolean = false,
 ) {
     val matches = if (choice.personId == 0L) matchPeople(people, choice.name) else emptyList()
@@ -52,7 +44,7 @@ fun PersonPickerFields(
         OutlinedTextField(
             value = choice.name,
             onValueChange = { onChoice(choice.copy(personId = 0, name = it)) },
-            label = { Text(stringResource(R.string.person_name)) },
+            label = { Text(label) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -79,14 +71,16 @@ fun PersonPickerFields(
                 Text(stringResource(R.string.person_new_hint), style = MaterialTheme.typography.bodySmall)
             }
         }
-        OutlinedTextField(
-            value = choice.phone,
-            onValueChange = { onChoice(choice.copy(phone = it)) },
-            label = { Text(stringResource(R.string.person_phone)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (showPhone) {
+            OutlinedTextField(
+                value = choice.phone,
+                onValueChange = { onChoice(choice.copy(phone = it)) },
+                label = { Text(stringResource(R.string.person_phone)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         if (showAddress) {
             OutlinedTextField(
                 value = choice.address,
