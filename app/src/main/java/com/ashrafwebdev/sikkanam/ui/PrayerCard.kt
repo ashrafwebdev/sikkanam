@@ -341,7 +341,7 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                         value = values[timeKey].orEmpty(),
                         onValueChange = { values[timeKey] = formatTimeTyping(it) },
                         label = { Text(stringResource(timeLabelRes(name))) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -355,7 +355,7 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                             value = values[adhanKey].orEmpty(),
                             onValueChange = { values[adhanKey] = formatTimeTyping(it) },
                             label = { Text(adhanLabel) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             singleLine = true,
                             modifier = Modifier.weight(1f),
                         )
@@ -363,7 +363,7 @@ private fun MasjidTimingsDialog(masjid: Int, onDismiss: () -> Unit) {
                             value = values[iqamaKey].orEmpty(),
                             onValueChange = { values[iqamaKey] = formatTimeTyping(it) },
                             label = { Text(iqamaLabel) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             singleLine = true,
                             modifier = Modifier.weight(1f),
                         )
