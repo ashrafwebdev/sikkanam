@@ -4,6 +4,7 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,6 +58,19 @@ import com.ashrafwebdev.sikkanam.data.TripGroup
 import com.ashrafwebdev.sikkanam.data.TripMember
 import com.ashrafwebdev.sikkanam.trip.TripSettlement
 
+/** The sections of the Jamaat page, shown as chips at the top. */
+private enum class JamaatSection(@StringRes val labelRes: Int) {
+    WORK(R.string.section_work),
+    GROUPS(R.string.section_groups),
+}
+
+/** The sections of an open group, shown as chips under its header. */
+private enum class TripSection(@StringRes val labelRes: Int) {
+    PLAN(R.string.section_plan),
+    MEMBERS(R.string.section_members),
+    MONEY(R.string.section_money),
+}
+
 /** Group trips: members pay in, costs are split equally, and the app shows who settles with whom. */
 @Composable
 fun TripsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -92,46 +106,62 @@ private fun TripList(
     val familyLabel = stringResource(R.string.trip_kind_family)
     val tripLabel = stringResource(R.string.trip_kind_trip)
 
-    LazyColumn(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            SectionHeader(
-                title = stringResource(R.string.trip_list_title),
-                action = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledTonalButton(onClick = { newKind = GroupKind.TRIP }) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(Modifier.width(4.dp))
-                            Text(stringResource(R.string.trip_btn_trip))
-                        }
-                        FilledTonalButton(onClick = { newKind = GroupKind.FAMILY }) {
-                            Text(stringResource(R.string.trip_btn_family))
+    var section by rememberSaveable { mutableStateOf(JamaatSection.GROUPS) }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionChips(
+            options = JamaatSection.entries,
+            selected = section,
+            label = { stringResource(it.labelRes) },
+            onSelect = { section = it },
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (section == JamaatSection.WORK) {
+                item { DawatSection(vm) }
+                item { LocalitySection(vm) }
+            }
+
+            if (section == JamaatSection.GROUPS) {
+                item {
+                    SectionHeader(
+                        title = stringResource(R.string.trip_list_title),
+                        action = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilledTonalButton(onClick = { newKind = GroupKind.TRIP }) {
+                                    Icon(Icons.Default.Add, contentDescription = null)
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(stringResource(R.string.trip_btn_trip))
+                                }
+                                FilledTonalButton(onClick = { newKind = GroupKind.FAMILY }) {
+                                    Text(stringResource(R.string.trip_btn_family))
+                                }
+                            }
+                        },
+                    )
+                }
+                if (groups.isEmpty()) {
+                    item { EmptyState(stringResource(R.string.trip_empty)) }
+                }
+                items(groups, key = { it.id }) { group ->
+                    val spent = expenses.filter { it.groupId == group.id }.sumOf { it.amountCents }
+                    val count = members.count { it.groupId == group.id }
+                    SectionCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(group.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                                val label = if (group.kind == GroupKind.FAMILY) familyLabel else tripLabel
+                                Text(
+                                    stringResource(R.string.trip_summary, label, count, formatMoney(spent)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            OutlinedButton(onClick = { onOpen(group) }) { Text(stringResource(R.string.trip_open)) }
                         }
                     }
-                },
-            )
-        }
-        item { DawatSection(vm) }
-        item { LocalitySection(vm) }
-        if (groups.isEmpty()) {
-            item { EmptyState(stringResource(R.string.trip_empty)) }
-        }
-        items(groups, key = { it.id }) { group ->
-            val spent = expenses.filter { it.groupId == group.id }.sumOf { it.amountCents }
-            val count = members.count { it.groupId == group.id }
-            SectionCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(group.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                        val label = if (group.kind == GroupKind.FAMILY) familyLabel else tripLabel
-                        Text(
-                            stringResource(R.string.trip_summary, label, count, formatMoney(spent)),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    OutlinedButton(onClick = { onOpen(group) }) { Text(stringResource(R.string.trip_open)) }
                 }
             }
         }
@@ -215,11 +245,10 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
     val unknownText = stringResource(R.string.trip_unknown)
     val poolLabel = stringResource(R.string.trip_pool_label)
 
-    LazyColumn(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
+    var section by rememberSaveable { mutableStateOf(TripSection.PLAN) }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onBack) { Text(stringResource(R.string.trip_back)) }
                 Spacer(Modifier.weight(1f))
@@ -277,179 +306,198 @@ private fun TripDetail(vm: FinanceViewModel, group: TripGroup, onBack: () -> Uni
             }
         }
 
-        item {
-            SectionCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                Text(
-                    stringResource(R.string.trip_pool_left, formatMoney(poolLeft)),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                Text(
-                    stringResource(
-                        R.string.trip_counts,
-                        going.size,
-                        members.size - going.size,
-                        formatMoney(totalContributed),
-                        formatMoney(totalSpent),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
+        SectionChips(
+            options = TripSection.entries,
+            selected = section,
+            label = { stringResource(it.labelRes) },
+            onSelect = { section = it },
+        )
 
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { showContribution = true }, enabled = members.isNotEmpty()) {
-                    Text(stringResource(R.string.trip_add_money_in))
-                }
-                FilledTonalButton(onClick = { showExpense = true }, enabled = members.isNotEmpty()) {
-                    Text(stringResource(R.string.trip_add_expense))
-                }
-            }
-        }
-
-        item { MuqamiAmaalSection(vm, group.id, members) }
-        item { WeeklyProgrammeSection(vm, group.id, members) }
-        item { KhuroojSection(vm, group.id) }
-        if (isFamily) {
-            item { MastooratSection(vm, group.id) }
-        }
-        item { TripTravelSection(vm, group.id) }
-        item { MeetingsSection(vm, group.id) }
-        item { DutiesSection(vm, group.id, members.map { it.name }) }
-        item { SectionHeader(title = stringResource(R.string.trip_members)) }
-        item {
-            FilledTonalButton(onClick = { showAddMember = true }) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.trip_add_member))
-            }
-        }
-        items(members, key = { "m${it.id}" }) { member ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(member.name, style = MaterialTheme.typography.bodyMedium)
-                    val details = buildList {
-                        if (!member.confirmed) add(interestedText)
-                        if (member.phone.isNotBlank()) add(member.phone)
-                        if (member.days > 0) add(stringResource(R.string.trip_days, member.days))
-                        if (member.advanceCents > 0) {
-                            add(stringResource(R.string.trip_advance, formatMoney(member.advanceCents)))
-                        }
-                        if (member.address.isNotBlank()) add(member.address)
-                    }
-                    if (details.isNotEmpty()) {
-                        Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                IconButton(onClick = { renamingMember = member }) {
-                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_member_desc))
-                }
-                if (isFamily) {
-                    TextButton(onClick = { incomeEditing = member }) {
-                        Text(stringResource(R.string.trip_income_button, formatMoney(member.incomeCents)))
-                    }
-                }
-                IconButton(onClick = { vm.deleteTripMember(member) }) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_remove_member_desc))
-                }
-            }
-        }
-
-        if (balances.isNotEmpty()) {
-            item { SectionHeader(title = stringResource(R.string.trip_balances)) }
-            items(balances, key = { "b${it.memberId}" }) { b ->
-                SectionCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (section == TripSection.MONEY) {
+                item {
+                    SectionCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                         Text(
-                            b.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f),
+                            stringResource(R.string.trip_pool_left, formatMoney(poolLeft)),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Text(
-                            if (b.net >= 0) stringResource(R.string.trip_gets, formatMoney(b.net))
-                            else stringResource(R.string.trip_owes, formatMoney(-b.net)),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (b.net >= 0) IncomeColor else ExpenseColor,
-                        )
-                    }
-                    Text(
-                        stringResource(
-                            R.string.trip_paid_share,
-                            formatMoney(b.contributed),
-                            formatMoney(b.paidDirectly),
-                            formatMoney(b.share),
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        }
-
-        if (payments.isNotEmpty()) {
-            item { SectionHeader(title = stringResource(R.string.trip_settle_up)) }
-            items(payments, key = { "p${it.from}-${it.to}-${it.amountCents}" }) { p ->
-                SectionCard {
-                    Text(
-                        if (p.to == "Pool") stringResource(R.string.trip_pays_pool, p.from, formatMoney(p.amountCents))
-                        else if (p.from == "Pool") stringResource(R.string.trip_refund_from_pool, formatMoney(p.amountCents), p.to)
-                        else stringResource(R.string.trip_pays, p.from, p.to, formatMoney(p.amountCents)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
-
-        if (expenses.isNotEmpty()) {
-            item { SectionHeader(title = stringResource(R.string.trip_expenses)) }
-            items(expenses, key = { "e${it.id}" }) { e ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(e.description, style = MaterialTheme.typography.bodyMedium)
-                        val payer = members.firstOrNull { it.id == e.paidByMemberId }?.name ?: poolLabel
-                        val sharedBy = if (e.participants().isEmpty()) everyoneText
-                        else stringResource(R.string.trip_people, e.participants().size)
-                        Text(
-                            stringResource(R.string.trip_expense_line, dateLabel(e.dateMillis), payer, sharedBy),
+                            stringResource(
+                                R.string.trip_counts,
+                                going.size,
+                                members.size - going.size,
+                                formatMoney(totalContributed),
+                                formatMoney(totalSpent),
+                            ),
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
-                    Text(formatMoney(e.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    IconButton(onClick = { editingExpense = e }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_expense_desc))
+                }
+
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilledTonalButton(onClick = { showContribution = true }, enabled = members.isNotEmpty()) {
+                            Text(stringResource(R.string.trip_add_money_in))
+                        }
+                        FilledTonalButton(onClick = { showExpense = true }, enabled = members.isNotEmpty()) {
+                            Text(stringResource(R.string.trip_add_expense))
+                        }
                     }
-                    IconButton(onClick = { vm.deleteTripExpense(e.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_expense_desc))
+                }
+
+                if (balances.isNotEmpty()) {
+                    item { SectionHeader(title = stringResource(R.string.trip_balances)) }
+                    items(balances, key = { "b${it.memberId}" }) { b ->
+                        SectionCard {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    b.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Text(
+                                    if (b.net >= 0) stringResource(R.string.trip_gets, formatMoney(b.net))
+                                    else stringResource(R.string.trip_owes, formatMoney(-b.net)),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (b.net >= 0) IncomeColor else ExpenseColor,
+                                )
+                            }
+                            Text(
+                                stringResource(
+                                    R.string.trip_paid_share,
+                                    formatMoney(b.contributed),
+                                    formatMoney(b.paidDirectly),
+                                    formatMoney(b.share),
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
+
+                if (payments.isNotEmpty()) {
+                    item { SectionHeader(title = stringResource(R.string.trip_settle_up)) }
+                    items(payments, key = { "p${it.from}-${it.to}-${it.amountCents}" }) { p ->
+                        SectionCard {
+                            Text(
+                                if (p.to == "Pool") stringResource(R.string.trip_pays_pool, p.from, formatMoney(p.amountCents))
+                                else if (p.from == "Pool") stringResource(R.string.trip_refund_from_pool, formatMoney(p.amountCents), p.to)
+                                else stringResource(R.string.trip_pays, p.from, p.to, formatMoney(p.amountCents)),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
+                }
+
+                if (expenses.isNotEmpty()) {
+                    item { SectionHeader(title = stringResource(R.string.trip_expenses)) }
+                    items(expenses, key = { "e${it.id}" }) { e ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(e.description, style = MaterialTheme.typography.bodyMedium)
+                                val payer = members.firstOrNull { it.id == e.paidByMemberId }?.name ?: poolLabel
+                                val sharedBy = if (e.participants().isEmpty()) everyoneText
+                                else stringResource(R.string.trip_people, e.participants().size)
+                                Text(
+                                    stringResource(R.string.trip_expense_line, dateLabel(e.dateMillis), payer, sharedBy),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            Text(formatMoney(e.amountCents), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            IconButton(onClick = { editingExpense = e }) {
+                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_expense_desc))
+                            }
+                            IconButton(onClick = { vm.deleteTripExpense(e.id) }) {
+                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_expense_desc))
+                            }
+                        }
+                    }
+                }
+
+                if (contributions.isNotEmpty()) {
+                    item { SectionHeader(title = stringResource(R.string.trip_money_in)) }
+                    items(contributions, key = { "c${it.id}" }) { c ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(
+                                    members.firstOrNull { it.id == c.memberId }?.name ?: unknownText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(dateLabel(c.dateMillis), style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text(
+                                formatMoney(c.amountCents),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = IncomeColor,
+                            )
+                            IconButton(onClick = { editingContribution = c }) {
+                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_payment_desc))
+                            }
+                            IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
+                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_payment_desc))
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        if (contributions.isNotEmpty()) {
-            item { SectionHeader(title = stringResource(R.string.trip_money_in)) }
-            items(contributions, key = { "c${it.id}" }) { c ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(
-                            members.firstOrNull { it.id == c.memberId }?.name ?: unknownText,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Text(dateLabel(c.dateMillis), style = MaterialTheme.typography.bodySmall)
+            if (section == TripSection.PLAN) {
+                item { MuqamiAmaalSection(vm, group.id, members) }
+                item { WeeklyProgrammeSection(vm, group.id, members) }
+                item { KhuroojSection(vm, group.id) }
+                if (isFamily) {
+                    item { MastooratSection(vm, group.id) }
+                }
+                item { TripTravelSection(vm, group.id) }
+                item { MeetingsSection(vm, group.id) }
+                item { DutiesSection(vm, group.id, members.map { it.name }) }
+            }
+
+            if (section == TripSection.MEMBERS) {
+                item { SectionHeader(title = stringResource(R.string.trip_members)) }
+                item {
+                    FilledTonalButton(onClick = { showAddMember = true }) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.trip_add_member))
                     }
-                    Text(
-                        formatMoney(c.amountCents),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = IncomeColor,
-                    )
-                    IconButton(onClick = { editingContribution = c }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_payment_desc))
-                    }
-                    IconButton(onClick = { vm.deleteTripContribution(c.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_delete_payment_desc))
+                }
+                items(members, key = { "m${it.id}" }) { member ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(member.name, style = MaterialTheme.typography.bodyMedium)
+                            val details = buildList {
+                                if (!member.confirmed) add(interestedText)
+                                if (member.phone.isNotBlank()) add(member.phone)
+                                if (member.days > 0) add(stringResource(R.string.trip_days, member.days))
+                                if (member.advanceCents > 0) {
+                                    add(stringResource(R.string.trip_advance, formatMoney(member.advanceCents)))
+                                }
+                                if (member.address.isNotBlank()) add(member.address)
+                            }
+                            if (details.isNotEmpty()) {
+                                Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        IconButton(onClick = { renamingMember = member }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.trip_edit_member_desc))
+                        }
+                        if (isFamily) {
+                            TextButton(onClick = { incomeEditing = member }) {
+                                Text(stringResource(R.string.trip_income_button, formatMoney(member.incomeCents)))
+                            }
+                        }
+                        IconButton(onClick = { vm.deleteTripMember(member) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.trip_remove_member_desc))
+                        }
                     }
                 }
             }

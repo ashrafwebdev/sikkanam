@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Section chips at the top of long pages. Tamil is a first draft. -->
+    <string name="section_summary">சுருக்கம்</string>
+    <string name="section_accounts">கணக்குகள்</string>
+    <string name="section_transactions">பரிவர்த்தனைகள்</string>
+    <string name="section_goals">இலக்குகள்</string>
+    <string name="section_debts">கடன்கள்</string>
+    <string name="section_budgets">பட்ஜெட்</string>
+    <string name="section_work">பணி</string>
+    <string name="section_groups">குழுக்கள்</string>
+    <string name="section_plan">திட்டம்</string>
+    <string name="section_members">உறுப்பினர்கள்</string>
+    <string name="section_money">பணம்</string>
+    <string name="section_network">வலையமைப்பு</string>
+    <string name="section_directory">அடைவு</string>
+    <string name="section_categories">வகைகள்</string>
+    <string name="section_preferences">விருப்பங்கள்</string>
+    <string name="section_security">பாதுகாப்பு</string>
+    <string name="section_reminders">நினைவூட்டல்கள்</string>
+    <string name="section_backup">காப்பு</string>
+    <string name="section_about">பற்றி</string>
+    <string name="section_upcoming">வரவிருக்கும்</string>
+    <string name="section_past">கடந்த</string>
+    <string name="section_topics">தலைப்புகள்</string>
+    <string name="section_more">மேலும்</string>
+</resources>

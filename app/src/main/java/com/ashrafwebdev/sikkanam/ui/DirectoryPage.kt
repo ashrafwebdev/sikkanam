@@ -1,6 +1,7 @@
 package com.ashrafwebdev.sikkanam.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,12 +33,17 @@ import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.network.loadDirectory
 
 private const val FILTER_ALL = "All"
-private const val FILTER_MASJIDS = "Masjids"
+
+/** The two parts of the directory page, shown as chips at the top. */
+private enum class DirectoryPart(@StringRes val labelRes: Int) {
+    NETWORK(R.string.section_network),
+    LISTINGS(R.string.section_directory),
+}
 
 /**
  * Directory page: the masjid network and the services listings, opened from the Trips tab.
- * Search matches names, areas, services, descriptions and languages. The chips narrow the list
- * to masjids, or to one service category.
+ * Search matches names, areas, services, descriptions and languages. In the listings, the category
+ * chips narrow the list to one service category.
  */
 @Composable
 fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -45,13 +51,12 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
     val context = LocalContext.current
     var categories by remember { mutableStateOf(loadDirectory(context)) }
     var query by rememberSaveable { mutableStateOf("") }
+    var part by rememberSaveable { mutableStateOf(DirectoryPart.NETWORK) }
     var filter by rememberSaveable { mutableStateOf(FILTER_ALL) }
 
     // Each chip has a stable key (used for the filter) and a label shown on screen.
-    val filters = listOf(
-        FILTER_ALL to stringResource(R.string.directory_filter_all),
-        FILTER_MASJIDS to stringResource(R.string.directory_filter_masjids),
-    ) + categories.map { it.name to it.name }
+    val filters = listOf(FILTER_ALL to stringResource(R.string.directory_filter_all)) +
+        categories.map { it.name to it.name }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -71,27 +76,35 @@ fun DirectoryPage(vm: FinanceViewModel, onBack: () -> Unit, modifier: Modifier =
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         )
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            filters.forEach { (key, label) ->
-                AppChip(
-                    selected = filter == key,
-                    onClick = { filter = key },
-                    label = { Text(label) },
-                )
+        SectionChips(
+            options = DirectoryPart.entries,
+            selected = part,
+            label = { stringResource(it.labelRes) },
+            onSelect = { part = it },
+        )
+        if (part == DirectoryPart.LISTINGS) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                filters.forEach { (key, label) ->
+                    AppChip(
+                        selected = filter == key,
+                        onClick = { filter = key },
+                        label = { Text(label) },
+                    )
+                }
             }
         }
 
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (filter == FILTER_ALL || filter == FILTER_MASJIDS) {
+            if (part == DirectoryPart.NETWORK) {
                 item { NetworkSection(vm, query = query) }
             }
-            if (filter != FILTER_MASJIDS) {
+            if (part == DirectoryPart.LISTINGS) {
                 item {
                     DirectorySection(
                         categories = categories,

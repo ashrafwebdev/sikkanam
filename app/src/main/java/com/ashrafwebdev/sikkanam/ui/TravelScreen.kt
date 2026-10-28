@@ -1,11 +1,13 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** The two parts of the travel page, shown as chips at the top. */
+private enum class TravelPart(@StringRes val labelRes: Int) {
+    UPCOMING(R.string.section_upcoming),
+    PAST(R.string.section_past),
+}
+
 /** Bus, train and flight bookings recorded by hand. Upcoming and past trips are listed separately. */
 @Composable
 fun TravelScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
@@ -58,43 +67,55 @@ fun TravelScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     var editing by remember { mutableStateOf<TravelBooking?>(null) }
     var deleting by remember { mutableStateOf<TravelBooking?>(null) }
 
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-            SectionCard {
-                SectionHeader(
-                    title = stringResource(R.string.travel_title),
-                    action = {
-                        FilledTonalIconButton(onClick = { showNew = true }) {
-        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
-    }
-                    },
-                )
-                Text(stringResource(R.string.travel_intro), style = MaterialTheme.typography.bodySmall)
+    var section by rememberSaveable { mutableStateOf(TravelPart.UPCOMING) }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionChips(
+            options = TravelPart.entries,
+            selected = section,
+            label = { stringResource(it.labelRes) },
+            onSelect = { section = it },
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                SectionCard {
+                    SectionHeader(
+                        title = stringResource(R.string.travel_title),
+                        action = {
+                            FilledTonalIconButton(onClick = { showNew = true }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+                            }
+                        },
+                    )
+                    Text(stringResource(R.string.travel_intro), style = MaterialTheme.typography.bodySmall)
+                }
             }
-        }
-        if (bookings.isEmpty()) {
-            item { EmptyState(stringResource(R.string.travel_empty)) }
-        }
-        if (upcoming.isNotEmpty()) {
-            item { TravelSectionLabel(stringResource(R.string.travel_upcoming)) }
-            items(upcoming, key = { it.id }) { booking ->
-                BookingCard(
-                    booking = booking,
-                    groupName = groupNames[booking.groupId],
-                    onEdit = { editing = booking },
-                    onDelete = { deleting = booking },
-                )
+            if (bookings.isEmpty()) {
+                item { EmptyState(stringResource(R.string.travel_empty)) }
             }
-        }
-        if (past.isNotEmpty()) {
-            item { TravelSectionLabel(stringResource(R.string.travel_past)) }
-            items(past, key = { it.id }) { booking ->
-                BookingCard(
-                    booking = booking,
-                    groupName = groupNames[booking.groupId],
-                    onEdit = { editing = booking },
-                    onDelete = { deleting = booking },
-                )
+            if (section == TravelPart.UPCOMING && upcoming.isNotEmpty()) {
+                items(upcoming, key = { it.id }) { booking ->
+                    BookingCard(
+                        booking = booking,
+                        groupName = groupNames[booking.groupId],
+                        onEdit = { editing = booking },
+                        onDelete = { deleting = booking },
+                    )
+                }
+            }
+            if (section == TravelPart.PAST && past.isNotEmpty()) {
+                items(past, key = { it.id }) { booking ->
+                    BookingCard(
+                        booking = booking,
+                        groupName = groupNames[booking.groupId],
+                        onEdit = { editing = booking },
+                        onDelete = { deleting = booking },
+                    )
+                }
             }
         }
     }
@@ -365,11 +386,6 @@ private fun TravelField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth(),
     )
-}
-
-@Composable
-private fun TravelSectionLabel(text: String) {
-    Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
 }
 
 private fun timeLabel(millis: Long): String = SimpleDateFormat("HH:mm", Locale.US).format(Date(millis))

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
@@ -47,6 +49,25 @@ fun AppChip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Uni
             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
         ),
     )
+}
+
+/**
+ * The section chips at the top of a long page. The chosen section is filled. The row scrolls sideways when it does not fit.
+ */
+@Composable
+fun <T> SectionChips(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { option ->
+            AppChip(
+                selected = selected == option,
+                onClick = { onSelect(option) },
+                label = { Text(label(option)) },
+            )
+        }
+    }
 }
 
 /** Buttons side by side. When they do not all fit, they wrap onto the next line instead of being squeezed. */

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,97 +75,134 @@ fun SettingsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     var error by remember { mutableStateOf<String?>(null) }
     val categoryError = stringResource(R.string.settings_category_error)
 
-    LazyColumn(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            SectionHeader(title = stringResource(R.string.settings_categories_title))
-            Text(
-                stringResource(R.string.settings_categories_desc),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+    var part by rememberSaveable { mutableStateOf(SettingsPart.CATEGORIES) }
 
-        item {
-            SectionCard {
-                Text(
-                    stringResource(R.string.settings_add_category_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AppChip(
-                        selected = newType == TransactionType.EXPENSE,
-                        onClick = { newType = TransactionType.EXPENSE },
-                        label = { Text(stringResource(R.string.type_expense)) },
-                    )
-                    AppChip(
-                        selected = newType == TransactionType.INCOME,
-                        onClick = { newType = TransactionType.INCOME },
-                        label = { Text(stringResource(R.string.type_income)) },
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionChips(
+            options = SettingsPart.entries,
+            selected = part,
+            label = { stringResource(it.labelRes) },
+            onSelect = { part = it },
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (part == SettingsPart.CATEGORIES) {
+                item {
+                    SectionHeader(title = stringResource(R.string.settings_categories_title))
+                    Text(
+                        stringResource(R.string.settings_categories_desc),
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = {
-                        newName = it
-                        error = null
-                    },
-                    label = { Text(stringResource(R.string.settings_category_name)) },
-                    singleLine = true,
-                    isError = error != null,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-                FilledTonalButton(
-                    onClick = {
-                        if (vm.addCategory(newName, newType)) {
-                            newName = ""
-                            error = null
-                        } else {
-                            error = categoryError
+
+                item {
+                    SectionCard {
+                        Text(
+                            stringResource(R.string.settings_add_category_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AppChip(
+                                selected = newType == TransactionType.EXPENSE,
+                                onClick = { newType = TransactionType.EXPENSE },
+                                label = { Text(stringResource(R.string.type_expense)) },
+                            )
+                            AppChip(
+                                selected = newType == TransactionType.INCOME,
+                                onClick = { newType = TransactionType.INCOME },
+                                label = { Text(stringResource(R.string.type_income)) },
+                            )
                         }
-                    },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.action_add))
+                        OutlinedTextField(
+                            value = newName,
+                            onValueChange = {
+                                newName = it
+                                error = null
+                            },
+                            label = { Text(stringResource(R.string.settings_category_name)) },
+                            singleLine = true,
+                            isError = error != null,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                        FilledTonalButton(
+                            onClick = {
+                                if (vm.addCategory(newName, newType)) {
+                                    newName = ""
+                                    error = null
+                                } else {
+                                    error = categoryError
+                                }
+                            },
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text(stringResource(R.string.action_add))
+                        }
+                    }
+                }
+
+                item {
+                    CategoryTypeSection(
+                        title = stringResource(R.string.settings_expense_categories),
+                        type = TransactionType.EXPENSE,
+                        list = categories.filter { it.type == TransactionType.EXPENSE },
+                        vm = vm,
+                    )
+                }
+                item {
+                    CategoryTypeSection(
+                        title = stringResource(R.string.settings_income_categories),
+                        type = TransactionType.INCOME,
+                        list = categories.filter { it.type == TransactionType.INCOME },
+                        vm = vm,
+                    )
                 }
             }
-        }
 
-        item {
-            CategoryTypeSection(
-                title = stringResource(R.string.settings_expense_categories),
-                type = TransactionType.EXPENSE,
-                list = categories.filter { it.type == TransactionType.EXPENSE },
-                vm = vm,
-            )
-        }
-        item {
-            CategoryTypeSection(
-                title = stringResource(R.string.settings_income_categories),
-                type = TransactionType.INCOME,
-                list = categories.filter { it.type == TransactionType.INCOME },
-                vm = vm,
-            )
-        }
+            if (part == SettingsPart.PREFERENCES) {
+                item { PagesSection() }
+                item { PrayerSettingsSection() }
+                item { LanguageSection() }
+                item { TextSizeSection() }
+            }
 
-        item { PagesSection() }
-        item { PrayerSettingsSection() }
-        item { LanguageSection() }
-        item { TextSizeSection() }
-        item { SecuritySection() }
-        if (BuildConfig.PAYMENT_ALERTS) item { PaymentSection() }
-        item { ReminderSection() }
-        if (BuildConfig.SELF_UPDATE) item { UpdateSection() }
-        item { BackupSection(vm) }
-        item { FeedbackSection() }
-        if (BuildConfig.SUPPORT_CARD) item { SupportSection() }
-        item { AboutSection() }
-        item { Spacer(Modifier.height(16.dp)) }
+            if (part == SettingsPart.SECURITY) {
+                item { SecuritySection() }
+                if (BuildConfig.PAYMENT_ALERTS) item { PaymentSection() }
+            }
+
+            if (part == SettingsPart.REMINDERS) {
+                item { ReminderSection() }
+            }
+
+            if (part == SettingsPart.BACKUP) {
+                item { BackupSection(vm) }
+            }
+
+            if (part == SettingsPart.ABOUT) {
+                if (BuildConfig.SELF_UPDATE) item { UpdateSection() }
+                item { FeedbackSection() }
+                if (BuildConfig.SUPPORT_CARD) item { SupportSection() }
+                item { AboutSection() }
+                item { Spacer(Modifier.height(16.dp)) }
+            }
+        }
     }
+}
+
+/** The chips at the top of the Settings page. Each one holds a group of settings. */
+private enum class SettingsPart(@StringRes val labelRes: Int) {
+    CATEGORIES(R.string.section_categories),
+    PREFERENCES(R.string.section_preferences),
+    SECURITY(R.string.section_security),
+    REMINDERS(R.string.section_reminders),
+    BACKUP(R.string.section_backup),
+    ABOUT(R.string.section_about),
 }
 
 /**

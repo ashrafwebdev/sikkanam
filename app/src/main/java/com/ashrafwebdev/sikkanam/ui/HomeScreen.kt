@@ -1,6 +1,8 @@
 package com.ashrafwebdev.sikkanam.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.StringRes
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -55,6 +57,13 @@ import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import java.util.Calendar
 
+/** The sections of the Money page, shown as chips at the top. */
+private enum class MoneySection(@StringRes val labelRes: Int) {
+    SUMMARY(R.string.section_summary),
+    ACCOUNTS(R.string.section_accounts),
+    TRANSACTIONS(R.string.section_transactions),
+}
+
 @Composable
 fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -76,6 +85,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
 
+    var section by rememberSaveable { mutableStateOf(MoneySection.SUMMARY) }
     var editing by remember { mutableStateOf<Transaction?>(null) }
     var showDialog by remember { mutableStateOf(false) }
 
@@ -90,126 +100,141 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         if (it.type == TransactionType.INCOME) it.amountCents else -it.amountCents
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            Text(stringResource(R.string.home_hijri_date, hijriToday()), style = MaterialTheme.typography.bodySmall)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { vm.shiftMonth(-1) }) {
-                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = stringResource(R.string.home_previous_month))
-                }
-                Text(
-                    monthLabel(monthStart),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = { vm.shiftMonth(1) }) {
-                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = stringResource(R.string.home_next_month))
-                }
-            }
-        }
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionChips(
+            options = MoneySection.entries,
+            selected = section,
+            label = { stringResource(it.labelRes) },
+            onSelect = { section = it },
+        )
 
-        item { MonthlySummaryCard(vm) }
-        item { BackupReminderCard() }
-        if (BuildConfig.PAYMENT_ALERTS) item { PendingPaymentsCard(vm) }
-
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        stringResource(R.string.home_balance),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        formatMoney(balanceToDate),
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            stringResource(R.string.home_money_in, formatMoney(income)),
-                            color = IncomeColor,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            stringResource(R.string.home_money_out, formatMoney(expense)),
-                            color = ExpenseColor,
-                            fontWeight = FontWeight.SemiBold,
-                        )
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                Text(stringResource(R.string.home_hijri_date, hijriToday()), style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { vm.shiftMonth(-1) }) {
+                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = stringResource(R.string.home_previous_month))
                     }
-                    if (interest > 0) {
-                        Text(stringResource(R.string.home_interest_paid, formatMoney(interest)))
+                    Text(
+                        monthLabel(monthStart),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { vm.shiftMonth(1) }) {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = stringResource(R.string.home_next_month))
                     }
                 }
             }
-        }
 
-        item {
-            CategoryBreakdown(monthTx)
-        }
+            if (section == MoneySection.SUMMARY) {
+                item { MonthlySummaryCard(vm) }
+                item { BackupReminderCard() }
+                if (BuildConfig.PAYMENT_ALERTS) item { PendingPaymentsCard(vm) }
 
-        item {
-            YearSummary(allTx, monthStart)
-        }
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Text(
+                                stringResource(R.string.home_balance),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            Text(
+                                formatMoney(balanceToDate),
+                                style = MaterialTheme.typography.displaySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    stringResource(R.string.home_money_in, formatMoney(income)),
+                                    color = IncomeColor,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    stringResource(R.string.home_money_out, formatMoney(expense)),
+                                    color = ExpenseColor,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            if (interest > 0) {
+                                Text(stringResource(R.string.home_interest_paid, formatMoney(interest)))
+                            }
+                        }
+                    }
+                }
 
-        item {
-            AccountsCard(vm)
-        }
+                item {
+                    CategoryBreakdown(monthTx)
+                }
 
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
-        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
-    }
-                TextButton(onClick = { exportLauncher.launch(exportFileName) }) {
-                    Text(stringResource(R.string.home_export_csv))
+                item {
+                    YearSummary(allTx, monthStart)
                 }
             }
-        }
 
-        item {
-            OutlinedTextField(
-                value = query,
-                onValueChange = vm::setQuery,
-                label = { Text(stringResource(R.string.home_search)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AppChip(
-                    selected = typeFilter == null,
-                    onClick = { vm.setTypeFilter(null) },
-                    label = { Text(stringResource(R.string.filter_all)) },
-                )
-                AppChip(
-                    selected = typeFilter == TransactionType.INCOME,
-                    onClick = { vm.setTypeFilter(TransactionType.INCOME) },
-                    label = { Text(stringResource(R.string.type_income)) },
-                )
-                AppChip(
-                    selected = typeFilter == TransactionType.EXPENSE,
-                    onClick = { vm.setTypeFilter(TransactionType.EXPENSE) },
-                    label = { Text(stringResource(R.string.type_expense)) },
-                )
+            if (section == MoneySection.ACCOUNTS) {
+                item {
+                    AccountsCard(vm)
+                }
             }
-        }
 
-        items(visible, key = { it.id }) { transaction ->
-            TransactionRow(
-                transaction = transaction,
-                onClick = { editing = transaction; showDialog = true },
-                onDelete = { vm.deleteTransaction(transaction.id) },
-            )
+            if (section == MoneySection.TRANSACTIONS) {
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+                        }
+                        TextButton(onClick = { exportLauncher.launch(exportFileName) }) {
+                            Text(stringResource(R.string.home_export_csv))
+                        }
+                    }
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = vm::setQuery,
+                        label = { Text(stringResource(R.string.home_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AppChip(
+                            selected = typeFilter == null,
+                            onClick = { vm.setTypeFilter(null) },
+                            label = { Text(stringResource(R.string.filter_all)) },
+                        )
+                        AppChip(
+                            selected = typeFilter == TransactionType.INCOME,
+                            onClick = { vm.setTypeFilter(TransactionType.INCOME) },
+                            label = { Text(stringResource(R.string.type_income)) },
+                        )
+                        AppChip(
+                            selected = typeFilter == TransactionType.EXPENSE,
+                            onClick = { vm.setTypeFilter(TransactionType.EXPENSE) },
+                            label = { Text(stringResource(R.string.type_expense)) },
+                        )
+                    }
+                }
+
+                items(visible, key = { it.id }) { transaction ->
+                    TransactionRow(
+                        transaction = transaction,
+                        onClick = { editing = transaction; showDialog = true },
+                        onDelete = { vm.deleteTransaction(transaction.id) },
+                    )
+                }
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.ashrafwebdev.sikkanam.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -42,6 +44,13 @@ import com.ashrafwebdev.sikkanam.data.Budget
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.TransactionType
 
+/** The sections of the Budgets page, shown as chips at the top. */
+private enum class BudgetSection(@StringRes val labelRes: Int) {
+    GOALS(R.string.section_goals),
+    DEBTS(R.string.section_debts),
+    BUDGETS(R.string.section_budgets),
+}
+
 @Composable
 fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val budgets by vm.budgets.collectAsState()
@@ -56,78 +65,95 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         .groupBy { it.category }
         .mapValues { (_, list) -> list.sumOf { it.amountCents } }
 
-    LazyColumn(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            GoalsSection(vm)
-        }
+    var section by rememberSaveable { mutableStateOf(BudgetSection.GOALS) }
 
-        item { DebtSection(vm) }
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionChips(
+            options = BudgetSection.entries,
+            selected = section,
+            label = { stringResource(it.labelRes) },
+            onSelect = { section = it },
+        )
 
-        item {
-            SectionHeader(
-                title = stringResource(R.string.budget_monthly_title),
-                action = {
-                    FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
-        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
-    }
-                },
-            )
-        }
-
-        if (budgets.isEmpty()) {
-            item {
-                EmptyState(stringResource(R.string.budget_empty))
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (section == BudgetSection.GOALS) {
+                item {
+                    GoalsSection(vm)
+                }
             }
-        }
 
-        items(budgets, key = { it.category }) { budget ->
-            val spent = spentByCategory[budget.category] ?: 0L
-            val ratio = spent.toFloat() / budget.monthlyLimitCents
-            val over = spent > budget.monthlyLimitCents
-            val barColor = when {
-                over -> MaterialTheme.colorScheme.error
-                ratio >= 0.8f -> MaterialTheme.colorScheme.secondary
-                else -> MaterialTheme.colorScheme.primary
+            if (section == BudgetSection.DEBTS) {
+                item { DebtSection(vm) }
             }
-            val left = budget.monthlyLimitCents - spent
 
-            SectionCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        budget.category,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f),
+            if (section == BudgetSection.BUDGETS) {
+                item {
+                    SectionHeader(
+                        title = stringResource(R.string.budget_monthly_title),
+                        action = {
+                            FilledTonalIconButton(onClick = { editing = null; showDialog = true }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
+                            }
+                        },
                     )
-                    IconButton(onClick = { editing = budget; showDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.budget_change_limit_desc))
-                    }
-                    IconButton(onClick = { vm.deleteBudget(budget.category) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.budget_delete_desc))
+                }
+
+                if (budgets.isEmpty()) {
+                    item {
+                        EmptyState(stringResource(R.string.budget_empty))
                     }
                 }
-                LinearProgressIndicator(
-                    progress = { ratio.coerceIn(0f, 1f) },
-                    color = barColor,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(R.string.budget_spent, formatMoney(spent), formatMoney(budget.monthlyLimitCents)),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        if (over) stringResource(R.string.budget_over, formatMoney(-left))
-                        else stringResource(R.string.budget_left, formatMoney(left)),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (over) MaterialTheme.colorScheme.error else Color.Unspecified,
-                    )
+
+                items(budgets, key = { it.category }) { budget ->
+                    val spent = spentByCategory[budget.category] ?: 0L
+                    val ratio = spent.toFloat() / budget.monthlyLimitCents
+                    val over = spent > budget.monthlyLimitCents
+                    val barColor = when {
+                        over -> MaterialTheme.colorScheme.error
+                        ratio >= 0.8f -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                    val left = budget.monthlyLimitCents - spent
+
+                    SectionCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                budget.category,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(onClick = { editing = budget; showDialog = true }) {
+                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.budget_change_limit_desc))
+                            }
+                            IconButton(onClick = { vm.deleteBudget(budget.category) }) {
+                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.budget_delete_desc))
+                            }
+                        }
+                        LinearProgressIndicator(
+                            progress = { ratio.coerceIn(0f, 1f) },
+                            color = barColor,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                stringResource(R.string.budget_spent, formatMoney(spent), formatMoney(budget.monthlyLimitCents)),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                if (over) stringResource(R.string.budget_over, formatMoney(-left))
+                                else stringResource(R.string.budget_left, formatMoney(left)),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (over) MaterialTheme.colorScheme.error else Color.Unspecified,
+                            )
+                        }
+                    }
                 }
             }
         }

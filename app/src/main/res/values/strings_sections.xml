@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Section chips at the top of long pages -->
+    <string name="section_summary">Summary</string>
+    <string name="section_accounts">Accounts</string>
+    <string name="section_transactions">Transactions</string>
+    <string name="section_goals">Goals</string>
+    <string name="section_debts">Debts</string>
+    <string name="section_budgets">Budgets</string>
+    <string name="section_work">Work</string>
+    <string name="section_groups">Groups</string>
+    <string name="section_plan">Plan</string>
+    <string name="section_members">Members</string>
+    <string name="section_money">Money</string>
+    <string name="section_network">Network</string>
+    <string name="section_directory">Directory</string>
+    <string name="section_categories">Categories</string>
+    <string name="section_preferences">Preferences</string>
+    <string name="section_security">Security</string>
+    <string name="section_reminders">Reminders</string>
+    <string name="section_backup">Backup</string>
+    <string name="section_about">About</string>
+    <string name="section_upcoming">Upcoming</string>
+    <string name="section_past">Past</string>
+    <string name="section_topics">Topics</string>
+    <string name="section_more">More</string>
+</resources>
