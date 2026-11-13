@@ -16,6 +16,8 @@ import com.ashrafwebdev.sikkanam.data.BackupData
 import com.ashrafwebdev.sikkanam.data.toJson
 import com.ashrafwebdev.sikkanam.ui.markBackupSaved
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.TimeUnit
 
 private const val PREFS = "auto_backup"
@@ -108,16 +110,23 @@ object AutoBackup {
 class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val context = applicationContext
-        val uri = AutoBackup.fileUri(context) ?: return Result.success()
-        val db = AppDatabase.create(context)
-        val json = try {
-            loadBackupData(db).toJson()
-        } finally {
-            db.close()
+        // The daily and "back up now" runs can overlap; only one may write the file at a time.
+        val ok = writeLock.withLock {
+            val uri = AutoBackup.fileUri(context) ?: return Result.success()
+            val db = AppDatabase.create(context)
+            val json = try {
+                loadBackupData(db).toJson()
+            } finally {
+                db.close()
+            }
+            writeText(context, uri, json)
         }
-        val ok = writeText(context, uri, json)
         AutoBackup.recordResult(context, ok)
         return if (ok) Result.success() else Result.retry()
+    }
+
+    private companion object {
+        val writeLock = Mutex()
     }
 
     /** "wt" empties the file before writing. Not every file app accepts it, so plain "w" is the fallback. */
