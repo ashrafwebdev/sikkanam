@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -14,6 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import com.ashrafwebdev.sikkanam.R
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -39,6 +44,19 @@ fun Modifier.pinchToZoom(onZoom: (Float) -> Unit): Modifier {
             } while (event.changes.any { it.pressed })
         }
     }
+}
+
+/** A single tap that did not turn into a scroll or a pinch; also offered to TalkBack and Switch Access. */
+@Composable
+fun Modifier.onReaderTap(onTap: () -> Unit): Modifier {
+    val currentOnTap by rememberUpdatedState(onTap)
+    val label = stringResource(R.string.reader_toggle_menus)
+    return semantics {
+        onClick(label = label) {
+            currentOnTap()
+            true
+        }
+    }.pointerInput(Unit) { detectTapGestures(onTap = { currentOnTap() }) }
 }
 
 /** Hides the status and navigation bars while on screen. A swipe from the edge shows them for a moment. */
