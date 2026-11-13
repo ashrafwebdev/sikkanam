@@ -15,6 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import com.ashrafwebdev.sikkanam.R
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -42,11 +46,17 @@ fun Modifier.pinchToZoom(onZoom: (Float) -> Unit): Modifier {
     }
 }
 
-/** A single tap that did not turn into a scroll or a pinch. */
+/** A single tap that did not turn into a scroll or a pinch; also offered to TalkBack and Switch Access. */
 @Composable
 fun Modifier.onReaderTap(onTap: () -> Unit): Modifier {
     val currentOnTap by rememberUpdatedState(onTap)
-    return pointerInput(Unit) { detectTapGestures(onTap = { currentOnTap() }) }
+    val label = stringResource(R.string.reader_toggle_menus)
+    return semantics {
+        onClick(label = label) {
+            currentOnTap()
+            true
+        }
+    }.pointerInput(Unit) { detectTapGestures(onTap = { currentOnTap() }) }
 }
 
 /** Hides the status and navigation bars while on screen. A swipe from the edge shows them for a moment. */
