@@ -14,13 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -75,14 +72,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.math.roundToInt
 
 /**
- * Reads one book on the phone. PDFs show one page after another as pictures; EPUB and TXT files
- * show their text. The place is saved as the reader scrolls, so Continue reading returns to it.
+ * Reads one book on the phone, full screen. PDFs show one page after another as pictures; EPUB and TXT
+ * files show their text. Pinch with two fingers to zoom. The place is saved as the reader scrolls,
+ * so Continue reading returns to it.
  */
 @Composable
 fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = Modifier) {
     BackHandler(onBack = onBack)
+    HideSystemBars()
     val context = LocalContext.current
     val file = bookFile(context, book)
     var fontStep by remember { mutableStateOf(ReaderFontSize.load(context)) }
@@ -131,13 +131,16 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
         when {
             !file.exists() -> Message(stringResource(R.string.books_missing), Modifier.weight(1f))
             book.format == "pdf" -> PdfBook(book.id, file, pdfZoom, { pdfZoom = it }, Modifier.weight(1f))
-            else -> TextBook(book.id, book.format, file, fontStep, Modifier.weight(1f))
+            else -> TextBook(book.id, book.format, file, fontStep, onFontStep = { step ->
+                fontStep = step
+                ReaderFontSize.save(context, step)
+            }, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun TextBook(bookId: String, format: String, file: File, fontStep: Int, modifier: Modifier) {
+private fun TextBook(bookId: String, format: String, file: File, fontStep: Int, onFontStep: (Int) -> Unit, modifier: Modifier) {
     val loaded by produceState<Result<BookText>?>(null, file, format) {
         value = withContext(Dispatchers.IO) { runCatching { readTextBook(file, format) } }
     }
@@ -145,12 +148,12 @@ private fun TextBook(bookId: String, format: String, file: File, fontStep: Int, 
     when {
         result == null -> Loading(modifier)
         result.isFailure -> Message(stringResource(R.string.books_error_open), modifier)
-        else -> ParagraphList(bookId, result.getOrThrow(), fontStep, modifier)
+        else -> ParagraphList(bookId, result.getOrThrow(), fontStep, onFontStep, modifier)
     }
 }
 
 @Composable
-private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, modifier: Modifier) {
+private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, onFontStep: (Int) -> Unit, modifier: Modifier) {
     if (text.lines.isEmpty()) {
         Message(stringResource(R.string.books_empty_book), modifier)
         return
@@ -164,6 +167,8 @@ private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, modifie
     var showContents by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
     val (background, foreground) = readerColors(theme)
+    // A pinch changes the text size one step each time the fingers have spread or closed by about a fifth.
+    var pinch by remember { mutableStateOf(1f) }
     // Step 1 is the normal 16 sp body text; each step up or down adds or removes 2 sp.
     val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = (14 + 2 * fontStep).sp)
     Column(modifier = modifier.fillMaxWidth().background(background).padding(horizontal = 16.dp)) {
@@ -183,7 +188,16 @@ private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, modifie
         BookmarkBar(bookId, listState)
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).pinchToZoom { change ->
+                pinch *= change
+                val step = when {
+                    pinch > PINCH_STEP -> fontStep + 1
+                    pinch < 1 / PINCH_STEP -> fontStep - 1
+                    else -> return@pinchToZoom
+                }
+                pinch = 1f
+                onFontStep(step.coerceIn(ReaderFontSize.MIN_STEP, ReaderFontSize.MAX_STEP))
+            },
             contentPadding = PaddingValues(bottom = 24.dp),
         ) {
             items(text.lines.size) { index ->
@@ -304,6 +318,7 @@ private fun snippet(line: String, term: String): String {
 }
 
 private const val MAX_SEARCH_RESULTS = 200
+private const val PINCH_STEP = 1.2f
 private const val SNIPPET_LENGTH = 120
 
 /** Marks the place on screen with a bookmark, and jumps back to saved bookmarks. */
@@ -344,7 +359,7 @@ private fun BookmarkBar(bookId: String, listState: LazyListState) {
 
 /** How far a PDF page can be zoomed: from the width of the screen up to three times that. */
 private const val PDF_ZOOM_MIN = 1f
-private const val PDF_ZOOM_MAX = 3f
+private const val PDF_ZOOM_MAX = 4f
 private const val PDF_ZOOM_STEP = 0.25f
 
 @Composable
@@ -370,22 +385,19 @@ private fun PdfPageList(bookId: String, pdf: PdfPages, zoom: Float, onZoom: (Flo
     // Pages are drawn to the width of the screen inside the side padding, times the zoom.
     val pageWidth = LocalConfiguration.current.screenWidthDp.dp - 32.dp
     val zoomedWidth = pageWidth * zoom
-    val widthPx = with(density) { zoomedWidth.roundToPx() }.coerceAtLeast(100)
+    // Pages are redrawn sharp only at each quarter step, so a pinch stays smooth.
+    val renderZoom = (zoom / PDF_ZOOM_STEP).roundToInt() * PDF_ZOOM_STEP
+    val widthPx = with(density) { (pageWidth * renderZoom).roundToPx() }.coerceAtLeast(100)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
     // Pinch with two fingers to zoom. Zoomed pages that are wider than the screen scroll sideways.
-    val currentZoom by rememberUpdatedState(zoom)
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         BookmarkBar(bookId, listState)
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, _, zoomChange, _ ->
-                        onZoom((currentZoom * zoomChange).coerceIn(PDF_ZOOM_MIN, PDF_ZOOM_MAX))
-                    }
-                }
+                .pinchToZoom { change -> onZoom((zoom * change).coerceIn(PDF_ZOOM_MIN, PDF_ZOOM_MAX)) }
                 .horizontalScroll(rememberScrollState()),
         ) {
             LazyColumn(

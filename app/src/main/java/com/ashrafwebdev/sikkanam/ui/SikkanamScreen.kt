@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -59,6 +60,7 @@ private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector? = nu
     MONEY(R.string.tab_money, iconRes = R.drawable.ic_money),
     BUDGETS(R.string.tab_budgets, Icons.Default.DateRange),
     ISLAMIC(R.string.tab_islamic, Icons.Default.Info),
+    BOOKS(R.string.islamic_books, Icons.AutoMirrored.Filled.List),
     JAMAAT(R.string.tab_jamaat, Icons.Default.Person),
     DIRECTORY(R.string.tab_directory, Icons.Default.LocationOn),
     TRAVEL(R.string.tab_travel, Icons.AutoMirrored.Filled.Send),
@@ -72,7 +74,7 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
     val context = LocalContext.current
     val tabs = Tab.entries.filter { tab ->
         when (tab) {
-            Tab.ISLAMIC -> islamicPagesOn(context)
+            Tab.ISLAMIC, Tab.BOOKS -> islamicPagesOn(context)
             Tab.JAMAAT -> jamaatPagesOn(context)
             else -> true
         }
@@ -84,20 +86,27 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
     val share by IncomingShare.pending.collectAsState()
     LaunchedEffect(share) { if (share != null) selected = Tab.MONEY }
 
+    // An open book fills the whole screen: no header, update banner or tab bar.
+    var readingBook by remember { mutableStateOf(false) }
+    val fullScreen = readingBook && current == Tab.BOOKS
+
     Scaffold(
         bottomBar = {
-            TabBar(tabs = tabs, current = current, onSelect = { selected = it })
+            if (!fullScreen) TabBar(tabs = tabs, current = current, onSelect = { selected = it })
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            BrandHeader(title = stringResource(current.labelRes))
-            if (BuildConfig.SELF_UPDATE) UpdateBanner(context)
+            if (!fullScreen) {
+                BrandHeader(title = stringResource(current.labelRes))
+                if (BuildConfig.SELF_UPDATE) UpdateBanner(context)
+            }
 
-            val contentModifier = Modifier.weight(1f).padding(top = 12.dp)
+            val contentModifier = Modifier.weight(1f).padding(top = if (fullScreen) 0.dp else 12.dp)
             when (current) {
                 Tab.MONEY -> HomeScreen(viewModel, contentModifier)
                 Tab.BUDGETS -> BudgetsScreen(viewModel, contentModifier)
                 Tab.ISLAMIC -> IslamicScreen(viewModel, contentModifier)
+                Tab.BOOKS -> BooksPage(contentModifier, onReadingChange = { readingBook = it })
                 Tab.JAMAAT -> TripsScreen(viewModel, contentModifier)
                 // Back from the directory goes to Money, since it is a tab now.
                 Tab.DIRECTORY -> DirectoryPage(viewModel, onBack = { selected = Tab.MONEY }, modifier = contentModifier)
