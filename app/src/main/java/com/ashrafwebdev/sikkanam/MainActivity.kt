@@ -2,12 +2,15 @@ package com.ashrafwebdev.sikkanam
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import com.ashrafwebdev.sikkanam.backup.AutoBackup
+import com.ashrafwebdev.sikkanam.payments.IncomingShare
 import com.ashrafwebdev.sikkanam.reminders.canNotify
 import com.ashrafwebdev.sikkanam.ui.AppLanguageSetting
 import com.ashrafwebdev.sikkanam.ui.TextSizeSetting
@@ -52,9 +55,21 @@ class MainActivity : FragmentActivity() {
         lifecycleScope.launch { BalanceWidget().updateAll(this@MainActivity) }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        acceptShare(intent)
+    }
+
+    private fun acceptShare(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SEND) lifecycleScope.launch { IncomingShare.accept(this@MainActivity, intent) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         scheduleReminders(this)
+        AutoBackup.schedule(this)
+        // Only a fresh launch reads the share; after a rotation it was already taken.
+        if (savedInstanceState == null) acceptShare(intent)
         // Look for a newer build on launch, if the user has turned that on.
         if (BuildConfig.SELF_UPDATE && isAutoUpdateCheckOn(this)) {
             lifecycleScope.launch { UpdateStatus.set(checkForUpdate(this@MainActivity)) }

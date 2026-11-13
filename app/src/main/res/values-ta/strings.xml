@@ -71,4 +71,7 @@
     <string name="reminder_bill_title">நாளை கட்டணம் செலுத்த வேண்டும்</string>
     <string name="reminder_zakat_title">நாளை ஸகாத் செலுத்த வேண்டும்</string>
     <string name="reminder_zakat_body">உங்கள் ஸகாத்தைச் சரிபார்த்து நேரத்தில் செலுத்துங்கள்.</string>
+    <string name="action_close">மூடு</string>
+    <string name="home_category_tap_hint">விவரங்களைப் பார்க்க ஒரு வகையைத் தொடுங்கள்.</string>
+    <string name="home_category_summary">%1$d பதிவுகள் · இந்த மாதச் செலவில் %2$d%% · அதிகபட்சம் %3$s</string>
 </resources>

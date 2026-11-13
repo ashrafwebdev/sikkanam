@@ -13,4 +13,7 @@
     <string name="budget_change_title">வரவுசெலவுத் திட்டத்தை மாற்று</string>
     <string name="budget_category">வகை</string>
     <string name="budget_monthly_limit">மாதாந்திர வரம்பு</string>
+    <string name="budget_total_title">இந்த மாதத்தின் எல்லா வரவுசெலவுத் திட்டங்களும்</string>
+    <string name="budget_total_limit">மொத்த வரம்பு %1$s</string>
+    <string name="budget_total_spent">%1$s செலவு</string>
 </resources>

@@ -24,6 +24,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
+import com.ashrafwebdev.sikkanam.payments.IncomingShare
 import com.ashrafwebdev.sikkanam.update.UpdateBanner
 
 /** The bottom-bar pages. Islamic and Jamaat pages are hidden when switched off in Settings. */
@@ -76,6 +79,10 @@ fun SikkanamScreen(viewModel: FinanceViewModel = viewModel()) {
     }
     var selected by remember { mutableStateOf(Tab.MONEY) }
     val current = if (selected in tabs) selected else Tab.MONEY
+
+    // A receipt shared from another app opens on the Money page, where its entry dialog is shown.
+    val share by IncomingShare.pending.collectAsState()
+    LaunchedEffect(share) { if (share != null) selected = Tab.MONEY }
 
     Scaffold(
         bottomBar = {

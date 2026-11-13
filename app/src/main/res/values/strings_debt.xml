@@ -23,4 +23,7 @@
     <string name="debt_repay_title">Repayment from %1$s</string>
     <string name="debt_delete_desc">Delete</string>
     <string name="debt_new_title">New loan record</string>
+    <string name="debt_edit_desc">Edit</string>
+    <string name="debt_edit_title">Edit loan record</string>
+    <string name="debt_edit_amount_error">Enter a name and an amount of at least %1$s, which is already repaid.</string>
 </resources>

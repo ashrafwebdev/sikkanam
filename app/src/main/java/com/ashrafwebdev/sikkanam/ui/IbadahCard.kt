@@ -1,9 +1,4 @@
 package com.ashrafwebdev.sikkanam.ui
-import androidx.compose.material3.OutlinedIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-
 
 import android.content.Context
 import androidx.annotation.StringRes
@@ -82,33 +77,17 @@ private fun DailyAmaalChecklist() {
 private fun Context.prefs() = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
 /**
- * The personal daily amaal checklist, plus a dhikr counter and the number of Quran pages read today.
+ * The personal daily amaal checklist, plus the number of Quran pages read today. Dhikr is counted on the tasbeeh card.
  * Optional, and kept on the phone only. Everything resets each day.
  */
 @Composable
 fun IbadahCard() {
     val context = LocalContext.current
-    var dhikr by remember { mutableStateOf(readCount(context, "dhikr_")) }
     var pages by remember { mutableStateOf(readCount(context, "pages_")) }
 
     SectionCard {
         SectionHeader(title = stringResource(R.string.ibadah_title))
         DailyAmaalChecklist()
-        Text(stringResource(R.string.ibadah_dhikr, dhikr), style = MaterialTheme.typography.bodyLarge)
-        ButtonRow {
-            FilledTonalButton(onClick = {
-                dhikr += 1
-                writeCount(context, "dhikr_", dhikr)
-            }) { Text(stringResource(R.string.ibadah_plus_one)) }
-            OutlinedButton(onClick = {
-                dhikr += 33
-                writeCount(context, "dhikr_", dhikr)
-            }) { Text(stringResource(R.string.ibadah_plus_33)) }
-            OutlinedIconButton(onClick = {
-                dhikr = 0
-                writeCount(context, "dhikr_", dhikr)
-            }) { Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.ibadah_reset)) }
-        }
         Text(stringResource(R.string.ibadah_pages, pages), style = MaterialTheme.typography.bodyLarge)
         ButtonRow {
             FilledTonalButton(onClick = {

@@ -105,6 +105,13 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     item {
                         EmptyState(stringResource(R.string.budget_empty))
                     }
+                } else {
+                    item {
+                        BudgetTotalCard(
+                            limitCents = budgets.sumOf { it.monthlyLimitCents },
+                            spentCents = budgets.sumOf { spentByCategory[it.category] ?: 0L },
+                        )
+                    }
                 }
 
                 items(budgets, key = { it.category }) { budget ->
@@ -168,6 +175,46 @@ fun BudgetsScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 if (vm.saveBudget(category, limit)) showDialog = false
             },
         )
+    }
+}
+
+/** The sum of every budget's limit, and what was spent in those categories this month. */
+@Composable
+private fun BudgetTotalCard(limitCents: Long, spentCents: Long) {
+    val over = spentCents > limitCents
+    val left = limitCents - spentCents
+    val ratio = if (limitCents > 0) spentCents.toFloat() / limitCents else 0f
+    SectionCard {
+        Text(stringResource(R.string.budget_total_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(R.string.budget_total_limit, formatMoney(limitCents)),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        LinearProgressIndicator(
+            progress = { ratio.coerceIn(0f, 1f) },
+            color = when {
+                over -> MaterialTheme.colorScheme.error
+                ratio >= 0.8f -> MaterialTheme.colorScheme.secondary
+                else -> MaterialTheme.colorScheme.primary
+            },
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(R.string.budget_total_spent, formatMoney(spentCents)),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                if (over) stringResource(R.string.budget_over, formatMoney(-left))
+                else stringResource(R.string.budget_left, formatMoney(left)),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = if (over) MaterialTheme.colorScheme.error else Color.Unspecified,
+            )
+        }
     }
 }
 

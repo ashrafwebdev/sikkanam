@@ -38,7 +38,7 @@ fun categoryOptions(type: TransactionType, master: List<Category>, all: List<Tra
 }
 
 /** How money was paid or received. Fixed, so reports group the same way every time. */
-val paymentMethodOptions = listOf("Cash", "Bank transfer", "Debit card", "Credit card", "Mobile wallet", "Cheque", "Other")
+val paymentMethodOptions = listOf("Cash", "UPI", "Bank transfer", "Debit card", "Credit card", "Mobile wallet", "Cheque", "Other")
 
 /**
  * A field that opens a searchable list of [options]. When [type] is given, the options are

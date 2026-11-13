@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
+import com.ashrafwebdev.sikkanam.backup.AutoBackup
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.payments.isNotificationAccessGranted
 import com.ashrafwebdev.sikkanam.payments.isPaymentCaptureOn
@@ -642,5 +643,67 @@ private fun BackupSection(vm: FinanceViewModel) {
             }
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    }
+    AutoBackupCard()
+}
+
+/**
+ * Turns on a daily backup into one file in Google Drive (or any other place the file picker offers).
+ * The Drive app uploads the file, so no Google sign-in is needed inside Sikkanam.
+ */
+@Composable
+private fun AutoBackupCard() {
+    val context = LocalContext.current
+    // Bumped after each change, so the status lines are read again.
+    var refresh by remember { mutableStateOf(0) }
+    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            AutoBackup.turnOn(context, uri)
+            refresh++
+        }
+    }
+    val on = remember(refresh) { AutoBackup.isOn(context) }
+    val fileName = remember(refresh) { AutoBackup.fileName(context) }
+    val last = remember(refresh) { AutoBackup.lastMillis(context) }
+    val failed = remember(refresh) { AutoBackup.lastFailed(context) }
+
+    SectionCard {
+        SectionHeader(title = stringResource(R.string.auto_backup_title))
+        Text(stringResource(R.string.auto_backup_desc), style = MaterialTheme.typography.bodySmall)
+        if (on) {
+            Text(
+                stringResource(R.string.auto_backup_on, fileName ?: stringResource(R.string.auto_backup_unknown_file)),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                if (last == 0L) stringResource(R.string.auto_backup_never) else stringResource(R.string.auto_backup_last, dateLabel(last)),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (failed) {
+                Text(
+                    stringResource(R.string.auto_backup_failed),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(onClick = {
+                    AutoBackup.backUpNow(context)
+                    refresh++
+                }) { Text(stringResource(R.string.auto_backup_now)) }
+                OutlinedButton(onClick = {
+                    AutoBackup.turnOff(context)
+                    refresh++
+                }) { Text(stringResource(R.string.auto_backup_turn_off)) }
+            }
+            TextButton(onClick = { pickFile.launch("sikkanam-auto-backup.json") }) {
+                Text(stringResource(R.string.auto_backup_change_file))
+            }
+        } else {
+            FilledTonalButton(onClick = { pickFile.launch("sikkanam-auto-backup.json") }) {
+                Text(stringResource(R.string.auto_backup_choose))
+            }
+        }
     }
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Daily automatic backup to Google Drive -->
+    <string name="auto_backup_title">கூகுள் டிரைவில் தினசரி காப்புப்பிரதி</string>
+    <string name="auto_backup_desc">பொத்தானைத் தொட்டு, கோப்புத் தேர்வியில் மெனுவைத் திறந்து, Google Drive மற்றும் ஒரு கோப்புறையைத் தேர்ந்தெடுத்து, Save தொடுங்கள். சிக்கனம் தினமும் அந்தக் கோப்பைப் புதிய காப்புப்பிரதியால் மாற்றும்; Drive செயலி அதைப் பதிவேற்றும். ரசீது படங்கள் சேர்க்கப்படாது.</string>
+    <string name="auto_backup_choose">Google Drive கோப்பைத் தேர்ந்தெடு</string>
+    <string name="auto_backup_change_file">வேறு கோப்பைத் தேர்ந்தெடு</string>
+    <string name="auto_backup_on">இயக்கத்தில். %1$s இல் சேமிக்கிறது</string>
+    <string name="auto_backup_unknown_file">தேர்ந்தெடுத்த கோப்பு</string>
+    <string name="auto_backup_never">இன்னும் தானியங்கி காப்புப்பிரதி முடியவில்லை.</string>
+    <string name="auto_backup_last">கடைசி தானியங்கி காப்புப்பிரதி: %1$s</string>
+    <string name="auto_backup_failed">கடைசி காப்புப்பிரதியை எழுத முடியவில்லை. Drive செயலியில் உள்நுழைந்துள்ளதா எனப் பாருங்கள், அல்லது கோப்பை மீண்டும் தேர்ந்தெடுங்கள்.</string>
+    <string name="auto_backup_now">இப்போது காப்புப்பிரதி எடு</string>
+    <string name="auto_backup_turn_off">அணை</string>
+</resources>

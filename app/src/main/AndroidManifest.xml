@@ -12,6 +12,9 @@
     <!-- Lets the app open Android's install prompt for a downloaded update. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- A short buzz on each tasbeeh count. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- Shares the downloaded update file with Android's installer. -->
 
     <application
@@ -58,6 +61,17 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Lets payment apps such as Google Pay share a receipt into Sikkanam, to save it as income or expense. -->
+            <intent-filter android:label="@string/share_target_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter android:label="@string/share_target_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Daily automatic backup to Google Drive -->
+    <string name="auto_backup_title">Daily backup to Google Drive</string>
+    <string name="auto_backup_desc">Tap the button, open the menu in the file picker, choose Google Drive and a folder, then tap Save. Sikkanam replaces that file with a fresh backup every day, and the Drive app uploads it. Receipt photos are not included.</string>
+    <string name="auto_backup_choose">Choose Google Drive file</string>
+    <string name="auto_backup_change_file">Choose another file</string>
+    <string name="auto_backup_on">On. Saving to %1$s</string>
+    <string name="auto_backup_unknown_file">the chosen file</string>
+    <string name="auto_backup_never">No automatic backup has finished yet.</string>
+    <string name="auto_backup_last">Last automatic backup: %1$s</string>
+    <string name="auto_backup_failed">The last backup could not be written. Check that the Drive app is signed in, or choose the file again.</string>
+    <string name="auto_backup_now">Back up now</string>
+    <string name="auto_backup_turn_off">Turn off</string>
+</resources>

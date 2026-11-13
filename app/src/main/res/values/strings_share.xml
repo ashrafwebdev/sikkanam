@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Receipts shared from payment apps such as Google Pay -->
+    <string name="share_target_label">Save in Sikkanam</string>
+    <string name="share_dialog_title">Save shared receipt</string>
+    <string name="share_dialog_hint">The receipt is attached. Choose whether this is income or expense, check the amount, and pick a category.</string>
+</resources>
