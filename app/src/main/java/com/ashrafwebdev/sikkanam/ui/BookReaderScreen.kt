@@ -3,6 +3,7 @@ package com.ashrafwebdev.sikkanam.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -426,7 +427,8 @@ private fun PdfPageImage(pdf: PdfPages, index: Int, widthPx: Int) {
         Image(
             bitmap = image,
             contentDescription = stringResource(R.string.books_page_number, index + 1),
-            modifier = Modifier.fillMaxWidth(),
+            // The bitmap can be narrower than the page (between zoom steps or when capped), so stretch it.
+            modifier = Modifier.fillMaxWidth().aspectRatio(image.width / image.height.toFloat()),
         )
     }
 }
