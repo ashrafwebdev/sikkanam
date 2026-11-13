@@ -19,12 +19,21 @@ import com.ashrafwebdev.sikkanam.ui.markBackupSaved
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private const val PREFS = "auto_backup"
 private const val KEY_URI = "file_uri"
 private const val KEY_LAST_MILLIS = "last_millis"
 private const val KEY_LAST_FAILED = "last_failed"
+private const val KEY_LOW_STORAGE = "low_storage"
+private const val PHONE_COPY_DIR = "auto_backups"
+private const val PHONE_COPIES_KEPT = 7
+/** Room left over after a write, so the phone never fills up completely. */
+private const val SPARE_BYTES = 20L * 1024 * 1024
 private const val DAILY_WORK = "sikkanam_daily_backup"
 private const val NOW_WORK = "sikkanam_backup_now"
 
@@ -43,6 +52,35 @@ object AutoBackup {
     fun lastMillis(context: Context): Long = prefs(context).getLong(KEY_LAST_MILLIS, 0L)
 
     fun lastFailed(context: Context): Boolean = prefs(context).getBoolean(KEY_LAST_FAILED, false)
+
+    /** True when the last run skipped the Drive file because the phone was low on storage. */
+    fun lowStorage(context: Context): Boolean = prefs(context).getBoolean(KEY_LOW_STORAGE, false)
+
+    /** Daily copies kept inside the app, newest first, so a failed Drive save never leaves no copy at all. */
+    fun phoneCopies(context: Context): List<File> =
+        File(context.filesDir, PHONE_COPY_DIR).listFiles { f -> f.name.endsWith(".json") }
+            ?.sortedByDescending { it.name }
+            .orEmpty()
+
+    /** Saves today's copy (replacing an earlier one from today) and drops all but the newest few. */
+    internal fun savePhoneCopy(context: Context, json: String): Boolean {
+        val dir = File(context.filesDir, PHONE_COPY_DIR).apply { mkdirs() }
+        val day = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val target = File(dir, "sikkanam-$day.json")
+        val temp = File(dir, "${target.name}.tmp")
+        val ok = try {
+            temp.writeText(json)
+            temp.renameTo(target)
+        } catch (e: Exception) {
+            false
+        }
+        temp.delete()
+        phoneCopies(context).drop(PHONE_COPIES_KEPT).forEach { it.delete() }
+        return ok
+    }
+
+    /** Whether there is room for [bytes] more, with some to spare. The Drive app caches the file before upload. */
+    internal fun hasRoomFor(context: Context, bytes: Long): Boolean = context.filesDir.usableSpace >= bytes * 2 + SPARE_BYTES
 
     /** Keeps access to the picked file across restarts, then backs up now and every day after. */
     fun turnOn(context: Context, uri: Uri) {
@@ -107,8 +145,8 @@ object AutoBackup {
         return { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    internal fun recordResult(context: Context, ok: Boolean) {
-        val edit = prefs(context).edit().putBoolean(KEY_LAST_FAILED, !ok)
+    internal fun recordResult(context: Context, ok: Boolean, lowStorage: Boolean = false) {
+        val edit = prefs(context).edit().putBoolean(KEY_LAST_FAILED, !ok).putBoolean(KEY_LOW_STORAGE, lowStorage)
         if (ok) edit.putLong(KEY_LAST_MILLIS, System.currentTimeMillis())
         edit.apply()
         if (ok) markBackupSaved(context)
@@ -120,7 +158,7 @@ class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWo
     override suspend fun doWork(): Result {
         val context = applicationContext
         // The daily and "back up now" runs can overlap; only one may write the file at a time.
-        val ok = writeLock.withLock {
+        return writeLock.withLock {
             val uri = AutoBackup.fileUri(context) ?: return Result.success()
             val db = AppDatabase.create(context)
             val json = try {
@@ -128,10 +166,16 @@ class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWo
             } finally {
                 db.close()
             }
-            writeText(context, uri, json)
+            AutoBackup.savePhoneCopy(context, json)
+            // Opening the Drive file empties it, so a write that runs out of space part way would leave it blank.
+            if (!AutoBackup.hasRoomFor(context, json.toByteArray().size.toLong())) {
+                AutoBackup.recordResult(context, ok = false, lowStorage = true)
+                return Result.retry()
+            }
+            val ok = writeText(context, uri, json)
+            AutoBackup.recordResult(context, ok)
+            if (ok) Result.success() else Result.retry()
         }
-        AutoBackup.recordResult(context, ok)
-        return if (ok) Result.success() else Result.retry()
     }
 
     private companion object {

@@ -645,7 +645,7 @@ private fun BackupSection(vm: FinanceViewModel) {
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     }
-    AutoBackupCard()
+    AutoBackupCard(vm)
 }
 
 /**
@@ -653,8 +653,12 @@ private fun BackupSection(vm: FinanceViewModel) {
  * The Drive app uploads the file, so no Google sign-in is needed inside Sikkanam.
  */
 @Composable
-private fun AutoBackupCard() {
+private fun AutoBackupCard(vm: FinanceViewModel) {
     val context = LocalContext.current
+    var showRestore by remember { mutableStateOf(false) }
+    var restoreStatus by remember { mutableStateOf<String?>(null) }
+    val startedText = stringResource(R.string.settings_restore_started)
+    val invalidText = stringResource(R.string.settings_restore_invalid)
     // Bumped after each change, so the status lines are read again.
     var refresh by remember { mutableStateOf(0) }
     // The backup itself runs in the background and records its result later.
@@ -672,6 +676,8 @@ private fun AutoBackupCard() {
     val fileName = remember(refresh) { AutoBackup.fileName(context) }
     val last = remember(refresh) { AutoBackup.lastMillis(context) }
     val failed = remember(refresh) { AutoBackup.lastFailed(context) }
+    val lowStorage = remember(refresh) { AutoBackup.lowStorage(context) }
+    val phoneCopies = remember(refresh) { AutoBackup.phoneCopies(context) }
 
     SectionCard {
         SectionHeader(title = stringResource(R.string.auto_backup_title))
@@ -688,7 +694,7 @@ private fun AutoBackupCard() {
             )
             if (failed) {
                 Text(
-                    stringResource(R.string.auto_backup_failed),
+                    stringResource(if (lowStorage) R.string.auto_backup_low_storage else R.string.auto_backup_failed),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -711,5 +717,31 @@ private fun AutoBackupCard() {
                 Text(stringResource(R.string.auto_backup_choose))
             }
         }
+        if (phoneCopies.isNotEmpty()) {
+            Text(stringResource(R.string.auto_backup_phone_copies, phoneCopies.size), style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { showRestore = true }) { Text(stringResource(R.string.auto_backup_restore_phone)) }
+        }
+        restoreStatus?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    }
+
+    if (showRestore) {
+        AlertDialog(
+            onDismissRequest = { showRestore = false },
+            title = { Text(stringResource(R.string.auto_backup_restore_phone)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.auto_backup_restore_warning), style = MaterialTheme.typography.bodySmall)
+                    phoneCopies.forEach { file ->
+                        TextButton(onClick = {
+                            showRestore = false
+                            val text = runCatching { file.readText() }.getOrNull()
+                            restoreStatus = if (text != null && vm.restoreBackup(text)) startedText else invalidText
+                        }) { Text(dateLabel(file.lastModified())) }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showRestore = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }

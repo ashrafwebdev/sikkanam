@@ -3,7 +3,7 @@
 <resources>
     <!-- Daily automatic backup to Google Drive -->
     <string name="auto_backup_title">கூகுள் டிரைவில் தினசரி காப்புப்பிரதி</string>
-    <string name="auto_backup_desc">பொத்தானைத் தொட்டு, கோப்புத் தேர்வியில் மெனுவைத் திறந்து, Google Drive மற்றும் ஒரு கோப்புறையைத் தேர்ந்தெடுத்து, Save தொடுங்கள். சிக்கனம் தினமும் அந்தக் கோப்பைப் புதிய காப்புப்பிரதியால் மாற்றும்; Drive செயலி அதைப் பதிவேற்றும். ரசீது படங்கள் சேர்க்கப்படாது.</string>
+    <string name="auto_backup_desc">பொத்தானைத் தொட்டு, கோப்புத் தேர்வியில் மெனுவைத் திறந்து, Google Drive மற்றும் ஒரு கோப்புறையைத் தேர்ந்தெடுத்து, Save தொடுங்கள். சிக்கனம் தினமும் அந்தக் கோப்பைப் புதிய காப்புப்பிரதியால் மாற்றும்; Drive செயலி அதைப் பதிவேற்றும். ரசீது படங்கள் சேர்க்கப்படாது. கடைசி 7 தினசரி காப்புப்பிரதிகள் இந்த போனிலும் வைக்கப்படும்.</string>
     <string name="auto_backup_choose">Google Drive கோப்பைத் தேர்ந்தெடு</string>
     <string name="auto_backup_change_file">வேறு கோப்பைத் தேர்ந்தெடு</string>
     <string name="auto_backup_on">இயக்கத்தில். %1$s இல் சேமிக்கிறது</string>
@@ -13,4 +13,8 @@
     <string name="auto_backup_failed">கடைசி காப்புப்பிரதியை எழுத முடியவில்லை. Drive செயலியில் உள்நுழைந்துள்ளதா எனப் பாருங்கள், அல்லது கோப்பை மீண்டும் தேர்ந்தெடுங்கள்.</string>
     <string name="auto_backup_now">இப்போது காப்புப்பிரதி எடு</string>
     <string name="auto_backup_turn_off">அணை</string>
+    <string name="auto_backup_low_storage">போனில் இடம் குறைவாக உள்ளதால் Drive கோப்பு மாற்றப்படவில்லை. கொஞ்சம் இடத்தை விடுவியுங்கள்; காப்புப்பிரதி மீண்டும் முயலும்.</string>
+    <string name="auto_backup_phone_copies">இந்த போனில் %1$d தினசரி காப்புப்பிரதிகள் உள்ளன.</string>
+    <string name="auto_backup_restore_phone">போனில் உள்ள நகலை மீட்டெடு</string>
+    <string name="auto_backup_restore_warning">நீங்கள் தேர்ந்தெடுக்கும் நகலால் செயலியில் உள்ள அனைத்தும் மாற்றப்படும்.</string>
 </resources>
