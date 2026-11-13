@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,12 +51,12 @@ import kotlinx.coroutines.launch
 private val BOOK_MIME_TYPES = arrayOf("application/epub+zip", "application/pdf", "text/plain", "application/octet-stream")
 
 /**
- * Books page, inside the Islamic tab. It lists the books published on smatechsolution.com, the books
- * already on this phone, and an import button for any EPUB, PDF or TXT file. Tapping Read opens the
- * reader in place of the list.
+ * Books tab. It lists the books published on smatechsolution.com, the books already on this phone,
+ * and an import button for any EPUB, PDF or TXT file. Tapping Read opens the reader in place of the
+ * list; [onReadingChange] tells the screen around it to go full screen while a book is open.
  */
 @Composable
-fun BooksPage(modifier: Modifier = Modifier) {
+fun BooksPage(modifier: Modifier = Modifier, onReadingChange: (Boolean) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var remote by remember { mutableStateOf(loadRemoteIndex(context)) }
@@ -98,6 +99,10 @@ fun BooksPage(modifier: Modifier = Modifier) {
     }
 
     val reading = readingId?.let { id -> local.firstOrNull { it.id == id } }
+    DisposableEffect(reading != null) {
+        onReadingChange(reading != null)
+        onDispose { onReadingChange(false) }
+    }
     if (reading != null) {
         BookReaderScreen(reading, onBack = { readingId = null }, modifier = modifier)
     } else {

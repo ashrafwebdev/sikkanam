@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Islamic books: the library on the Islamic tab and the reader -->
+    <!-- Islamic books: the Books tab and the reader -->
     <string name="islamic_books">Books</string>
     <string name="books_title">Islamic books</string>
     <string name="books_desc">Download books published by Sikkanam, or import an EPUB, PDF or TXT file from this phone. Once a book is on the phone, it opens without internet.</string>
