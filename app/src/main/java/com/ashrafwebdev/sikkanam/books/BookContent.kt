@@ -10,6 +10,8 @@ import android.util.Xml
 import org.xmlpull.v1.XmlPullParser
 import java.io.Closeable
 import java.io.File
+import kotlin.math.min
+import kotlin.math.sqrt
 import java.io.StringReader
 import java.util.zip.ZipFile
 
@@ -48,11 +50,17 @@ class PdfPages(file: File) : Closeable {
 
     val pageCount: Int get() = renderer.pageCount
 
+    /**
+     * Draws a page [widthPx] wide, or narrower when that would pass [MAX_PAGE_PIXELS]; the picture is
+     * then stretched to fit. Very large bitmaps run out of memory or are too big for the screen to draw.
+     */
     @Synchronized
     fun render(index: Int, widthPx: Int): Bitmap {
         renderer.openPage(index).use { page ->
-            val height = (widthPx * page.height / page.width.toFloat()).toInt().coerceAtLeast(1)
-            val bitmap = Bitmap.createBitmap(widthPx, height, Bitmap.Config.ARGB_8888)
+            val aspect = page.height / page.width.toFloat()
+            val width = min(widthPx, sqrt(MAX_PAGE_PIXELS / aspect).toInt()).coerceAtLeast(1)
+            val height = (width * aspect).toInt().coerceAtLeast(1)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             bitmap.eraseColor(Color.WHITE)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             return bitmap
@@ -63,6 +71,11 @@ class PdfPages(file: File) : Closeable {
     override fun close() {
         renderer.close()
         descriptor.close()
+    }
+
+    private companion object {
+        /** About 32 MB per page in ARGB_8888. */
+        const val MAX_PAGE_PIXELS = 8_000_000f
     }
 }
 

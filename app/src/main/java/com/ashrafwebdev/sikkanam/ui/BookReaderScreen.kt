@@ -357,7 +357,7 @@ private fun BookmarkBar(bookId: String, listState: LazyListState) {
     }
 }
 
-/** How far a PDF page can be zoomed: from the width of the screen up to three times that. */
+/** How far a PDF page can be zoomed: from the width of the screen up to four times that. */
 private const val PDF_ZOOM_MIN = 1f
 private const val PDF_ZOOM_MAX = 4f
 private const val PDF_ZOOM_STEP = 0.25f
