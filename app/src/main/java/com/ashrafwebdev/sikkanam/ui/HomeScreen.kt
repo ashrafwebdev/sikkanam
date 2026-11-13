@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -43,6 +44,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,11 +54,15 @@ import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
 import com.ashrafwebdev.sikkanam.data.Account
+import com.ashrafwebdev.sikkanam.data.Budget
 import com.ashrafwebdev.sikkanam.data.Category
 import com.ashrafwebdev.sikkanam.data.HalalStatus
 import com.ashrafwebdev.sikkanam.data.Transaction
 import com.ashrafwebdev.sikkanam.data.TransactionType
+import com.ashrafwebdev.sikkanam.payments.IncomingShare
+import com.ashrafwebdev.sikkanam.payments.SharedReceipt
 import java.util.Calendar
+import kotlin.math.roundToInt
 
 /** The sections of the Money page, shown as chips at the top. */
 private enum class MoneySection(@StringRes val labelRes: Int) {
@@ -84,6 +91,7 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     val visible by vm.visibleTransactions.collectAsState()
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
+    val budgets by vm.budgets.collectAsState()
 
     var section by rememberSaveable { mutableStateOf(MoneySection.SUMMARY) }
     var editing by remember { mutableStateOf<Transaction?>(null) }
@@ -171,7 +179,11 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                 }
 
                 item {
-                    CategoryBreakdown(monthTx)
+                    CategoryBreakdown(
+                        monthTx = monthTx,
+                        budgets = budgets,
+                        onOpenTransaction = { editing = it; showDialog = true },
+                    )
                 }
 
                 item {
@@ -238,6 +250,32 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
         }
     }
 
+    val share by IncomingShare.pending.collectAsState()
+    share?.let { shared ->
+        TransactionDialog(
+            existing = null,
+            shared = shared,
+            categories = categories,
+            allTransactions = allTx,
+            onDismiss = {
+                // The copied receipt is not needed if the entry was never saved.
+                shared.receiptName?.let { deleteReceipt(context, it) }
+                IncomingShare.clear()
+            },
+            accounts = accounts,
+            onSave = { type, amount, category, party, note, method, halal, riba, recurring, accountId, receipt ->
+                vm.saveTransaction(
+                    null, type, amount, category, note, halal, riba, recurring, party, method, accountId, receipt,
+                ).also { saved ->
+                    if (saved) {
+                        if (shared.receiptName != null && shared.receiptName != receipt) deleteReceipt(context, shared.receiptName)
+                        IncomingShare.clear()
+                    }
+                }
+            },
+        )
+    }
+
     if (showDialog) {
         TransactionDialog(
             existing = editing,
@@ -256,25 +294,111 @@ fun HomeScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
     }
 }
 
+/** Expense per category this month. Tapping a category opens its details. */
 @Composable
-private fun CategoryBreakdown(monthTx: List<Transaction>) {
-    val byCategory = monthTx
-        .filter { it.type == TransactionType.EXPENSE }
+private fun CategoryBreakdown(monthTx: List<Transaction>, budgets: List<Budget>, onOpenTransaction: (Transaction) -> Unit) {
+    val expenses = monthTx.filter { it.type == TransactionType.EXPENSE }
+    val byCategory = expenses
         .groupBy { it.category }
         .mapValues { (_, list) -> list.sumOf { it.amountCents } }
         .entries
         .sortedByDescending { it.value }
     if (byCategory.isEmpty()) return
+    var opened by remember { mutableStateOf<String?>(null) }
 
     val total = byCategory.sumOf { it.value }.toFloat()
     SectionCard {
         Text(stringResource(R.string.home_spending_by_category), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.home_category_tap_hint), style = MaterialTheme.typography.bodySmall)
         byCategory.forEach { (category, cents) ->
             val fraction = cents / total
-            Text("$category: ${formatMoney(cents)}")
-            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { opened = category }
+                    .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("$category: ${formatMoney(cents)}", modifier = Modifier.weight(1f))
+                    Text("${(fraction * 100).roundToInt()}%", style = MaterialTheme.typography.bodySmall)
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                }
+                LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
+            }
         }
     }
+
+    opened?.let { category ->
+        CategoryDetailsDialog(
+            category = category,
+            entries = expenses.filter { it.category == category }.sortedByDescending { it.dateMillis },
+            monthTotalCents = total.toLong(),
+            budget = budgets.firstOrNull { it.category == category },
+            onOpenTransaction = { opened = null; onOpenTransaction(it) },
+            onDismiss = { opened = null },
+        )
+    }
+}
+
+/** One category's spending this month: total, share of all spending, budget, and every entry. */
+@Composable
+private fun CategoryDetailsDialog(
+    category: String,
+    entries: List<Transaction>,
+    monthTotalCents: Long,
+    budget: Budget?,
+    onOpenTransaction: (Transaction) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val spent = entries.sumOf { it.amountCents }
+    val share = if (monthTotalCents > 0) (spent * 100.0 / monthTotalCents).roundToInt() else 0
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(category) },
+        text = {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                item {
+                    Text(formatMoney(spent), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = ExpenseColor)
+                    Text(
+                        stringResource(R.string.home_category_summary, entries.size, share, formatMoney(entries.maxOf { it.amountCents })),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (budget != null) {
+                        val left = budget.monthlyLimitCents - spent
+                        Text(
+                            stringResource(R.string.budget_spent, formatMoney(spent), formatMoney(budget.monthlyLimitCents)) + " · " +
+                                if (left < 0) stringResource(R.string.budget_over, formatMoney(-left))
+                                else stringResource(R.string.budget_left, formatMoney(left)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (left < 0) MaterialTheme.colorScheme.error else Color.Unspecified,
+                        )
+                    }
+                }
+                items(entries, key = { it.id }) { tx ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onOpenTransaction(tx) }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(dateLabel(tx.dateMillis), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            val details = listOf(tx.party, tx.note, tx.paymentMethod).filter { it.isNotBlank() }
+                            if (details.isNotEmpty()) {
+                                Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        Text("-${formatMoney(tx.amountCents)}", fontWeight = FontWeight.SemiBold, color = ExpenseColor)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
+    )
 }
 
 private const val NO_ACCOUNT = "No account"
@@ -380,6 +504,7 @@ private fun halalLabel(status: HalalStatus): String = when (status) {
 @Composable
 private fun TransactionDialog(
     existing: Transaction?,
+    shared: SharedReceipt? = null,
     categories: List<Category>,
     allTransactions: List<Transaction>,
     onDismiss: () -> Unit,
@@ -394,17 +519,22 @@ private fun TransactionDialog(
         )
     }
     val context = LocalContext.current
-    var receiptName by remember { mutableStateOf(existing?.receiptPath) }
+    var receiptName by remember { mutableStateOf(existing?.receiptPath ?: shared?.receiptName) }
     val pickReceipt = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) saveReceipt(context, uri)?.let { receiptName = it }
     }
     val preview = remember(receiptName) { receiptName?.let { loadReceipt(context, it) } }
-    var type by remember { mutableStateOf(existing?.type ?: TransactionType.EXPENSE) }
-    var amount by remember { mutableStateOf(existing?.let { formatPlain(it.amountCents) } ?: "") }
+    val sharedIncome = shared?.text?.isIncome == true
+    var type by remember {
+        mutableStateOf(existing?.type ?: if (sharedIncome) TransactionType.INCOME else TransactionType.EXPENSE)
+    }
+    var amount by remember {
+        mutableStateOf(existing?.let { formatPlain(it.amountCents) } ?: shared?.text?.amountCents?.let(::formatPlain) ?: "")
+    }
     var category by remember { mutableStateOf(existing?.category ?: "") }
-    var party by remember { mutableStateOf(existing?.party ?: "") }
+    var party by remember { mutableStateOf(existing?.party ?: shared?.text?.party ?: "") }
     var note by remember { mutableStateOf(existing?.note ?: "") }
-    var paymentMethod by remember { mutableStateOf(existing?.paymentMethod ?: "Cash") }
+    var paymentMethod by remember { mutableStateOf(existing?.paymentMethod ?: if (shared != null) "UPI" else "Cash") }
     var halal by remember { mutableStateOf(existing?.halalStatus ?: HalalStatus.NONE) }
     var riba by remember { mutableStateOf(existing?.isRiba ?: false) }
     var recurring by remember { mutableStateOf(existing?.recurringMonthly ?: false) }
@@ -415,12 +545,18 @@ private fun TransactionDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                if (existing == null) stringResource(R.string.home_add_transaction)
-                else stringResource(R.string.home_edit_transaction),
+                when {
+                    shared != null -> stringResource(R.string.share_dialog_title)
+                    existing == null -> stringResource(R.string.home_add_transaction)
+                    else -> stringResource(R.string.home_edit_transaction)
+                },
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (shared != null) {
+                    Text(stringResource(R.string.share_dialog_hint), style = MaterialTheme.typography.bodySmall)
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AppChip(
                         selected = type == TransactionType.EXPENSE,

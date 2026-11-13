@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Receipts shared from payment apps such as Google Pay -->
+    <string name="share_target_label">சிக்கனத்தில் சேமி</string>
+    <string name="share_dialog_title">பகிர்ந்த ரசீதைச் சேமி</string>
+    <string name="share_dialog_hint">ரசீது இணைக்கப்பட்டுள்ளது. இது வரவா செலவா என்பதைத் தேர்ந்தெடுத்து, தொகையைச் சரிபார்த்து, ஒரு வகையைத் தேர்ந்தெடுங்கள்.</string>
+</resources>

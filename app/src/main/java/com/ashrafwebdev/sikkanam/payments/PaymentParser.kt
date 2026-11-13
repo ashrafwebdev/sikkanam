@@ -61,3 +61,45 @@ fun parsePayment(
         detectedMillis = nowMillis,
     )
 }
+
+/** What could be read from text shared by a payment app along with its receipt. Every field is optional. */
+data class SharedPaymentText(
+    val amountCents: Long? = null,
+    val party: String = "",
+    val isIncome: Boolean? = null,
+)
+
+private val fromRegex = Regex("""\bfrom\s+(.+)$""", RegexOption.IGNORE_CASE)
+
+/**
+ * Reads the text a payment app sends with a shared receipt, such as "I paid ₹500 to Ravi using Google Pay".
+ * Unknown parts are left empty, so the user fills them in.
+ */
+fun parseSharedPaymentText(text: String): SharedPaymentText {
+    val body = text.replace('\n', ' ').trim()
+    if (body.isEmpty()) return SharedPaymentText()
+    val cents = amountRegex.find(body)?.groupValues?.get(1)?.let {
+        BigDecimal(it.replace(",", "")).movePointRight(2).setScale(0, RoundingMode.HALF_UP).toLong()
+    }?.takeIf { it > 0 }
+    val isIncome = when {
+        incomingRegex.containsMatchIn(body) -> true
+        debitRegex.containsMatchIn(body) -> false
+        else -> null
+    }
+    val partyMatch = when (isIncome) {
+        true -> fromRegex.find(body)
+        false -> toRegex.find(body)
+        null -> null
+    }
+    val party = partyMatch?.groupValues?.get(1)
+        ?.substringBefore(" on ")
+        ?.substringBefore(" using ")
+        ?.substringBefore(" via ")
+        ?.substringBefore(" with ")
+        ?.substringBefore(" http")
+        ?.trim()
+        ?.trimEnd('.', '!', ',')
+        ?.take(60)
+        .orEmpty()
+    return SharedPaymentText(cents, party, isIncome)
+}

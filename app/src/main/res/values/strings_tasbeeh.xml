@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Electronic tasbeeh counter -->
+    <string name="tasbeeh_title">Tasbeeh counter</string>
+    <string name="tasbeeh_target">Round</string>
+    <string name="tasbeeh_no_target">None</string>
+    <string name="tasbeeh_sound">Click sound</string>
+    <string name="tasbeeh_vibrate">Vibrate</string>
+    <string name="tasbeeh_reset_title">Reset the counter?</string>
+    <string name="tasbeeh_reset_body">The count of %1$d goes back to zero. Today\'s total is kept.</string>
+    <string name="tasbeeh_lcd_round">ROUND</string>
+    <string name="tasbeeh_lcd_reset">RESET</string>
+    <string name="tasbeeh_count_button">COUNT</string>
+</resources>

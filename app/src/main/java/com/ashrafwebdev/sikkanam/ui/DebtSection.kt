@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -46,6 +47,7 @@ fun DebtSection(vm: FinanceViewModel) {
     val debts by vm.debts.collectAsState()
     var showNew by remember { mutableStateOf(false) }
     var repaying by remember { mutableStateOf<Debt?>(null) }
+    var editing by remember { mutableStateOf<Debt?>(null) }
 
     val lentOwed = debts.filter { it.direction == DebtDirection.LENT }.sumOf { it.remainingCents }
     val borrowedOwed = debts.filter { it.direction == DebtDirection.BORROWED }.sumOf { it.remainingCents }
@@ -68,16 +70,32 @@ fun DebtSection(vm: FinanceViewModel) {
             Text(stringResource(R.string.debt_empty), style = MaterialTheme.typography.bodySmall)
         }
         debts.forEach { debt ->
-            DebtRow(debt, onRepay = { repaying = debt }, onDelete = { vm.deleteDebt(debt.id) })
+            DebtRow(debt, onRepay = { repaying = debt }, onEdit = { editing = debt }, onDelete = { vm.deleteDebt(debt.id) })
         }
     }
 
     if (showNew) {
-        NewDebtDialog(
+        DebtDialog(
+            existing = null,
             onDismiss = { showNew = false },
             onSave = { person, direction, amount, dueMillis, note ->
                 if (vm.saveDebt(person, direction, amount, dueMillis, note)) {
                     showNew = false
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+    }
+
+    editing?.let { debt ->
+        DebtDialog(
+            existing = debt,
+            onDismiss = { editing = null },
+            onSave = { person, direction, amount, dueMillis, note ->
+                if (vm.updateDebt(debt, person, direction, amount, dueMillis, note)) {
+                    editing = null
                     true
                 } else {
                     false
@@ -103,7 +121,7 @@ fun DebtSection(vm: FinanceViewModel) {
 }
 
 @Composable
-private fun DebtRow(debt: Debt, onRepay: () -> Unit, onDelete: () -> Unit) {
+private fun DebtRow(debt: Debt, onRepay: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val overdue = debt.remainingCents > 0 && debt.dueMillis != 0L && debt.dueMillis < startOfDay(System.currentTimeMillis())
     val direction = if (debt.direction == DebtDirection.LENT) stringResource(R.string.debt_lent)
     else stringResource(R.string.debt_borrowed)
@@ -134,6 +152,9 @@ private fun DebtRow(debt: Debt, onRepay: () -> Unit, onDelete: () -> Unit) {
                     )
                 }
             }
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.debt_edit_desc))
+            }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.debt_delete_desc))
             }
@@ -155,22 +176,26 @@ private fun parseDueDate(text: String): Long? {
 }
 
 @Composable
-private fun NewDebtDialog(
+private fun DebtDialog(
+    existing: Debt?,
     onDismiss: () -> Unit,
     onSave: (String, DebtDirection, String, Long, String) -> Boolean,
 ) {
-    var direction by remember { mutableStateOf(DebtDirection.LENT) }
-    var person by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
-    var due by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
+    var direction by remember { mutableStateOf(existing?.direction ?: DebtDirection.LENT) }
+    var person by remember { mutableStateOf(existing?.person ?: "") }
+    var amount by remember { mutableStateOf(existing?.let { formatPlain(it.amountCents) } ?: "") }
+    var due by remember {
+        mutableStateOf(existing?.dueMillis?.takeIf { it != 0L }?.let { SimpleDateFormat("ddMMyyyy", Locale.US).format(it) } ?: "")
+    }
+    var note by remember { mutableStateOf(existing?.note ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
     val dueError = stringResource(R.string.debt_date_error)
-    val amountError = stringResource(R.string.debt_amount_error)
+    val amountError = if (existing == null) stringResource(R.string.debt_amount_error)
+    else stringResource(R.string.debt_edit_amount_error, formatMoney(existing.paidCents))
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.debt_new_title)) },
+        title = { Text(stringResource(if (existing == null) R.string.debt_new_title else R.string.debt_edit_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

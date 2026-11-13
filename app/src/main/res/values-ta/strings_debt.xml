@@ -24,4 +24,7 @@
     <string name="debt_repay_title">%1$s இடமிருந்து திருப்பிச் செலுத்தல்</string>
     <string name="debt_delete_desc">நீக்கு</string>
     <string name="debt_new_title">புதிய கடன் பதிவு</string>
+    <string name="debt_edit_desc">திருத்து</string>
+    <string name="debt_edit_title">கடன் பதிவைத் திருத்து</string>
+    <string name="debt_edit_amount_error">பெயரையும், ஏற்கனவே திருப்பிச் செலுத்திய %1$s க்குக் குறையாத தொகையையும் உள்ளிடுங்கள்.</string>
 </resources>

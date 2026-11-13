@@ -1015,6 +1015,28 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         return true
     }
 
+    /**
+     * Changes a loan record. The amount can't go below what has already been repaid.
+     * Returns false if the person is blank or the amount is invalid.
+     */
+    fun updateDebt(
+        debt: Debt,
+        person: String,
+        direction: DebtDirection,
+        amountText: String,
+        dueMillis: Long,
+        note: String,
+    ): Boolean {
+        val cents = parseCents(amountText) ?: return false
+        if (person.isBlank() || cents < debt.paidCents) return false
+        viewModelScope.launch {
+            db.debtDao().update(
+                debt.copy(person = person.trim(), direction = direction, amountCents = cents, dueMillis = dueMillis, note = note.trim()),
+            )
+        }
+        return true
+    }
+
     /** Records a repayment. Returns false if the amount is not above zero or is more than is still owed. */
     fun recordRepayment(debt: Debt, amountText: String): Boolean {
         val cents = parseCents(amountText) ?: return false

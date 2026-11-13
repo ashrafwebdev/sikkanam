@@ -35,6 +35,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ashrafwebdev.sikkanam.BuildConfig
 import com.ashrafwebdev.sikkanam.R
+import com.ashrafwebdev.sikkanam.backup.AutoBackup
 import com.ashrafwebdev.sikkanam.data.TransactionType
 import com.ashrafwebdev.sikkanam.payments.isNotificationAccessGranted
 import com.ashrafwebdev.sikkanam.payments.isPaymentCaptureOn
@@ -642,5 +646,104 @@ private fun BackupSection(vm: FinanceViewModel) {
             }
         }
         status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    }
+    AutoBackupCard(vm)
+}
+
+/**
+ * Turns on a daily backup into one file in Google Drive (or any other place the file picker offers).
+ * The Drive app uploads the file, so no Google sign-in is needed inside Sikkanam.
+ */
+@Composable
+private fun AutoBackupCard(vm: FinanceViewModel) {
+    val context = LocalContext.current
+    var showRestore by remember { mutableStateOf(false) }
+    var restoreStatus by remember { mutableStateOf<String?>(null) }
+    val startedText = stringResource(R.string.settings_restore_started)
+    val invalidText = stringResource(R.string.settings_restore_invalid)
+    // Bumped after each change, so the status lines are read again.
+    var refresh by remember { mutableStateOf(0) }
+    // The backup itself runs in the background and records its result later.
+    DisposableEffect(Unit) {
+        val stop = AutoBackup.listen(context) { refresh++ }
+        onDispose { stop() }
+    }
+    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            AutoBackup.turnOn(context, uri)
+            refresh++
+        }
+    }
+    val on = remember(refresh) { AutoBackup.isOn(context) }
+    val fileName = remember(refresh) { AutoBackup.fileName(context) }
+    val last = remember(refresh) { AutoBackup.lastMillis(context) }
+    val failed = remember(refresh) { AutoBackup.lastFailed(context) }
+    val lowStorage = remember(refresh) { AutoBackup.lowStorage(context) }
+    val phoneCopies = remember(refresh) { AutoBackup.phoneCopies(context) }
+
+    SectionCard {
+        SectionHeader(title = stringResource(R.string.auto_backup_title))
+        Text(stringResource(R.string.auto_backup_desc), style = MaterialTheme.typography.bodySmall)
+        if (on) {
+            Text(
+                stringResource(R.string.auto_backup_on, fileName ?: stringResource(R.string.auto_backup_unknown_file)),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                if (last == 0L) stringResource(R.string.auto_backup_never) else stringResource(R.string.auto_backup_last, dateLabel(last)),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (failed) {
+                Text(
+                    stringResource(if (lowStorage) R.string.auto_backup_low_storage else R.string.auto_backup_failed),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(onClick = {
+                    AutoBackup.backUpNow(context)
+                    refresh++
+                }) { Text(stringResource(R.string.auto_backup_now)) }
+                OutlinedButton(onClick = {
+                    AutoBackup.turnOff(context)
+                    refresh++
+                }) { Text(stringResource(R.string.auto_backup_turn_off)) }
+            }
+            TextButton(onClick = { pickFile.launch("sikkanam-auto-backup.json") }) {
+                Text(stringResource(R.string.auto_backup_change_file))
+            }
+        } else {
+            FilledTonalButton(onClick = { pickFile.launch("sikkanam-auto-backup.json") }) {
+                Text(stringResource(R.string.auto_backup_choose))
+            }
+        }
+        if (phoneCopies.isNotEmpty()) {
+            Text(stringResource(R.string.auto_backup_phone_copies, phoneCopies.size), style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { showRestore = true }) { Text(stringResource(R.string.auto_backup_restore_phone)) }
+        }
+        restoreStatus?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    }
+
+    if (showRestore) {
+        AlertDialog(
+            onDismissRequest = { showRestore = false },
+            title = { Text(stringResource(R.string.auto_backup_restore_phone)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(stringResource(R.string.auto_backup_restore_warning), style = MaterialTheme.typography.bodySmall)
+                    phoneCopies.forEach { file ->
+                        TextButton(onClick = {
+                            showRestore = false
+                            val text = runCatching { file.readText() }.getOrNull()
+                            restoreStatus = if (text != null && vm.restoreBackup(text)) startedText else invalidText
+                        }) { Text(dateLabel(file.lastModified())) }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showRestore = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }

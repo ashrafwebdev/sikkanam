@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamil text is a first draft and should be checked by a Tamil reader. -->
+<resources>
+    <!-- Electronic tasbeeh counter -->
+    <string name="tasbeeh_title">தஸ்பீஹ் கவுண்டர்</string>
+    <string name="tasbeeh_target">சுற்று</string>
+    <string name="tasbeeh_no_target">இல்லை</string>
+    <string name="tasbeeh_sound">கிளிக் ஒலி</string>
+    <string name="tasbeeh_vibrate">அதிர்வு</string>
+    <string name="tasbeeh_reset_title">கவுண்டரை மீட்டமைக்கவா?</string>
+    <string name="tasbeeh_reset_body">%1$d என்ற எண்ணிக்கை பூஜ்யமாகும். இன்றைய மொத்தம் வைக்கப்படும்.</string>
+    <string name="tasbeeh_lcd_round">சுற்று</string>
+    <string name="tasbeeh_lcd_reset">RESET</string>
+    <string name="tasbeeh_count_button">COUNT</string>
+</resources>

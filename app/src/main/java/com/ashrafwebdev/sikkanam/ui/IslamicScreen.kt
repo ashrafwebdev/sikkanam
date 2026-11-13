@@ -61,6 +61,7 @@ fun IslamicScreen(vm: FinanceViewModel, modifier: Modifier = Modifier) {
                     PrayerCard()
                     QiblaCard()
                     IslamicDatesCard()
+                    TasbeehCard()
                     IbadahCard()
                 }
                 IslamicPage.ZAKAT -> ZakatScreen(Modifier.fillMaxSize())

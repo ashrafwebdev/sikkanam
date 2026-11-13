@@ -12,4 +12,7 @@
     <string name="budget_change_title">Change budget</string>
     <string name="budget_category">Category</string>
     <string name="budget_monthly_limit">Monthly limit</string>
+    <string name="budget_total_title">All budgets this month</string>
+    <string name="budget_total_limit">Total budget %1$s</string>
+    <string name="budget_total_spent">Spent %1$s</string>
 </resources>
