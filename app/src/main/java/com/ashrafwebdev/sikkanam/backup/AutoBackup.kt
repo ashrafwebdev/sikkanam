@@ -99,6 +99,14 @@ object AutoBackup {
         }
     }
 
+    /** Calls [onChange] whenever the backup status changes, until the returned function is called. */
+    fun listen(context: Context, onChange: () -> Unit): () -> Unit {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> onChange() }
+        val prefs = prefs(context)
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        return { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+
     internal fun recordResult(context: Context, ok: Boolean) {
         val edit = prefs(context).edit().putBoolean(KEY_LAST_FAILED, !ok)
         if (ok) edit.putLong(KEY_LAST_MILLIS, System.currentTimeMillis())

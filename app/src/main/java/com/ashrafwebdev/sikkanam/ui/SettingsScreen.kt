@@ -35,6 +35,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -656,6 +657,11 @@ private fun AutoBackupCard() {
     val context = LocalContext.current
     // Bumped after each change, so the status lines are read again.
     var refresh by remember { mutableStateOf(0) }
+    // The backup itself runs in the background and records its result later.
+    DisposableEffect(Unit) {
+        val stop = AutoBackup.listen(context) { refresh++ }
+        onDispose { stop() }
+    }
     val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             AutoBackup.turnOn(context, uri)
