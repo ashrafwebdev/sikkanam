@@ -1,6 +1,7 @@
 package com.ashrafwebdev.sikkanam.books
 
 import android.content.Context
+import org.json.JSONObject
 
 /**
  * Where the reader stopped in each book, kept on this phone. The number is the first item on
@@ -20,6 +21,7 @@ object ReadingProgress {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .remove(bookId)
             .remove(bookmarkKey(bookId))
+            .remove(bookmarkNamesKey(bookId))
             .remove(finishedKey(bookId))
             .apply()
     }
@@ -55,6 +57,31 @@ object ReadingProgress {
 
     fun clearBookmarks(context: Context, bookId: String) {
         saveBookmarks(context, bookId, emptyList())
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(bookmarkNamesKey(bookId)).apply()
+    }
+
+    fun removeBookmark(context: Context, bookId: String, position: Int) {
+        saveBookmarks(context, bookId, bookmarks(context, bookId) - position)
+        renameBookmark(context, bookId, position, "")
+    }
+
+    /** The names given to bookmarks, by place. Bookmarks without a name are not in the map. */
+    fun bookmarkNames(context: Context, bookId: String): Map<Int, String> {
+        val saved = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(bookmarkNamesKey(bookId), null)
+            ?: return emptyMap()
+        return runCatching {
+            val json = JSONObject(saved)
+            json.keys().asSequence().mapNotNull { key -> key.toIntOrNull()?.let { it to json.getString(key) } }.toMap()
+        }.getOrDefault(emptyMap())
+    }
+
+    /** Names the bookmark at [position]; a blank name goes back to the default "Place N". */
+    fun renameBookmark(context: Context, bookId: String, position: Int, name: String) {
+        val names = bookmarkNames(context, bookId).toMutableMap()
+        if (name.isBlank()) names.remove(position) else names[position] = name.trim()
+        val json = JSONObject()
+        names.forEach { (place, label) -> json.put(place.toString(), label) }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(bookmarkNamesKey(bookId), json.toString()).apply()
     }
 
     private fun saveBookmarks(context: Context, bookId: String, positions: List<Int>) {
@@ -64,6 +91,7 @@ object ReadingProgress {
     }
 
     private fun bookmarkKey(bookId: String) = "bookmarks_$bookId"
+    private fun bookmarkNamesKey(bookId: String) = "bookmark_names_$bookId"
 }
 
 /** The text size the reader uses for EPUB and TXT books, as a step from 0 (smallest) to 4 (largest). */

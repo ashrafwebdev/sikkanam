@@ -33,6 +33,9 @@
     <string name="books_bookmark_here">இந்த இடத்தைக் குறி</string>
     <string name="books_bookmarks_clear">குறிகளை அழி</string>
     <string name="books_bookmark_place">இடம் %1$d</string>
+    <string name="books_bookmark_rename">குறியின் பெயரை மாற்று</string>
+    <string name="books_bookmark_name">குறியின் பெயர்</string>
+    <string name="books_bookmark_remove">நீக்கு</string>
     <string name="books_by">ஆசிரியர்: %1$s</string>
     <string name="reader_contents">உள்ளடக்கம்</string>
     <string name="reader_search">தேடு</string>

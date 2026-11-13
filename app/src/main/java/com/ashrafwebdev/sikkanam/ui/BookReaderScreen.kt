@@ -1,6 +1,19 @@
 package com.ashrafwebdev.sikkanam.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -88,7 +101,12 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
     val file = bookFile(context, book)
     var fontStep by remember { mutableStateOf(ReaderFontSize.load(context)) }
     var pdfZoom by remember { mutableStateOf(PDF_ZOOM_MIN) }
-    Column(modifier = modifier.fillMaxSize()) {
+    var controlsVisible by rememberSaveable { mutableStateOf(true) }
+    val controls = ReaderControls(
+        visible = controlsVisible,
+        toggle = { controlsVisible = !controlsVisible },
+        hide = { controlsVisible = false },
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -129,39 +147,107 @@ fun BookReaderScreen(book: LocalBook, onBack: () -> Unit, modifier: Modifier = M
                 ) { Text("A+") }
             }
         }
-        when {
-            !file.exists() -> Message(stringResource(R.string.books_missing), Modifier.weight(1f))
-            book.format == "pdf" -> PdfBook(book.id, file, pdfZoom, { pdfZoom = it }, Modifier.weight(1f))
-            else -> TextBook(book.id, book.format, file, fontStep, onFontStep = { step ->
-                fontStep = step
-                ReaderFontSize.save(context, step)
-            }, modifier = Modifier.weight(1f))
+    }
+    when {
+        !file.exists() -> ReaderFrame(controls, modifier, alwaysShow = true) {
+            Message(stringResource(R.string.books_missing), Modifier.fillMaxSize())
+        }
+        book.format == "pdf" -> PdfBook(book.id, file, pdfZoom, { pdfZoom = it }, controls, modifier)
+        else -> TextBook(book.id, book.format, file, fontStep, onFontStep = { step ->
+            fontStep = step
+            ReaderFontSize.save(context, step)
+        }, controls = controls, modifier = modifier)
+    }
+}
+
+/**
+ * The reader's menus: the title bar ([header]) plus the tools of each kind of book. They float over
+ * the page so the book can use the whole screen; a tap on the page shows or hides them, and they
+ * hide by themselves once the reader scrolls.
+ */
+private class ReaderControls(
+    val visible: Boolean,
+    val toggle: () -> Unit,
+    val hide: () -> Unit,
+    val header: @Composable () -> Unit,
+)
+
+@Composable
+private fun ReaderFrame(
+    controls: ReaderControls,
+    modifier: Modifier,
+    alwaysShow: Boolean = false,
+    tools: @Composable ColumnScope.() -> Unit = {},
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(modifier.fillMaxSize()) {
+        content()
+        AnimatedVisibility(
+            visible = alwaysShow || controls.visible,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            Surface(Modifier.fillMaxWidth(), shadowElevation = 4.dp) {
+                Column {
+                    controls.header()
+                    Column(Modifier.padding(horizontal = 16.dp), content = tools)
+                }
+            }
         }
     }
 }
 
+/** Hides the menus as soon as [listState] starts scrolling. */
 @Composable
-private fun TextBook(bookId: String, format: String, file: File, fontStep: Int, onFontStep: (Int) -> Unit, modifier: Modifier) {
+private fun HideControlsOnScroll(listState: LazyListState, controls: ReaderControls) {
+    val hide by rememberUpdatedState(controls.hide)
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling -> if (scrolling) hide() }
+    }
+}
+
+@Composable
+private fun TextBook(
+    bookId: String,
+    format: String,
+    file: File,
+    fontStep: Int,
+    onFontStep: (Int) -> Unit,
+    controls: ReaderControls,
+    modifier: Modifier,
+) {
     val loaded by produceState<Result<BookText>?>(null, file, format) {
         value = withContext(Dispatchers.IO) { runCatching { readTextBook(file, format) } }
     }
     val result = loaded
     when {
-        result == null -> Loading(modifier)
-        result.isFailure -> Message(stringResource(R.string.books_error_open), modifier)
-        else -> ParagraphList(bookId, result.getOrThrow(), fontStep, onFontStep, modifier)
+        result == null -> ReaderFrame(controls, modifier, alwaysShow = true) { Loading(Modifier.fillMaxSize()) }
+        result.isFailure -> ReaderFrame(controls, modifier, alwaysShow = true) {
+            Message(stringResource(R.string.books_error_open), Modifier.fillMaxSize())
+        }
+        else -> ParagraphList(bookId, result.getOrThrow(), fontStep, onFontStep, controls, modifier)
     }
 }
 
 @Composable
-private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, onFontStep: (Int) -> Unit, modifier: Modifier) {
+private fun ParagraphList(
+    bookId: String,
+    text: BookText,
+    fontStep: Int,
+    onFontStep: (Int) -> Unit,
+    controls: ReaderControls,
+    modifier: Modifier,
+) {
     if (text.lines.isEmpty()) {
-        Message(stringResource(R.string.books_empty_book), modifier)
+        ReaderFrame(controls, modifier, alwaysShow = true) {
+            Message(stringResource(R.string.books_empty_book), Modifier.fillMaxSize())
+        }
         return
     }
     val context = LocalContext.current
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
+    HideControlsOnScroll(listState, controls)
     val scope = rememberCoroutineScope()
     val headingLines = remember(text) { text.headings.toHashSet() }
     var theme by remember { mutableStateOf(ReaderTheme.load(context)) }
@@ -172,24 +258,29 @@ private fun ParagraphList(bookId: String, text: BookText, fontStep: Int, onFontS
     var pinch by remember { mutableStateOf(1f) }
     // Step 1 is the normal 16 sp body text; each step up or down adds or removes 2 sp.
     val textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = (14 + 2 * fontStep).sp)
-    Column(modifier = modifier.fillMaxWidth().background(background).padding(horizontal = 16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (text.headings.isNotEmpty()) {
-                TextButton(onClick = { showContents = true }) { Text(stringResource(R.string.reader_contents)) }
+    ReaderFrame(
+        controls,
+        modifier.background(background),
+        tools = {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (text.headings.isNotEmpty()) {
+                    TextButton(onClick = { showContents = true }) { Text(stringResource(R.string.reader_contents)) }
+                }
+                TextButton(onClick = { showSearch = true }) { Text(stringResource(R.string.reader_search)) }
+                TextButton(onClick = {
+                    theme = ReaderTheme.next(theme)
+                    ReaderTheme.save(context, theme)
+                }) { Text(stringResource(themeName(theme))) }
             }
-            TextButton(onClick = { showSearch = true }) { Text(stringResource(R.string.reader_search)) }
-            TextButton(onClick = {
-                theme = ReaderTheme.next(theme)
-                ReaderTheme.save(context, theme)
-            }) { Text(stringResource(themeName(theme))) }
-        }
-        BookmarkBar(bookId, listState)
+            BookmarkBar(bookId, listState)
+        },
+    ) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f).pinchToZoom { change ->
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).onReaderTap(controls.toggle).pinchToZoom { change ->
                 pinch *= change
                 val step = when {
                     pinch > PINCH_STEP -> fontStep + 1
@@ -322,12 +413,14 @@ private const val MAX_SEARCH_RESULTS = 200
 private const val PINCH_STEP = 1.2f
 private const val SNIPPET_LENGTH = 120
 
-/** Marks the place on screen with a bookmark, and jumps back to saved bookmarks. */
+/** Marks the place on screen with a bookmark, and jumps back to saved bookmarks. The pencil renames or removes one. */
 @Composable
 private fun BookmarkBar(bookId: String, listState: LazyListState) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var marks by remember(bookId) { mutableStateOf(ReadingProgress.bookmarks(context, bookId)) }
+    var names by remember(bookId) { mutableStateOf(ReadingProgress.bookmarkNames(context, bookId)) }
+    var renaming by remember(bookId) { mutableStateOf<Int?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = {
@@ -339,6 +432,7 @@ private fun BookmarkBar(bookId: String, listState: LazyListState) {
                 TextButton(onClick = {
                     ReadingProgress.clearBookmarks(context, bookId)
                     marks = emptyList()
+                    names = emptyMap()
                 }) { Text(stringResource(R.string.books_bookmarks_clear)) }
             }
         }
@@ -350,11 +444,61 @@ private fun BookmarkBar(bookId: String, listState: LazyListState) {
                 marks.forEach { index ->
                     AssistChip(
                         onClick = { scope.launch { listState.scrollToItem(index) } },
-                        label = { Text(stringResource(R.string.books_bookmark_place, index + 1)) },
+                        label = {
+                            Text(
+                                names[index] ?: stringResource(R.string.books_bookmark_place, index + 1),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 180.dp),
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.books_bookmark_rename),
+                                modifier = Modifier.size(18.dp).clickable { renaming = index },
+                            )
+                        },
                     )
                 }
             }
         }
+    }
+    renaming?.let { index ->
+        var name by remember(index) { mutableStateOf(names[index].orEmpty()) }
+        val close = {
+            renaming = null
+            marks = ReadingProgress.bookmarks(context, bookId)
+            names = ReadingProgress.bookmarkNames(context, bookId)
+        }
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text(stringResource(R.string.books_bookmark_rename)) },
+            text = {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.books_bookmark_name)) },
+                    placeholder = { Text(stringResource(R.string.books_bookmark_place, index + 1)) },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    ReadingProgress.renameBookmark(context, bookId, index, name)
+                    close()
+                }) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        ReadingProgress.removeBookmark(context, bookId, index)
+                        close()
+                    }) { Text(stringResource(R.string.books_bookmark_remove)) }
+                    TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) }
+                }
+            },
+        )
     }
 }
 
@@ -364,7 +508,14 @@ private const val PDF_ZOOM_MAX = 4f
 private const val PDF_ZOOM_STEP = 0.25f
 
 @Composable
-private fun PdfBook(bookId: String, file: File, zoom: Float, onZoom: (Float) -> Unit, modifier: Modifier) {
+private fun PdfBook(
+    bookId: String,
+    file: File,
+    zoom: Float,
+    onZoom: (Float) -> Unit,
+    controls: ReaderControls,
+    modifier: Modifier,
+) {
     val opened by produceState<Result<PdfPages>?>(null, file) {
         value = withContext(Dispatchers.IO) { runCatching { PdfPages(file) } }
     }
@@ -373,14 +524,23 @@ private fun PdfBook(bookId: String, file: File, zoom: Float, onZoom: (Float) -> 
         onDispose { pdf?.getOrNull()?.close() }
     }
     when {
-        pdf == null -> Loading(modifier)
-        pdf.isFailure -> Message(stringResource(R.string.books_error_open), modifier)
-        else -> PdfPageList(bookId, pdf.getOrThrow(), zoom, onZoom, modifier)
+        pdf == null -> ReaderFrame(controls, modifier, alwaysShow = true) { Loading(Modifier.fillMaxSize()) }
+        pdf.isFailure -> ReaderFrame(controls, modifier, alwaysShow = true) {
+            Message(stringResource(R.string.books_error_open), Modifier.fillMaxSize())
+        }
+        else -> PdfPageList(bookId, pdf.getOrThrow(), zoom, onZoom, controls, modifier)
     }
 }
 
 @Composable
-private fun PdfPageList(bookId: String, pdf: PdfPages, zoom: Float, onZoom: (Float) -> Unit, modifier: Modifier) {
+private fun PdfPageList(
+    bookId: String,
+    pdf: PdfPages,
+    zoom: Float,
+    onZoom: (Float) -> Unit,
+    controls: ReaderControls,
+    modifier: Modifier,
+) {
     val context = LocalContext.current
     val density = LocalDensity.current
     // Pages are drawn to the width of the screen inside the side padding, times the zoom.
@@ -391,13 +551,14 @@ private fun PdfPageList(bookId: String, pdf: PdfPages, zoom: Float, onZoom: (Flo
     val widthPx = with(density) { (pageWidth * renderZoom).roundToPx() }.coerceAtLeast(100)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = ReadingProgress.load(context, bookId))
     SaveProgress(bookId, listState)
+    HideControlsOnScroll(listState, controls)
     // Pinch with two fingers to zoom. Zoomed pages that are wider than the screen scroll sideways.
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        BookmarkBar(bookId, listState)
+    ReaderFrame(controls, modifier, tools = { BookmarkBar(bookId, listState) }) {
         Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .onReaderTap(controls.toggle)
                 .pinchToZoom { change -> onZoom((zoom * change).coerceIn(PDF_ZOOM_MIN, PDF_ZOOM_MAX)) }
                 .horizontalScroll(rememberScrollState()),
         ) {

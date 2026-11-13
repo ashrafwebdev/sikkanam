@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +40,13 @@ fun Modifier.pinchToZoom(onZoom: (Float) -> Unit): Modifier {
             } while (event.changes.any { it.pressed })
         }
     }
+}
+
+/** A single tap that did not turn into a scroll or a pinch. */
+@Composable
+fun Modifier.onReaderTap(onTap: () -> Unit): Modifier {
+    val currentOnTap by rememberUpdatedState(onTap)
+    return pointerInput(Unit) { detectTapGestures(onTap = { currentOnTap() }) }
 }
 
 /** Hides the status and navigation bars while on screen. A swipe from the edge shows them for a moment. */
