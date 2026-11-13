@@ -45,6 +45,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -729,7 +731,7 @@ private fun AutoBackupCard(vm: FinanceViewModel) {
             onDismissRequest = { showRestore = false },
             title = { Text(stringResource(R.string.auto_backup_restore_phone)) },
             text = {
-                Column {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
                     Text(stringResource(R.string.auto_backup_restore_warning), style = MaterialTheme.typography.bodySmall)
                     phoneCopies.forEach { file ->
                         TextButton(onClick = {
