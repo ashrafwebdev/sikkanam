@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.room.withTransaction
 import com.ashrafwebdev.sikkanam.data.AppDatabase
 import com.ashrafwebdev.sikkanam.data.BackupData
 import com.ashrafwebdev.sikkanam.data.toJson
@@ -144,8 +145,8 @@ class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWo
     }
 }
 
-/** Reads everything from the database, for a backup made outside the app screens. */
-suspend fun loadBackupData(db: AppDatabase): BackupData = BackupData(
+/** Reads everything from the database in one transaction, so related tables match each other. */
+suspend fun loadBackupData(db: AppDatabase): BackupData = db.withTransaction { BackupData(
     transactions = db.transactionDao().observeAll().first(),
     budgets = db.budgetDao().observeAll().first(),
     donations = db.donationDao().observeAll().first(),
@@ -176,4 +177,4 @@ suspend fun loadBackupData(db: AppDatabase): BackupData = BackupData(
     dawatContacts = db.dawatDao().observeAll().first(),
     localityPeople = db.localityDao().observeAll().first(),
     meetingVisits = db.meetingVisitDao().observeAll().first(),
-)
+) }
